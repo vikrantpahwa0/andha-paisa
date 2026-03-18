@@ -1,0 +1,19 @@
+{
+  "name": "andha-paisa",
+  "version": "1.0.0",
+  "description": "Survey + Feel good Games Application",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "author": "Vikrant",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "sequelize": "^6.37.8"
+  }
+}
