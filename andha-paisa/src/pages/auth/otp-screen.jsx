@@ -6,7 +6,7 @@ import "./otp-screen.css";
 function Verification() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { mode, identifier } = location.state || {};
+  const { mode, identifier, requiresVerification } = location.state || {};
   
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -15,40 +15,56 @@ function Verification() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // Timer logic for OTP resend
+  // Timer logic for OTP resend (only for mobile or when verification is required)
   useEffect(() => {
-    if (mode === "mobile" && timeLeft > 0 && !canResend) {
+    if ((mode === "mobile" || requiresVerification) && timeLeft > 0 && !canResend) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
       setCanResend(true);
     }
-  }, [timeLeft, mode, canResend]);
+  }, [timeLeft, mode, requiresVerification, canResend]);
 
-  const handleSubmit = async (e) => {
+  // Handle OTP verification
+  const handleOTPVerification = async (e) => {
     e.preventDefault();
     setError("");
+    
+    if (code.length !== 6) {
+      setError("Please enter a valid 6-digit code");
+      return;
+    }
+
     setLoading(true);
 
     // Simulate API call
     setTimeout(() => {
-      if (mode === "mobile") {
-        // Verify OTP
-        if (code.length === 6) {
-          console.log("Verifying OTP:", code, "for mobile:", identifier);
-          navigate("/dashboard"); // Redirect on success
-        } else {
-          setError("Invalid verification code");
-        }
+      if (code.length === 6) {
+        console.log("Verifying OTP:", code, "for", mode, ":", identifier);
+        navigate("/dashboard");
       } else {
-        // Verify password
-        if (password.length >= 6) {
-          console.log("Verifying password for email:", identifier);
-          navigate("/dashboard"); // Redirect on success
-        } else {
-          setError("Password must be at least 6 characters");
-        }
+        setError("Invalid verification code");
       }
+      setLoading(false);
+    }, 1000);
+  };
+
+  // Handle password login
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      console.log("Verifying password for email:", identifier);
+      navigate("/dashboard");
       setLoading(false);
     }, 1000);
   };
@@ -60,29 +76,38 @@ function Verification() {
     // API call to resend OTP
   };
 
+  const handleForgotPassword = () => {
+    console.log("Forgot password for:", identifier);
+    // Navigate to forgot password page
+    // navigate("/forgot-password");
+  };
+
   const handleBack = () => {
     navigate(-1);
   };
 
-  return (
-    <div className="container center">
-      <div className="verification-card">
-        <button className="back-btn" onClick={handleBack}>
-          ← Back
-        </button>
+  // Show OTP verification screen for:
+  // 1. Mobile users (always)
+  // 2. Email users when requiresVerification is true (new users)
+  if (mode === "mobile" || (mode === "email" && requiresVerification === true)) {
+    return (
+      <div className="container center">
+        <div className="verification-card">
+          <button className="back-btn" onClick={handleBack}>
+            ← Back
+          </button>
 
-        <h2>
-          {mode === "mobile" ? "Verify Your Number" : "Enter Your Password"}
-        </h2>
-        
-        <p className="verification-subtitle">
-          {mode === "mobile" 
-            ? `We've sent a 6-digit verification code to ${identifier}`
-            : `Welcome back! Enter your password for ${identifier}`}
-        </p>
+          <h2>
+            {mode === "mobile" ? "Verify Your Number" : "Verify Your Email"}
+          </h2>
+          
+          <p className="verification-subtitle">
+            {mode === "mobile" 
+              ? `We've sent a 6-digit verification code to ${identifier}`
+              : `We've sent a 6-digit verification code to ${identifier}`}
+          </p>
 
-        <form onSubmit={handleSubmit}>
-          {mode === "mobile" ? (
+          <form onSubmit={handleOTPVerification}>
             <div className="otp-container">
               <input
                 type="text"
@@ -93,6 +118,7 @@ function Verification() {
                 autoFocus
                 required
                 className="otp-input"
+                disabled={loading}
               />
               {!canResend && timeLeft > 0 && (
                 <p className="timer-text">Resend code in {timeLeft}s</p>
@@ -102,12 +128,44 @@ function Verification() {
                   type="button"
                   className="resend-btn"
                   onClick={handleResendCode}
+                  disabled={loading}
                 >
                   Resend Code
                 </button>
               )}
             </div>
-          ) : (
+
+            {error && <p className="error-message">{error}</p>}
+
+            <button 
+              type="submit" 
+              className="primary-btn"
+              disabled={loading}
+            >
+              {loading ? "Verifying..." : "Verify"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Show password login screen for:
+  // 1. Email users when requiresVerification is false (registered users)
+  if (mode === "email" && requiresVerification === false) {
+    return (
+      <div className="container center">
+        <div className="verification-card">
+          <button className="back-btn" onClick={handleBack}>
+            ← Back
+          </button>
+
+          <h2>Enter Your Password</h2>
+          <p className="verification-subtitle">
+            Welcome back! Enter your password for {identifier}
+          </p>
+
+          <form onSubmit={handlePasswordLogin}>
             <div className="password-container">
               <input
                 type="password"
@@ -116,30 +174,34 @@ function Verification() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="forgot-password-btn"
-                onClick={() => console.log("Forgot password")}
+                onClick={handleForgotPassword}
+                disabled={loading}
               >
                 Forgot password?
               </button>
             </div>
-          )}
 
-          {error && <p className="error-message">{error}</p>}
+            {error && <p className="error-message">{error}</p>}
 
-          <button 
-            type="submit" 
-            className="primary-btn"
-            disabled={loading}
-          >
-            {loading ? "Verifying..." : "Verify"}
-          </button>
-        </form>
+            <button 
+              type="submit" 
+              className="primary-btn"
+              disabled={loading}
+            >
+              {loading ? "Verifying..." : "Verify"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }
 
 export default Verification;
