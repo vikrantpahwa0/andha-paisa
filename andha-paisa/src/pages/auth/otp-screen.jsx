@@ -27,27 +27,34 @@ function Verification() {
 
   // Handle OTP verification
   const handleOTPVerification = async (e) => {
-    e.preventDefault();
-    setError("");
-    
-    if (code.length !== 6) {
-      setError("Please enter a valid 6-digit code");
-      return;
+  e.preventDefault();
+  setError("");
+  
+  if (code.length !== 6) {
+    setError("Please enter a valid 6-digit code");
+    return;
+  }
+
+  setLoading(true);
+
+  // Simulate API call for OTP verification
+  setTimeout(() => {
+    if (code.length === 6) {
+      console.log("Verifying OTP:", code, "for", mode, ":", identifier);
+      
+      // After OTP verification, navigate to registration page
+      navigate("/register", { 
+        state: { 
+          mode: mode,
+          identifier: identifier
+        } 
+      });
+    } else {
+      setError("Invalid verification code");
     }
-
-    setLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      if (code.length === 6) {
-        console.log("Verifying OTP:", code, "for", mode, ":", identifier);
-        navigate("/dashboard");
-      } else {
-        setError("Invalid verification code");
-      }
-      setLoading(false);
-    }, 1000);
-  };
+    setLoading(false);
+  }, 1000);
+};
 
   // Handle password login
   const handlePasswordLogin = async (e) => {

@@ -33,7 +33,7 @@ function App() {
       
       // For now, using a demo parameter:
       // You can change this based on your API response
-      const demoParameter = false; // Change to false to test password screen
+      const demoParameter = true; // Change to false to test password screen
       
       // Simulate API delay
       setTimeout(() => {

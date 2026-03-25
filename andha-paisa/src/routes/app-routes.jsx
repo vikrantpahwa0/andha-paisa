@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/login";
 import Verification from "../pages/auth/otp-screen";
+import Registration from "../pages/auth/registration";
 
 export default function AppRoutes() {
   return (
@@ -8,6 +9,8 @@ export default function AppRoutes() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/verify" element={<Verification />} />
+        <Route path="/register" element={<Registration />} />
+
       </Routes>
     </BrowserRouter>
   );
