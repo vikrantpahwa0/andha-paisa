@@ -1,0 +1,50 @@
+/* Centering layout */
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Card */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Heading */
+.auth-card h2 {
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+/* Input */
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* Button */
+button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #0f172a;
+  color: white;
+  font-weight: 500;
+  font-size: 15px;
+}
