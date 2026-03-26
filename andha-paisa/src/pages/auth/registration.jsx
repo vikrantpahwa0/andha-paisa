@@ -1,7 +1,5 @@
-// Registration.jsx
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "./registration.css";
 
 function Registration() {
   const location = useLocation();
@@ -68,14 +66,20 @@ function Registration() {
   };
 
   return (
-    <div className="container center">
-      <div className="registration-card">
-        <button className="back-btn" onClick={handleBack}>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 sm:p-8 relative">
+        <button 
+          onClick={handleBack}
+          className="absolute top-6 left-6 text-gray-600 hover:text-gray-900 text-lg transition-colors"
+        >
           ← Back
         </button>
 
-        <h2>Complete Your Profile</h2>
-        <p className="registration-subtitle">
+        <h2 className="text-2xl sm:text-3xl text-center font-medium mt-4 mb-3">
+          Complete Your Profile
+        </h2>
+        
+        <p className="text-center text-gray-500 text-sm mb-8">
           {mode === "mobile" 
             ? `Set up your account with ${identifier}`
             : `Create your account with ${identifier}`}
@@ -83,8 +87,10 @@ function Registration() {
 
         <form onSubmit={handleSubmit}>
           {/* Name Field - Common for both */}
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
+          <div className="mb-4">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Full Name
+            </label>
             <input
               id="name"
               type="text"
@@ -94,14 +100,17 @@ function Registration() {
               required
               disabled={loading}
               autoFocus
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
             />
           </div>
 
           {/* Password Fields - Only for Email */}
           {mode === "email" && (
             <>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
+              <div className="mb-4">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
                 <input
                   id="password"
                   type="password"
@@ -110,11 +119,14 @@ function Registration() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
+              <div className="mb-4">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
                 <input
                   id="confirmPassword"
                   type="password"
@@ -123,17 +135,43 @@ function Registration() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={loading}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
                 />
               </div>
             </>
           )}
 
-          {error && <p className="error-message">{error}</p>}
+          {/* Terms and Conditions Checkbox */}
+          <div className="mb-6">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={handleCheckboxChange}
+                disabled={loading}
+                className="mt-1 w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-200 disabled:opacity-50"
+              />
+              <span className="text-sm text-gray-600">
+                I accept the{" "}
+                <button
+                  type="button"
+                  className="text-green-600 hover:text-green-700 underline"
+                  onClick={() => console.log("Open Terms")}
+                >
+                  Terms and Conditions
+                </button>
+              </span>
+            </label>
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+          )}
 
           <button 
             type="submit" 
-            className="primary-btn"
             disabled={loading}
+            className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Creating Account..." : "Create Account"}
           </button>

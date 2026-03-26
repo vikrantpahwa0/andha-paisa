@@ -1,62 +1,48 @@
 import { useState } from "react";
-import "./login.css";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-function App() {
+function Login() {
   const navigate = useNavigate();
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
-  const [mode, setMode] = useState("mobile"); // mobile | email
+  const [mode, setMode] = useState("mobile");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (mode === "mobile") {
-      console.log("Mobile:", mobile);
-      // Mobile always goes to OTP verification
       navigate("/verify", { 
         state: { 
           mode: "mobile", 
           identifier: mobile,
-          requiresVerification: true  // Mobile always needs OTP
+          requiresVerification: true
         } 
       });
     } else {
-      // For email, we'll simulate the API check
       setLoading(true);
       
-      // TODO: Replace this with your actual API call
-      // This is where you'll call your API to check if user is registered
-      // The API should return a boolean (true if user needs verification, false if needs password)
-      
-      // For now, using a demo parameter:
-      // You can change this based on your API response
-      const demoParameter = true; // Change to false to test password screen
-      
-      // Simulate API delay
+      // TODO: Replace with your actual API call
       setTimeout(() => {
-        console.log("Email:", email);
-        console.log("Requires verification:", demoParameter);
-        
         navigate("/verify", { 
           state: { 
             mode: "email", 
             identifier: email,
-            requiresVerification: demoParameter  // This will determine which screen to show
+            requiresVerification: true
           } 
         });
-        
         setLoading(false);
       }, 1000);
     }
   };
 
   return (
-    <div className="container center">
-      <div className="auth-card">
-        <h2>Welcome 👋</h2>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 sm:p-8">
+        <h2 className="text-3xl sm:text-4xl text-center font-medium mb-6 sm:mb-8">
+          Welcome 👋
+        </h2>
 
         <form onSubmit={handleSubmit}>
           {mode === "mobile" ? (
@@ -68,6 +54,7 @@ function App() {
               maxLength={10}
               required
               disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
           ) : (
             <input
@@ -77,38 +64,59 @@ function App() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
           )}
-          <button type="submit" className="primary-btn" disabled={loading}>
+          
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50 mt-1"
+          >
             {loading ? "Checking..." : "Continue"}
           </button>
         </form>
 
-        <div className="divider">
-          <span>OR</span>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-3 bg-white text-gray-400">OR</span>
+          </div>
         </div>
 
-        {/* Toggle Option */}
         <button
-          className="secondary-btn"
+          className="w-full py-3 rounded-xl bg-white text-slate-900 border border-gray-200 text-sm font-medium transition active:scale-95 hover:bg-slate-50 mb-6"
           onClick={() => setMode(mode === "mobile" ? "email" : "mobile")}
           disabled={loading}
         >
           {mode === "mobile" ? "Sign in with Email" : "Use Mobile Number"}
         </button>
 
-        {/* New Mini Divider */}
-        <div className="divider">
-          <span>OR</span>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-3 bg-white text-gray-400">OR</span>
+          </div>
         </div>
 
-        {/* Small Rounded SSO Icons */}
-        <div className="social-login-container">
-          <button type="button" className="social-icon-btn google" aria-label="Google">
-            <FaGoogle />
+        <div className="flex justify-center gap-4">
+          <button 
+            type="button" 
+            aria-label="Google"
+            className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-red-600 text-xl transition hover:-translate-y-1 active:scale-95 hover:border-gray-300"
+          >
+            <FaGoogle className="mx-auto" />
           </button>
-          <button type="button" className="social-icon-btn facebook" aria-label="Facebook">
-            <FaFacebookF />
+          <button 
+            type="button" 
+            aria-label="Facebook"
+            className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-blue-700 text-xl transition hover:-translate-y-1 active:scale-95 hover:border-gray-300"
+          >
+            <FaFacebookF className="mx-auto" />
           </button>
         </div>
       </div>
@@ -116,4 +124,4 @@ function App() {
   );
 }
 
-export default App;
+export default Login;
