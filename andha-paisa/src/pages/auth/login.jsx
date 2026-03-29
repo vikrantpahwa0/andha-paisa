@@ -1,39 +1,83 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { sendOTP, clearError } from "../../store/slices/auth-slice";
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading, error } = useSelector((state) => state.auth);
+  
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState("mobile");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(clearError());
     
     if (mode === "mobile") {
-      navigate("/verify", { 
-        state: { 
-          mode: "mobile", 
-          identifier: mobile,
-          requiresVerification: true
-        } 
-      });
-    } else {
-      setLoading(true);
+      // Mobile - API call to send OTP
+      const result = await dispatch(sendOTP({ 
+        mobile: mobile,
+        country_code: "+91"
+      }));
       
-      // TODO: Replace with your actual API call
-      setTimeout(() => {
+      if (result.payload?.success) {
         navigate("/verify", { 
           state: { 
-            mode: "email", 
-            identifier: email,
+            mode: "mobile", 
+            identifier: mobile,
             requiresVerification: true
           } 
         });
-        setLoading(false);
-      }, 1000);
+      }
+    } else {
+
+      const result = await dispatch(sendOTP({ 
+        email:email,
+      }));
+
+      console.log(result)
+
+      
+      
+      if (result.payload?.success) {
+        switch (result.payload?.data?.code) {
+          case 'PG_VERF':
+            navigate("/verify", { 
+        state: { 
+          mode: "email", 
+          identifier: email,
+          requiresVerification: true
+        } 
+      });             
+            break;
+
+          case 'PG_PASS':
+            navigate("/verify", { 
+        state: { 
+          mode: "email", 
+          identifier: email,
+          requiresVerification: false
+        } 
+      }); 
+            
+            break;
+        
+          default:
+            navigate("/verify", { 
+        state: { 
+          mode: "email", 
+          identifier: email,
+          requiresVerification: true
+        } 
+      });  
+            break;
+        }       
+      }
+      
     }
   };
 
@@ -41,7 +85,7 @@ function Login() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 sm:p-8">
         <h2 className="text-3xl sm:text-4xl text-center font-medium mb-6 sm:mb-8">
-          Welcome 👋
+          Welcome 
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -53,7 +97,7 @@ function Login() {
               onChange={(e) => setMobile(e.target.value)}
               maxLength={10}
               required
-              disabled={loading}
+              disabled={isLoading}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
           ) : (
@@ -63,17 +107,21 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={loading}
+              disabled={isLoading}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
           )}
           
+          {error && (
+            <p className="text-red-500 text-sm text-center mb-3">{error}</p>
+          )}
+          
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={isLoading}
             className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50 mt-1"
           >
-            {loading ? "Checking..." : "Continue"}
+            {isLoading ? "Sending OTP..." : "Continue"}
           </button>
         </form>
 
@@ -89,7 +137,7 @@ function Login() {
         <button
           className="w-full py-3 rounded-xl bg-white text-slate-900 border border-gray-200 text-sm font-medium transition active:scale-95 hover:bg-slate-50 mb-6"
           onClick={() => setMode(mode === "mobile" ? "email" : "mobile")}
-          disabled={loading}
+          disabled={isLoading}
         >
           {mode === "mobile" ? "Sign in with Email" : "Use Mobile Number"}
         </button>

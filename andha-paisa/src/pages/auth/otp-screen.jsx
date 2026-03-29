@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { sendOTP, verifyOTP, loginUser, clearError } from "../../store/slices/auth-slice";
 
 function Verification() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading, error: reduxError } = useSelector((state) => state.auth);
+  
   const { mode, identifier, requiresVerification } = location.state || {};
   
   const [code, setCode] = useState("");
@@ -27,6 +32,7 @@ function Verification() {
   const handleOTPVerification = async (e) => {
     e.preventDefault();
     setError("");
+    dispatch(clearError());
     
     if (code.length !== 6) {
       setError("Please enter a valid 6-digit code");
@@ -35,28 +41,54 @@ function Verification() {
 
     setLoading(true);
 
-    // Simulate API call for OTP verification
-    setTimeout(() => {
-      if (code.length === 6) {
-        console.log("Verifying OTP:", code, "for", mode, ":", identifier);
-        
-        navigate("/register", { 
-          state: { 
-            mode: mode,
-            identifier: identifier
-          } 
-        });
-      } else {
-        setError("Invalid verification code");
-      }
-      setLoading(false);
-    }, 1000);
+    const body = {
+      otp: code,
+      country_code: "+91"
+    };
+
+    if (mode === "mobile") {
+      body.mobile = identifier;
+    } else {
+      body.email = identifier;
+    }
+
+    const result = await dispatch(verifyOTP(body));
+
+    console.log(result)
+
+    if (result.payload?.success) {
+        switch (result.payload?.data?.code) {
+          case 'PG_DSH':
+            navigate("/dashboard", { 
+        state: { 
+          mode: mode,
+          identifier: identifier
+        } 
+      });            
+            break;
+
+          case 'PG_ONB':
+            navigate("/register", { 
+        state: { 
+          mode: mode,
+          identifier: identifier
+        } 
+      });
+      
+    }
+    
+    setLoading(false);
+  }
+    
+    
+    setLoading(false);
   };
 
   // Handle password login
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setError("");
+    dispatch(clearError());
     
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
@@ -65,18 +97,36 @@ function Verification() {
 
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Verifying password for email:", identifier);
+    const body = {
+      email: identifier,
+      password: password
+    };
+
+    const result = await dispatch(loginUser(body));
+    
+    if (result.payload?.success) {
       navigate("/dashboard");
-      setLoading(false);
-    }, 1000);
+    }
+    
+    setLoading(false);
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     setCanResend(false);
     setTimeLeft(60);
-    console.log("Resending OTP to:", identifier);
+    dispatch(clearError());
+    
+    const body = {
+      country_code: "+91"
+    };
+
+    if (mode === "mobile") {
+      body.mobile = identifier;
+    } else {
+      body.email = identifier;
+    }
+
+    await dispatch(sendOTP(body));
   };
 
   const handleForgotPassword = () => {
@@ -118,7 +168,7 @@ function Verification() {
               maxLength={6}
               autoFocus
               required
-              disabled={loading}
+              disabled={loading || isLoading}
               className="w-full px-4 py-3 text-center text-2xl tracking-widest rounded-xl border border-gray-200 mb-4 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
             
@@ -130,7 +180,7 @@ function Verification() {
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  disabled={loading}
+                  disabled={loading || isLoading}
                   className="text-green-600 hover:text-green-700 text-sm font-medium transition disabled:opacity-50"
                 >
                   Resend Code
@@ -138,16 +188,16 @@ function Verification() {
               )}
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+            {(error || reduxError) && (
+              <p className="text-red-500 text-sm text-center mb-4">{error || reduxError}</p>
             )}
 
             <button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || isLoading}
               className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50"
             >
-              {loading ? "Verifying..." : "Verify"}
+              {loading || isLoading ? "Verifying..." : "Verify"}
             </button>
           </form>
         </div>
@@ -183,7 +233,7 @@ function Verification() {
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
               required
-              disabled={loading}
+              disabled={loading || isLoading}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
             />
             
@@ -191,23 +241,23 @@ function Verification() {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                disabled={loading}
+                disabled={loading || isLoading}
                 className="text-green-600 hover:text-green-700 text-sm transition disabled:opacity-50"
               >
                 Forgot password?
               </button>
             </div>
 
-            {error && (
-              <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+            {(error || reduxError) && (
+              <p className="text-red-500 text-sm text-center mb-4">{error || reduxError}</p>
             )}
 
             <button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || isLoading}
               className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50"
             >
-              {loading ? "Verifying..." : "Verify"}
+              {loading || isLoading ? "Verifying..." : "Verify"}
             </button>
           </form>
         </div>

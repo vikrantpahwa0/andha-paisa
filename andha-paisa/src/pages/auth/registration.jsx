@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser, clearError } from "../../store/slices/auth-slice";
 
 function Registration() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading: reduxLoading, error: reduxError } = useSelector((state) => state.auth);
+  
   const { mode, identifier } = location.state || {};
   
   const [name, setName] = useState("");
@@ -16,6 +21,7 @@ function Registration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    dispatch(clearError());
 
     // Validation
     if (!name.trim()) {
@@ -42,19 +48,28 @@ function Registration() {
 
     setLoading(true);
 
-    // Simulate API call for registration
-    setTimeout(() => {
-      console.log("Registration data:", {
-        mode,
-        identifier,
-        name,
-        ...(mode === "email" && { password })
-      });
-      
+    // Prepare request body
+    const body = {
+      name: name.trim(),
+      country_code: "+91",
+      terms_accepted: true
+    };
+
+    if (mode === "mobile") {
+      body.mobile_number = identifier;
+    } else {
+      body.email = identifier;
+      body.password = password;
+    }
+
+    const result = await dispatch(registerUser(body));
+    
+    if (result.payload?.success) {
       // Navigate to dashboard after successful registration
       navigate("/dashboard");
-      setLoading(false);
-    }, 1500);
+    }
+    
+    setLoading(false);
   };
 
   const handleBack = () => {
@@ -98,7 +113,7 @@ function Registration() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              disabled={loading}
+              disabled={loading || reduxLoading}
               autoFocus
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
             />
@@ -118,7 +133,7 @@ function Registration() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || reduxLoading}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
                 />
               </div>
@@ -134,7 +149,7 @@ function Registration() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || reduxLoading}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50 disabled:bg-gray-50"
                 />
               </div>
@@ -148,7 +163,7 @@ function Registration() {
                 type="checkbox"
                 checked={acceptTerms}
                 onChange={handleCheckboxChange}
-                disabled={loading}
+                disabled={loading || reduxLoading}
                 className="mt-1 w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-200 disabled:opacity-50"
               />
               <span className="text-sm text-gray-600">
@@ -164,16 +179,16 @@ function Registration() {
             </label>
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center mb-4">{error}</p>
+          {(error || reduxError) && (
+            <p className="text-red-500 text-sm text-center mb-4">{error || reduxError}</p>
           )}
 
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || reduxLoading}
             className="w-full py-3 rounded-xl bg-green-200 text-slate-900 font-semibold text-base transition active:scale-95 hover:bg-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading || reduxLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
       </div>
