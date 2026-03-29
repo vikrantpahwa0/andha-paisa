@@ -15,11 +15,6 @@ export default (sequelize) => {
         allowNull: false,
       },
 
-      user_name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-
       email: {
         type: DataTypes.STRING,
         unique: true,
@@ -39,7 +34,6 @@ export default (sequelize) => {
 
       password: {
         type: DataTypes.STRING,
-        allowNull: false,
       },
 
       is_active: {

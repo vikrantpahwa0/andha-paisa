@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 import db from "./database/index.js";
 import surveyRoutes from "./routes/surveys.routes.js";
+import userRoutes from "./routes/users.routes.js";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/surveys", surveyRoutes);
+app.use("/auth", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 

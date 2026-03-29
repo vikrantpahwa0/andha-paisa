@@ -1,4 +1,4 @@
-import { failureMessages, httpCodes, successMessages } from "./messages";
+import { failureMessages, httpCodes, successMessages } from "./messages.js";
 
 export const successResponse = (
   res,

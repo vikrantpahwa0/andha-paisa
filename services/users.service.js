@@ -1,34 +1,27 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import db from "../database/index";
+import db from "../database/index.js";
 import {
   successMessages,
   failureMessages,
   validationMessages,
-} from "../constants/messages";
-import { codes } from "../constants/codes";
+} from "../constants/messages.js";
+import { codes } from "../constants/codes.js";
 
 const { USERS, VERIFICATIONS } = db;
 
 export const registerUser = async (data) => {
-  const { name, user_name, password } = data;
-  const normalizedUsername = user_name.toLowerCase();
+  const { name, email, mobile_number, country_code, password } = data;
 
-  const existingUser = await USERS.findOne({
-    where: { user_name: normalizedUsername },
-  });
-
-  if (existingUser) {
-    throw new Error(failureMessages.USER_ALREADY_EXISTS);
-  }
-
-  const password_hash = await bcrypt.hash(password, 10);
+  const password_hash = password && await bcrypt.hash(password, 10);
 
   const user = await USERS.create({
     name,
-    user_name: normalizedUsername,
-    password: password_hash,
-  });
+    password: password_hash || null,
+    email:email || null,
+    mobile_number:mobile_number || null,
+    country_code:country_code || null
+  }); 
 
   return {
     message: successMessages.USER_REGISTERED,
@@ -49,7 +42,19 @@ export const sendOtp = async (data) => {
 
   const normalizedEmail = email ? email.toLowerCase() : null;
 
-  const otp = crypto.randomInt(100000, 999999).toString();
+  if (normalizedEmail) {
+    const existingUser = await USERS.findOne({
+      where: { email: normalizedEmail },
+    });
+
+    if (existingUser) {
+      return {
+        code: codes.PG_PASS,
+      };
+    }
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
   if (normalizedEmail) {
@@ -105,6 +110,10 @@ export const sendOtp = async (data) => {
     default:
       throw new Error(failureMessages.INVALID_METHOD);
   }
+
+  return {
+        code: codes.PG_VERF,
+      };
 };
 
 export const verifyOtp = async (data) => {
@@ -152,49 +161,46 @@ export const verifyOtp = async (data) => {
     is_active: false,
   });
 
+  let existingUser;
+
   if (normalizedEmail) {
-    const existingUser = await USERS.findOne({
+    existingUser = await USERS.findOne({
       where: { email: normalizedEmail },
     });
-
-    if (existingUser) {
-      return {
-        code: codes.PG_DSH,
-      };
-    }
   } else if (mobile) {
-    const existingUser = await USERS.findOne({
+    console.log(mobile,country_code);
+    existingUser = await USERS.findOne({
       where: {
         mobile_number: mobile,
         country_code: country_code,
       },
     });
-
+  }
     if (existingUser) {
       return {
         code: codes.PG_DSH,
       };
     }
-  }
-
-  return {
-    verificationId: verification.id,
-  };
+    else{
+      return {
+        code: codes.PG_ONB,
+      };
+    }
 };
 
 export const loginUser = async (data) => {
-  const { user_name, password } = data;
-  const normalizedUsername = user_name.toLowerCase();
+  const { email, password } = data;
+  const normalizedEmail = email.toLowerCase();
 
   const user = await USERS.findOne({
-    where: { user_name: normalizedUsername },
+    where: { email: normalizedEmail },
   });
 
   if (!user) {
     throw new Error(failureMessages.INVALID_CREDENTIALS);
   }
 
-  const isValid = await bcrypt.compare(password, user.password_hash);
+  const isValid = await bcrypt.compare(password, user.password);
 
   if (!isValid) {
     throw new Error(failureMessages.INVALID_CREDENTIALS);

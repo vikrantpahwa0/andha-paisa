@@ -36,10 +36,10 @@ export const loginUser = async (req, res) => {
 
 export const sendOtp = async (req, res) => {
   try {
-    await userService.sendOtp(req.body);
+    const sendOtp = await userService.sendOtp(req.body);
     return successResponse(
       res,
-      null,
+      sendOtp,
       successMessages.OTP_SENT,
       httpCodes.SUCCESS,
     );
