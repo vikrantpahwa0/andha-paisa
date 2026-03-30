@@ -12,27 +12,40 @@ const games = [
   { id: 4, title: "Play Game & Earn ₹30", reward: "₹30" },
 ];
 
+const offers = [
+  {
+    id: 5,
+    title: "Explore Offers",
+    reward: "₹80",
+    link: "/offerwall",
+  },
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("games");
+
+  const handleStart = (item) => {
+    if (item.link) {
+      navigate(item.link);
+    }
+  };
 
   const renderCards = (data) => (
     <div className="grid gap-4">
       {data.map((item) => (
         <div
           key={item.id}
-          className="bg-white rounded-2xl shadow-md p-5 flex justify-between items-center hover:shadow-lg transition"
+          className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
         >
           <div>
-            <h3 className="text-lg font-medium text-slate-800">
-              {item.title}
-            </h3>
-            <p className="text-green-600 font-semibold mt-1">
-              Earn {item.reward}
-            </p>
+            <h3 className="text-lg font-medium text-slate-800">{item.title}</h3>
           </div>
 
-          <button className="px-5 py-2 rounded-xl bg-green-200 text-slate-900 font-medium hover:bg-green-300 transition active:scale-95">
+          <button
+            onClick={() => handleStart(item)}
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 font-semibold hover:from-green-300 hover:to-green-500 transition active:scale-95 shadow-sm"
+          >
             Start
           </button>
         </div>
@@ -40,15 +53,19 @@ export default function Dashboard() {
     </div>
   );
 
+  const getActiveData = () => {
+    if (activeTab === "games") return games;
+    if (activeTab === "surveys") return surveys;
+    if (activeTab === "offers") return offers;
+  };
+
   return (
     <AppLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-800">
-          Earn Rewards
-        </h1>
+        <h1 className="text-2xl font-semibold text-slate-800">Earn Rewards</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Play games or complete surveys to earn coins
+          Play games, complete surveys or try offers to earn coins
         </p>
       </div>
 
@@ -56,10 +73,10 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit mb-6">
         <button
           onClick={() => setActiveTab("games")}
-          className={`px-4 py-2 rounded-xl font-medium ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             activeTab === "games"
               ? "bg-green-200 text-slate-900"
-              : "text-slate-600"
+              : "text-slate-600 hover:bg-green-100"
           }`}
         >
           🎮 Games
@@ -67,19 +84,23 @@ export default function Dashboard() {
 
         <button
           onClick={() => setActiveTab("surveys")}
-          className={`px-4 py-2 rounded-xl font-medium ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             activeTab === "surveys"
               ? "bg-green-200 text-slate-900"
-              : "text-slate-600"
+              : "text-slate-600 hover:bg-green-100"
           }`}
         >
           📝 Surveys
         </button>
 
-        {/* ✅ NEW OFFERS TAB */}
+        {/* ✅ UPDATED OFFERS TAB */}
         <button
-          onClick={() => navigate("/offerwall")}
-          className="px-4 py-2 rounded-xl font-medium text-slate-600 hover:bg-green-100"
+          onClick={() => setActiveTab("offers")}
+          className={`px-4 py-2 rounded-xl font-medium transition ${
+            activeTab === "offers"
+              ? "bg-green-200 text-slate-900"
+              : "text-slate-600 hover:bg-green-100"
+          }`}
         >
           🔥 Offers
         </button>
@@ -87,30 +108,42 @@ export default function Dashboard() {
 
       {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Middle */}
-        <div className="lg:col-span-8">
-          {activeTab === "games"
-            ? renderCards(games)
-            : renderCards(surveys)}
-        </div>
+        {/* RIGHT SECTION */}
+        <div className="lg:col-span-4 order-1 lg:order-2">
+          {/* Balance Card */}
+          <div className="bg-gradient-to-br from-green-200 via-green-300 to-green-400 rounded-2xl shadow-md p-6">
+            <h3 className="text-sm text-slate-700">Your Balance</h3>
 
-        {/* Right */}
-        <div className="lg:col-span-4">
-          <div className="bg-white rounded-2xl shadow-md p-5">
-            <h3 className="text-lg font-semibold text-slate-800">
-              Your Points
-            </h3>
-            <p className="text-3xl font-bold text-green-600 mt-3">
-              ₹120
+            <p className="text-4xl font-bold mt-2 text-slate-900">₹120</p>
+
+            <p className="text-xs mt-1 text-slate-600">
+              Keep earning to withdraw 💰
             </p>
 
             <button
               onClick={() => navigate("/profile")}
-              className="mt-4 w-full px-4 py-2 rounded-xl bg-green-200 text-slate-900 font-medium hover:bg-green-300"
+              className="mt-6 w-full bg-white text-green-600 font-semibold py-2 rounded-xl hover:bg-green-100 transition"
             >
-              View Account
+              Withdraw / Account
             </button>
           </div>
+
+          {/* Today’s Goal */}
+          <div className="bg-gradient-to-br from-green-200 via-green-300 to-green-400 rounded-2xl shadow-md p-5 mt-4">
+            <h4 className="text-sm text-slate-700">Today’s Goal</h4>
+            <p className="text-lg font-semibold mt-1 text-slate-900">
+              Earn ₹50
+            </p>
+
+            <div className="w-full bg-white/50 h-2 rounded-full mt-3">
+              <div className="bg-green-600 h-2 rounded-full w-[40%]" />
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        <div className="lg:col-span-8 order-2 lg:order-1">
+          {renderCards(getActiveData())}
         </div>
       </div>
     </AppLayout>

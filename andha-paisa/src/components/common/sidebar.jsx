@@ -1,43 +1,46 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { Home, Gamepad2, ClipboardList, Gift, User } from "lucide-react";
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const menu = [
-    { name: "Earn", path: "/" },
-    { name: "Surveys", path: "/surveys" },
-    { name: "Offers", path: "/offers" },
-    { name: "Games", path: "/games" },
-    { name: "Account", path: "/profile" },
+    { name: "Earn", path: "/", icon: Home },
+    { name: "Games", path: "/games", icon: Gamepad2 },
+    { name: "Surveys", path: "/surveys", icon: ClipboardList },
+    { name: "Offers", path: "/offers", icon: Gift },
+    { name: "Account", path: "/profile", icon: User },
   ];
 
   return (
     <div className="h-full bg-white shadow-md flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b">
-        <h1 className="text-xl font-semibold text-green-600">
+        <h1 className="text-xl font-bold text-green-600 tracking-tight">
           Andha Paisa 💰
         </h1>
       </div>
 
       {/* Menu */}
-      <div className="p-4 space-y-2">
+      <div className="p-3 space-y-1">
         {menu.map((item) => {
           const isActive = location.pathname === item.path;
+          const Icon = item.icon;
 
           return (
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className={`w-full text-left px-4 py-2 rounded-xl transition
+              className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200
                 ${
                   isActive
-                    ? "bg-green-200 text-slate-900"
-                    : "text-slate-700 hover:bg-green-100 hover:text-green-700"
+                    ? "bg-green-100 text-green-700 border-l-4 border-green-500"
+                    : "text-slate-600 hover:bg-green-50 hover:text-green-600"
                 }`}
             >
-              {item.name}
+              <Icon size={18} />
+              <span className="font-medium">{item.name}</span>
             </button>
           );
         })}
