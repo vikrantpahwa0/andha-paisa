@@ -1,134 +1,118 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AppLayout from "../components/common/app-layout";
 
 const surveys = [
-  {
-    id: 1,
-    title: "Complete Survey & Earn ₹20",
-    reward: "₹20",
-    link: "https://mylead.global/offer1",
-  },
-  {
-    id: 2,
-    title: "Quick Survey - ₹15",
-    reward: "₹15",
-    link: "https://mylead.global/offer2",
-  },
+  { id: 1, title: "Complete Survey & Earn ₹20", reward: "₹20" },
+  { id: 2, title: "Quick Survey - ₹15", reward: "₹15" },
 ];
 
 const games = [
-  {
-    id: 3,
-    title: "Spin & Win - ₹50",
-    reward: "₹50",
-    link: "https://mylead.global/offer3",
-  },
-  {
-    id: 4,
-    title: "Play Game & Earn ₹30",
-    reward: "₹30",
-    link: "https://mylead.global/offer4",
-  },
+  { id: 3, title: "Spin & Win - ₹50", reward: "₹50" },
+  { id: 4, title: "Play Game & Earn ₹30", reward: "₹30" },
 ];
 
-function Dashboard() {
+export default function Dashboard() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("games");
 
-  const handleOfferClick = (offerLink) => {
-    const userId = "user_1"; // TODO: replace with real logged-in user id
-    const finalLink = `${offerLink}?ml_sub1=${userId}`;
-    window.open(finalLink, "_blank");
-  };
-
-  const renderSection = (title, data) => (
-    <div className="max-w-4xl mx-auto mb-8">
-      <h2 className="text-xl font-semibold text-slate-800 mb-4">{title}</h2>
-
-      <div className="grid gap-4">
-        {data.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-2xl shadow-md p-5 flex items-center justify-between hover:shadow-lg transition"
-          >
-            <div>
-              <h3 className="text-lg font-medium text-slate-800">
-                {item.title}
-              </h3>
-              <p className="text-green-600 font-semibold mt-1">
-                Earn {item.reward}
-              </p>
-            </div>
-
-            <button
-              onClick={() => handleOfferClick(item.link)}
-              className="px-5 py-2 rounded-xl bg-green-200 text-slate-900 font-medium hover:bg-green-300 transition active:scale-95"
-            >
-              Start
-            </button>
+  const renderCards = (data) => (
+    <div className="grid gap-4">
+      {data.map((item) => (
+        <div
+          key={item.id}
+          className="bg-white rounded-2xl shadow-md p-5 flex justify-between items-center hover:shadow-lg transition"
+        >
+          <div>
+            <h3 className="text-lg font-medium text-slate-800">
+              {item.title}
+            </h3>
+            <p className="text-green-600 font-semibold mt-1">
+              Earn {item.reward}
+            </p>
           </div>
-        ))}
-      </div>
+
+          <button className="px-5 py-2 rounded-xl bg-green-200 text-slate-900 font-medium hover:bg-green-300 transition active:scale-95">
+            Start
+          </button>
+        </div>
+      ))}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* 🔝 Navbar */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <h1 className="text-xl font-semibold text-green-600">
-            Andha Paisa 💰
-          </h1>
-
-          {/* Profile */}
-          <button
-            onClick={() => navigate("/profile")}
-            className="text-sm text-gray-600 hover:text-gray-800"
-          >
-            Profile
-          </button>
-        </div>
+    <AppLayout>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-slate-800">
+          Earn Rewards
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Play games or complete surveys to earn coins
+        </p>
       </div>
 
-      {/* 🔽 Content */}
-      <div className="p-4 sm:p-6">
-        {/* Header */}
-        <div className="max-w-4xl mx-auto mb-6">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-800">
-            Earn Rewards
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Play games or complete surveys to earn coins
-          </p>
+      {/* Tabs */}
+      <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit mb-6">
+        <button
+          onClick={() => setActiveTab("games")}
+          className={`px-4 py-2 rounded-xl font-medium ${
+            activeTab === "games"
+              ? "bg-green-200 text-slate-900"
+              : "text-slate-600"
+          }`}
+        >
+          🎮 Games
+        </button>
+
+        <button
+          onClick={() => setActiveTab("surveys")}
+          className={`px-4 py-2 rounded-xl font-medium ${
+            activeTab === "surveys"
+              ? "bg-green-200 text-slate-900"
+              : "text-slate-600"
+          }`}
+        >
+          📝 Surveys
+        </button>
+
+        {/* ✅ NEW OFFERS TAB */}
+        <button
+          onClick={() => navigate("/offerwall")}
+          className="px-4 py-2 rounded-xl font-medium text-slate-600 hover:bg-green-100"
+        >
+          🔥 Offers
+        </button>
+      </div>
+
+      {/* Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Middle */}
+        <div className="lg:col-span-8">
+          {activeTab === "games"
+            ? renderCards(games)
+            : renderCards(surveys)}
         </div>
 
-        {/* 🔥 Offerwall Card */}
-        <div className="max-w-4xl mx-auto mb-6">
-          <div className="bg-gradient-to-r from-green-200 to-green-300 rounded-2xl shadow-md p-5 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900">
-                🔥 Mega Offerwall
-              </h3>
-              <p className="text-sm text-slate-700 mt-1">
-                Complete high-paying offers & earn up to ₹100+
-              </p>
-            </div>
+        {/* Right */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-2xl shadow-md p-5">
+            <h3 className="text-lg font-semibold text-slate-800">
+              Your Points
+            </h3>
+            <p className="text-3xl font-bold text-green-600 mt-3">
+              ₹120
+            </p>
 
             <button
-              onClick={() => navigate("/offerwall")}
-              className="px-5 py-2 rounded-xl bg-white text-slate-900 font-medium hover:bg-gray-100 transition active:scale-95"
+              onClick={() => navigate("/profile")}
+              className="mt-4 w-full px-4 py-2 rounded-xl bg-green-200 text-slate-900 font-medium hover:bg-green-300"
             >
-              Start
+              View Account
             </button>
           </div>
         </div>
-
-        {/* Sections */}
-        {renderSection("🎮 Games", games)}
-        {renderSection("📝 Surveys", surveys)}
       </div>
-    </div>
+    </AppLayout>
   );
 }
-
-export default Dashboard;

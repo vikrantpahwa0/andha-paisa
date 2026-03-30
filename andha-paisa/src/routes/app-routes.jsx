@@ -3,7 +3,7 @@ import Login from "../pages/auth/login";
 import Verification from "../pages/auth/otp-screen";
 import Registration from "../pages/auth/registration";
 import Dashboard from "../pages/dashboard";
-import Offerwall from "../pages/offerwall";
+import Offerwall from "../pages/offerwalls-and-surveys/offerwall";
 
 export default function AppRoutes() {
   return (
