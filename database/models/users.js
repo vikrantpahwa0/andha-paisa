@@ -50,6 +50,10 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
+      role: {
+        type: DataTypes.ENUM("US", "AD"),
+        defaultValue: "US",
+      },
     },
     {
       tableName: "users",
