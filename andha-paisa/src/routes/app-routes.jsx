@@ -4,6 +4,7 @@ import Verification from "../pages/auth/otp-screen";
 import Registration from "../pages/auth/registration";
 import Dashboard from "../pages/dashboard";
 import Offerwall from "../pages/offerwalls-and-surveys/offerwall";
+import AdminDashboard from "../pages/admin-dashboard";
 
 export default function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function AppRoutes() {
         <Route path="/register" element={<Registration />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/offerwall" element={<Offerwall />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );
