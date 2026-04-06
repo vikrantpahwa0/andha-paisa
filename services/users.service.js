@@ -13,15 +13,15 @@ const { USERS, VERIFICATIONS } = db;
 export const registerUser = async (data) => {
   const { name, email, mobile_number, country_code, password } = data;
 
-  const password_hash = password && await bcrypt.hash(password, 10);
+  const password_hash = password && (await bcrypt.hash(password, 10));
 
   const user = await USERS.create({
     name,
     password: password_hash || null,
-    email:email || null,
-    mobile_number:mobile_number || null,
-    country_code:country_code || null
-  }); 
+    email: email || null,
+    mobile_number: mobile_number || null,
+    country_code: country_code || null,
+  });
 
   return {
     message: successMessages.USER_REGISTERED,
@@ -112,8 +112,8 @@ export const sendOtp = async (data) => {
   }
 
   return {
-        code: codes.PG_VERF,
-      };
+    code: codes.PG_VERF,
+  };
 };
 
 export const verifyOtp = async (data) => {
@@ -168,7 +168,7 @@ export const verifyOtp = async (data) => {
       where: { email: normalizedEmail },
     });
   } else if (mobile) {
-    console.log(mobile,country_code);
+    console.log(mobile, country_code);
     existingUser = await USERS.findOne({
       where: {
         mobile_number: mobile,
@@ -176,16 +176,15 @@ export const verifyOtp = async (data) => {
       },
     });
   }
-    if (existingUser) {
-      return {
-        code: codes.PG_DSH,
-      };
-    }
-    else{
-      return {
-        code: codes.PG_ONB,
-      };
-    }
+  if (existingUser) {
+    return {
+      code: codes.PG_DSH,
+    };
+  } else {
+    return {
+      code: codes.PG_ONB,
+    };
+  }
 };
 
 export const loginUser = async (data) => {
@@ -194,6 +193,7 @@ export const loginUser = async (data) => {
 
   const user = await USERS.findOne({
     where: { email: normalizedEmail },
+    attributes: ["role", "password"],
   });
 
   if (!user) {
@@ -210,5 +210,8 @@ export const loginUser = async (data) => {
     expiresIn: "7d",
   });
 
-  return token;
+  return {
+    code: user.role === "AD" ? codes.PG_ADM : codes.PG_DSH,
+    token,
+  };
 };

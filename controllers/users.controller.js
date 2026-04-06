@@ -22,10 +22,10 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const token = await userService.loginUser(req.body);
+    const userInfo = await userService.loginUser(req.body);
     return successResponse(
       res,
-      { token },
+      userInfo,
       successMessages.LOGIN_SUCCESS,
       httpCodes.SUCCESS,
     );
