@@ -3,6 +3,9 @@ export const successMessages = {
   USER_REGISTERED: "User registered",
   LOGIN_SUCCESS: "Login successful",
   OTP_SENT: "Otp sent",
+  SURVEY_MODULE_MESSAGES: {
+    SURVEY_CRETAED: "Survey Created",
+  },
 };
 
 export const failureMessages = {

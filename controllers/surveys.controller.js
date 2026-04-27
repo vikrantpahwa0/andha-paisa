@@ -1,15 +1,21 @@
-import db from "../database/index.js";
-const { SURVEY } = db;
+import * as surveyService from "../services/surveys.service.js";
+import { successResponse, errorResponse } from "../constants/response.js";
+import {
+  httpCodes,
+  failureMessages,
+  successMessages,
+} from "../constants/messages.js";
 
-export const getSurveys = async (req, res) => {
+export const createUpdateSurveys = async (req, res) => {
   try {
-    const surveys = await SURVEY.findAll({
-      where: { active: true },
-    });
-
-    res.json(surveys);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch surveys" });
+    const survey = await surveyService.createUpdateSurveys(req.body);
+    return successResponse(
+      res,
+      survey,
+      successMessages.SURVEY_MODULE_MESSAGES.SURVEY_CRETAED,
+      httpCodes.CREATED,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
