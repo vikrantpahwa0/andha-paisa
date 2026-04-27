@@ -5,6 +5,7 @@ export const successMessages = {
   OTP_SENT: "Otp sent",
   SURVEY_MODULE_MESSAGES: {
     SURVEY_CRETAED: "Survey Created",
+    SURVEYS_FETCHED_SUCCESSFULLY: "Surveys Fetched Successfully",
   },
 };
 

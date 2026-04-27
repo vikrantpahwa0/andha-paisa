@@ -131,10 +131,32 @@ export const createUpdateSurveys = async (data) => {
   await createUpdateQuestions(survey.id, questions);
 
   return {
-    success: true,
-    message: surveyId
-      ? "Survey updated successfully"
-      : "Survey created successfully",
     surveyId: survey.id,
   };
+};
+
+export const listSurveys = async (data) => {
+  return await SURVEY.findAll({
+    where: { is_active: true },
+    include: [
+      {
+        model: SURVEY_QUESTIONS,
+        as: "questions",
+        where: { is_active: true },
+        required: false,
+        include: [
+          {
+            model: SURVEYS_QUESTIONS_OPTIONS,
+            as: "options",
+            where: { is_active: true },
+            required: false,
+          },
+        ],
+      },
+    ],
+    order: [
+      ["created_at", "DESC"], // Latest surveys first
+      [{ model: SURVEY_QUESTIONS, as: "questions" }, "created_at", "ASC"],
+    ],
+  });
 };

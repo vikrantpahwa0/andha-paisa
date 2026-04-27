@@ -47,10 +47,10 @@ export default (sequelize) => {
       foreignKey: "question_id",
       as: "question",
     });
-    SurveysQuestionOption.hasMany(models.UsersSurveysAnswer, {
-      foreignKey: "option_chosen_id",
-      as: "answers",
-    });
+    // SurveysQuestionOption.hasMany(models.UsersSurveysAnswer, {
+    //   foreignKey: "option_chosen_id",
+    //   as: "answers",
+    // });
   };
 
   return SurveysQuestionOption;

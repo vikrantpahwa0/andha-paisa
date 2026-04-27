@@ -63,10 +63,10 @@ export default (sequelize) => {
       foreignKey: "survey_id",
       as: "questions",
     });
-    Survey.hasMany(models.UsersSurveysTransaction, {
-      foreignKey: "survey_id",
-      as: "userTransactions",
-    });
+    // Survey.hasMany(models.UsersSurveysTransaction, {
+    //   foreignKey: "survey_id",
+    //   as: "userTransactions",
+    // });
   };
 
   return Survey;
