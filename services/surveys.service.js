@@ -10,10 +10,15 @@ const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS } = db;
 /**
  * Create or update survey basic info
  */
-const createUpdateSurveyBasicInfo = async (surveyId, surveyBasicInfo) => {
-  if (surveyId) {
+/**
+ * Create or update survey basic info
+ */
+const createUpdateSurveyBasicInfo = async (surveyBasicInfo) => {
+  const { id, name, reward, is_active } = surveyBasicInfo;
+
+  if (id) {
     // Update existing survey
-    const survey = await SURVEY.findByPk(surveyId);
+    const survey = await SURVEY.findByPk(id);
     if (!survey) {
       throw new Error(failureMessages.SURVEY_NOT_FOUND);
     }
@@ -32,7 +37,7 @@ const createUpdateSurveyBasicInfo = async (surveyId, surveyBasicInfo) => {
 const createUpdateQuestions = async (surveyId, questions) => {
   for (const questionData of questions) {
     if (questionData.is_active === false) {
-      // DELETE (soft delete or hard delete) the question and its options
+      // DELETE (soft delete) the question and its options
       if (questionData.id) {
         // Soft delete the question
         await SURVEY_QUESTIONS.update(
@@ -113,21 +118,23 @@ const createUpdateQuestions = async (surveyId, questions) => {
  * Main function to create or update surveys
  */
 export const createUpdateSurveys = async (data) => {
-  const { surveyBasicInfo, questions, surveyId = null } = data;
+  const { surveyBasicInfo, questions } = data;
 
   // Validate
-  if (!surveyBasicInfo.name || !surveyBasicInfo.reward) {
-    throw new Error("Name and reward are required");
+  if (surveyBasicInfo.is_active) {
+    if (!surveyBasicInfo.name || !surveyBasicInfo.reward) {
+      throw new Error("Name and reward are required");
+    }
+
+    if (!questions || questions.length === 0) {
+      throw new Error("At least one question is required");
+    }
   }
 
-  if (!questions || questions.length === 0) {
-    throw new Error("At least one question is required");
-  }
+  // Create or update survey basic info (id will be inside surveyBasicInfo if updating)
+  const survey = await createUpdateSurveyBasicInfo(surveyBasicInfo);
 
-  // Create or update survey basic info
-  const survey = await createUpdateSurveyBasicInfo(surveyId, surveyBasicInfo);
-
-  // Create or update questions (only active ones will be created/updated)
+  // Create or update questions
   await createUpdateQuestions(survey.id, questions);
 
   return {
