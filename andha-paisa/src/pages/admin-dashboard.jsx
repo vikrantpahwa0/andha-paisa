@@ -1,18 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AdminLayout from "../components/common/admin-app-layout";
 import QuestionModal from "../components/surveys/question-modal";
+import {
+  createUpdateSurvey,
+  clearError,
+  clearSuccessMessage,
+} from "../store/slices/survey-slice";
 
 export default function AdminSurveys() {
+  const dispatch = useDispatch();
+  const { isLoading, error, successMessage } = useSelector(
+    (state) => state.survey,
+  );
+
   const [surveys, setSurveys] = useState([]);
   const [form, setForm] = useState({
     name: "",
     reward: "",
   });
-
   const [questions, setQuestions] = useState([]);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
+
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        dispatch(clearSuccessMessage());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch(clearError());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, error, dispatch]);
 
   const openQuestionModal = (question = null, index = null) => {
     setEditingQuestion(question);
@@ -28,7 +54,6 @@ export default function AdminSurveys() {
 
   const saveQuestion = (questionData) => {
     if (editingQuestionIndex !== null) {
-      // Edit existing question
       const updatedQuestions = [...questions];
       updatedQuestions[editingQuestionIndex] = {
         ...questionData,
@@ -36,7 +61,6 @@ export default function AdminSurveys() {
       };
       setQuestions(updatedQuestions);
     } else {
-      // Add new question
       const newQuestion = {
         id: Date.now(),
         ...questionData,
@@ -50,7 +74,7 @@ export default function AdminSurveys() {
     setQuestions(questions.filter((_, index) => index !== indexToDelete));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (questions.length === 0) {
@@ -58,26 +82,54 @@ export default function AdminSurveys() {
       return;
     }
 
-    const newSurvey = {
-      id: Date.now(),
-      name: form.name,
-      reward: form.reward,
-      questions: questions,
-      createdAt: new Date().toISOString(),
-    };
+    // Format questions for API
+    const formattedQuestions = questions.map((q) => ({
+      question_text: q.text,
+      question_type: q.type,
+      is_active: true,
+      ...(q.type === "with_options" && {
+        options: q.options.map((opt) => ({
+          option_text: opt,
+          is_active: true,
+        })),
+      }),
+    }));
 
-    setSurveys([newSurvey, ...surveys]);
-    // Reset form
-    setForm({ name: "", reward: "" });
-    setQuestions([]);
+    const result = await dispatch(
+      createUpdateSurvey({
+        surveyBasicInfo: {
+          name: form.name,
+          reward: form.reward,
+          is_active: true,
+        },
+        questions: formattedQuestions,
+        surveyId: null,
+      }),
+    );
+
+    if (result.payload?.success) {
+      // Add to local list
+      const newSurvey = {
+        id: result.payload.surveyId,
+        name: form.name,
+        reward: form.reward,
+        questions: questions,
+        createdAt: new Date().toISOString(),
+      };
+      setSurveys([newSurvey, ...surveys]);
+
+      // Reset form
+      setForm({ name: "", reward: "" });
+      setQuestions([]);
+    }
   };
 
   const getQuestionTypeLabel = (type) => {
     const types = {
-      text: "Text Input",
+      input: "Text Input", // Changed from "text" to "input"
       email: "Email",
       mobile: "Mobile Number",
-      withOptions: "Multiple Choice",
+      with_options: "Multiple Choice",
     };
     return types[type] || type;
   };
@@ -93,6 +145,18 @@ export default function AdminSurveys() {
           Create and manage survey offers for users
         </p>
       </div>
+
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+          {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* CREATE FORM */}
@@ -172,8 +236,7 @@ export default function AdminSurveys() {
                               </span>
                             </div>
 
-                            {/* Show options if type is withOptions */}
-                            {question.type === "withOptions" &&
+                            {question.type === "with_options" &&
                               question.options.length > 0 && (
                                 <div className="mt-2 ml-6">
                                   <p className="text-xs text-gray-500 mb-1">
@@ -219,9 +282,10 @@ export default function AdminSurveys() {
 
               <button
                 type="submit"
-                className="w-full bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition mt-4"
+                disabled={isLoading}
+                className="w-full bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Survey
+                {isLoading ? "Creating..." : "Create Survey"}
               </button>
             </form>
           </div>
@@ -246,7 +310,6 @@ export default function AdminSurveys() {
                   key={survey.id}
                   className="border rounded-lg overflow-hidden"
                 >
-                  {/* Survey Header */}
                   <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-b">
                     <div>
                       <h4 className="font-semibold text-slate-800 text-lg">
@@ -262,7 +325,6 @@ export default function AdminSurveys() {
                     </div>
                   </div>
 
-                  {/* Questions List */}
                   <div className="p-4">
                     <h5 className="text-sm font-medium text-slate-600 mb-3">
                       Questions ({survey.questions.length}):
@@ -289,7 +351,7 @@ export default function AdminSurveys() {
                                 <span className="text-xs text-gray-400">
                                   Type: {getQuestionTypeLabel(question.type)}
                                 </span>
-                                {question.type === "withOptions" &&
+                                {question.type === "with_options" &&
                                   question.options.length > 0 && (
                                     <div className="mt-1">
                                       <p className="text-xs text-gray-500">

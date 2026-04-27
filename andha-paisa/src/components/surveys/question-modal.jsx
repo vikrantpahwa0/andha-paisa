@@ -8,7 +8,7 @@ export default function QuestionModal({
 }) {
   const [questionForm, setQuestionForm] = useState({
     text: "",
-    type: "text",
+    type: "input", // Changed from "text" to "input"
     options: [],
   });
   const [newOption, setNewOption] = useState("");
@@ -21,7 +21,7 @@ export default function QuestionModal({
         options: editingQuestion.options || [],
       });
     } else {
-      setQuestionForm({ text: "", type: "text", options: [] });
+      setQuestionForm({ text: "", type: "input", options: [] }); // Changed from "text" to "input"
       setNewOption("");
     }
   }, [editingQuestion, isOpen]);
@@ -115,17 +115,18 @@ export default function QuestionModal({
               }
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="text">Text Input</option>
+              <option value="input">Text Input</option>{" "}
+              {/* Changed value to "input" */}
               <option value="email">Email</option>
               <option value="mobile">Mobile Number</option>
-              <option value="withOptions">
+              <option value="with_options">
                 With Options (Multiple Choice)
               </option>
             </select>
           </div>
 
-          {/* Options Section (only for withOptions type) */}
-          {questionForm.type === "withOptions" && (
+          {/* Options Section (only for with_options type) */}
+          {questionForm.type === "with_options" && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 Options
