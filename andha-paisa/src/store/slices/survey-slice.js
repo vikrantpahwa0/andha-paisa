@@ -3,10 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // Create or Update Survey
 export const createUpdateSurvey = createAsyncThunk(
   "survey/createUpdateSurvey",
-  async (
-    { surveyBasicInfo, questions, surveyId = null },
-    { rejectWithValue, getState },
-  ) => {
+  async ({ surveyBasicInfo, questions }, { rejectWithValue, getState }) => {
     try {
       const { auth } = getState();
       const token = auth.token;
@@ -19,7 +16,7 @@ export const createUpdateSurvey = createAsyncThunk(
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ surveyBasicInfo, questions, surveyId }),
+          body: JSON.stringify({ surveyBasicInfo, questions }),
         },
       );
 

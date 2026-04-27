@@ -73,25 +73,30 @@ export default function AdminSurveys() {
       ?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleDeleteSurvey = (surveyId, surveyName) => {
+  const handleDeleteSurvey = async (surveyId, surveyName) => {
     if (window.confirm(`Are you sure you want to delete "${surveyName}"?`)) {
       // Call the same API with is_active: false
       const deleteData = {
         surveyBasicInfo: {
           id: surveyId,
-          name: surveyName,
-          reward: "0",
           is_active: false,
         },
         questions: [],
       };
 
-      dispatch(createUpdateSurvey(deleteData)).then((result) => {
-        if (result.payload?.surveyId) {
-          dispatch(getSurveysList());
+      try {
+        const result = await dispatch(createUpdateSurvey(deleteData)).unwrap();
+
+        if (result?.success && result?.data?.surveyId) {
+          await dispatch(getSurveysList());
           alert(`Survey "${surveyName}" deleted successfully!`);
+        } else {
+          alert("Failed to delete survey");
         }
-      });
+      } catch (error) {
+        console.error("Error deleting survey:", error);
+        alert(error || "Failed to delete survey");
+      }
     }
   };
 
@@ -120,13 +125,13 @@ export default function AdminSurveys() {
       updatedQuestions[editingQuestionIndex] = {
         ...questionData,
         id: editingQuestion?.id,
-        is_active: true, // Reactivate if it was previously inactive
+        is_active: true,
       };
       setQuestions(updatedQuestions);
     } else {
       const newQuestion = {
         ...questionData,
-        is_active: true, // New questions are active
+        is_active: true,
       };
       setQuestions([...questions, newQuestion]);
     }
@@ -138,13 +143,13 @@ export default function AdminSurveys() {
     const questionToDelete = updatedQuestions[indexToDelete];
 
     if (questionToDelete.id) {
-      // Mark as inactive (soft delete) - will be sent to API with is_active: false
+      // Mark as inactive (soft delete)
       updatedQuestions[indexToDelete] = {
         ...questionToDelete,
         is_active: false,
       };
     } else {
-      // New question that hasn't been saved to backend - remove completely
+      // New question that hasn't been saved - remove completely
       updatedQuestions.splice(indexToDelete, 1);
     }
 
@@ -161,7 +166,7 @@ export default function AdminSurveys() {
       return;
     }
 
-    // Format questions for API - include ALL questions (active and inactive)
+    // Format questions for API
     const formattedQuestions = questions.map((q) => {
       const questionObj = {
         question_text: q.text,
@@ -169,12 +174,10 @@ export default function AdminSurveys() {
         is_active: q.is_active !== undefined ? q.is_active : true,
       };
 
-      // Only include id if it exists
       if (q.id) {
         questionObj.id = q.id;
       }
 
-      // Add options if type is with_options
       if (q.type === "with_options" && q.options) {
         questionObj.options = q.options.map((opt) => ({
           option_text: opt,
@@ -195,21 +198,30 @@ export default function AdminSurveys() {
       questions: formattedQuestions,
     };
 
-    // Add id if in edit mode
     if (isEditMode && editingSurvey) {
       requestData.surveyBasicInfo.id = editingSurvey.id;
     }
 
-    const result = await dispatch(createUpdateSurvey(requestData));
+    try {
+      const result = await dispatch(createUpdateSurvey(requestData)).unwrap();
 
-    if (result.payload?.surveyId) {
-      dispatch(getSurveysList());
-      alert(
-        isEditMode
-          ? "Survey updated successfully!"
-          : "Survey created successfully!",
-      );
-      cancelEdit();
+      // Check for success using the response structure
+      if (result?.success && result?.data?.surveyId) {
+        // Refresh the surveys list
+        await dispatch(getSurveysList());
+        alert(
+          result.message ||
+            (isEditMode
+              ? "Survey updated successfully!"
+              : "Survey created successfully!"),
+        );
+        cancelEdit();
+      } else {
+        alert("Failed to save survey");
+      }
+    } catch (error) {
+      console.error("Error saving survey:", error);
+      alert(error || "Failed to save survey");
     }
   };
 
@@ -311,9 +323,7 @@ export default function AdminSurveys() {
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {questions.map((question, idx) => {
-                      // Don't show inactive questions in the list
                       if (question.is_active === false) return null;
-
                       return (
                         <div
                           key={idx}
@@ -436,7 +446,6 @@ export default function AdminSurveys() {
                   {/* Survey Header */}
                   <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
                     <div className="flex items-center justify-between">
-                      {/* Left side - Clickable for dropdown */}
                       <button
                         onClick={() => toggleSurvey(survey.id)}
                         className="flex-1 text-left group"
@@ -477,11 +486,10 @@ export default function AdminSurveys() {
                         </div>
                       </button>
 
-                      {/* Action Buttons */}
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => handleEditSurvey(survey)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                           title="Edit Survey"
                         >
                           <svg
@@ -502,7 +510,7 @@ export default function AdminSurveys() {
                           onClick={() =>
                             handleDeleteSurvey(survey.id, survey.name)
                           }
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                           title="Delete Survey"
                         >
                           <svg
