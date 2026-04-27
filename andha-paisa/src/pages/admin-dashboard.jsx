@@ -58,13 +58,17 @@ export default function AdminSurveys() {
       name: survey.name,
       reward: survey.reward,
     });
-    // Transform API questions format to component format
+    // Transform API questions format to component format with proper option structure
     const transformedQuestions = survey.questions.map((q) => ({
       id: q.id,
       text: q.question_text,
       type: q.question_type,
-      options: q.options.map((opt) => opt.option_text),
-      is_active: q.is_active,
+      options: q.options.map((opt) => ({
+        id: opt.id,
+        text: opt.option_text,
+        is_active: true,
+      })),
+      is_active: true,
     }));
     setQuestions(transformedQuestions);
     setIsEditMode(true);
@@ -126,12 +130,14 @@ export default function AdminSurveys() {
         ...questionData,
         id: editingQuestion?.id,
         is_active: true,
+        options: questionData.options || [],
       };
       setQuestions(updatedQuestions);
     } else {
       const newQuestion = {
         ...questionData,
         is_active: true,
+        options: questionData.options || [],
       };
       setQuestions([...questions, newQuestion]);
     }
@@ -143,10 +149,14 @@ export default function AdminSurveys() {
     const questionToDelete = updatedQuestions[indexToDelete];
 
     if (questionToDelete.id) {
-      // Mark as inactive (soft delete)
+      // Mark as inactive (soft delete) - also mark all its options as inactive
       updatedQuestions[indexToDelete] = {
         ...questionToDelete,
         is_active: false,
+        options: questionToDelete.options.map((opt) => ({
+          ...opt,
+          is_active: false,
+        })),
       };
     } else {
       // New question that hasn't been saved - remove completely
@@ -166,7 +176,7 @@ export default function AdminSurveys() {
       return;
     }
 
-    // Format questions for API
+    // Format questions for API - include ALL questions with their is_active status
     const formattedQuestions = questions.map((q) => {
       const questionObj = {
         question_text: q.text,
@@ -178,11 +188,15 @@ export default function AdminSurveys() {
         questionObj.id = q.id;
       }
 
-      if (q.type === "with_options" && q.options) {
+      // Handle options with is_active status
+      if (q.type === "with_options" && q.options && q.options.length > 0) {
         questionObj.options = q.options.map((opt) => ({
-          option_text: opt,
-          is_active: true,
+          id: opt.id,
+          option_text: opt.text,
+          is_active: opt.is_active !== undefined ? opt.is_active : true,
         }));
+      } else if (q.type === "with_options") {
+        questionObj.options = [];
       }
 
       return questionObj;
@@ -205,9 +219,7 @@ export default function AdminSurveys() {
     try {
       const result = await dispatch(createUpdateSurvey(requestData)).unwrap();
 
-      // Check for success using the response structure
       if (result?.success && result?.data?.surveyId) {
-        // Refresh the surveys list
         await dispatch(getSurveysList());
         alert(
           result.message ||
@@ -344,17 +356,20 @@ export default function AdminSurveys() {
                               </div>
 
                               {question.type === "with_options" &&
+                                question.options &&
                                 question.options.length > 0 && (
                                   <div className="mt-2 ml-6">
                                     <p className="text-xs text-gray-500 mb-1">
                                       Options:
                                     </p>
                                     <ul className="list-disc list-inside text-sm text-gray-600">
-                                      {question.options.map(
-                                        (option, optIdx) => (
-                                          <li key={optIdx}>{option}</li>
-                                        ),
-                                      )}
+                                      {question.options
+                                        .filter(
+                                          (opt) => opt.is_active !== false,
+                                        )
+                                        .map((option, optIdx) => (
+                                          <li key={optIdx}>{option.text}</li>
+                                        ))}
                                     </ul>
                                   </div>
                                 )}

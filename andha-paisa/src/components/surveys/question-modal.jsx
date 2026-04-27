@@ -8,40 +8,92 @@ export default function QuestionModal({
 }) {
   const [questionForm, setQuestionForm] = useState({
     text: "",
-    type: "input", // Changed from "text" to "input"
-    options: [],
+    type: "input",
+    options: [], // Each option will be { text: "", is_active: true }
   });
   const [newOption, setNewOption] = useState("");
+  const [editingOptionIndex, setEditingOptionIndex] = useState(null);
+  const [editingOptionText, setEditingOptionText] = useState("");
 
   useEffect(() => {
     if (editingQuestion) {
+      // Convert options to objects with is_active if they're strings
+      let options = editingQuestion.options || [];
+      if (options.length > 0 && typeof options[0] === "string") {
+        options = options.map((opt) => ({ text: opt, is_active: true }));
+      }
+
       setQuestionForm({
         text: editingQuestion.text,
         type: editingQuestion.type,
-        options: editingQuestion.options || [],
+        options: options,
       });
     } else {
-      setQuestionForm({ text: "", type: "input", options: [] }); // Changed from "text" to "input"
+      setQuestionForm({ text: "", type: "input", options: [] });
       setNewOption("");
     }
+    setEditingOptionIndex(null);
+    setEditingOptionText("");
   }, [editingQuestion, isOpen]);
 
   const addOption = () => {
     if (newOption.trim()) {
       setQuestionForm({
         ...questionForm,
-        options: [...questionForm.options, newOption.trim()],
+        options: [
+          ...questionForm.options,
+          { text: newOption.trim(), is_active: true },
+        ],
       });
       setNewOption("");
     }
   };
 
-  const removeOption = (indexToRemove) => {
+  const startEditOption = (index, option) => {
+    setEditingOptionIndex(index);
+    setEditingOptionText(option.text);
+  };
+
+  const saveEditOption = () => {
+    if (editingOptionText.trim() && editingOptionIndex !== null) {
+      const updatedOptions = [...questionForm.options];
+      updatedOptions[editingOptionIndex] = {
+        ...updatedOptions[editingOptionIndex],
+        text: editingOptionText.trim(),
+        is_active: true,
+      };
+      setQuestionForm({
+        ...questionForm,
+        options: updatedOptions,
+      });
+      setEditingOptionIndex(null);
+      setEditingOptionText("");
+    }
+  };
+
+  const cancelEditOption = () => {
+    setEditingOptionIndex(null);
+    setEditingOptionText("");
+  };
+
+  const deleteOption = (indexToDelete) => {
+    const updatedOptions = [...questionForm.options];
+    const optionToDelete = updatedOptions[indexToDelete];
+
+    if (optionToDelete.id) {
+      // Mark as inactive (soft delete)
+      updatedOptions[indexToDelete] = {
+        ...optionToDelete,
+        is_active: false,
+      };
+    } else {
+      // New option that hasn't been saved - remove completely
+      updatedOptions.splice(indexToDelete, 1);
+    }
+
     setQuestionForm({
       ...questionForm,
-      options: questionForm.options.filter(
-        (_, index) => index !== indexToRemove,
-      ),
+      options: updatedOptions,
     });
   };
 
@@ -115,8 +167,7 @@ export default function QuestionModal({
               }
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="input">Text Input</option>{" "}
-              {/* Changed value to "input" */}
+              <option value="input">Text Input</option>
               <option value="email">Email</option>
               <option value="mobile">Mobile Number</option>
               <option value="with_options">
@@ -151,25 +202,82 @@ export default function QuestionModal({
                 </button>
               </div>
 
-              {/* Options list */}
-              {questionForm.options.length > 0 && (
+              {/* Options list with edit and soft delete */}
+              {questionForm.options.filter((opt) => opt.is_active !== false)
+                .length > 0 && (
                 <div className="space-y-2">
-                  {questionForm.options.map((option, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"
-                    >
-                      <span className="text-sm text-slate-700">{option}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeOption(index)}
-                        className="text-red-500 hover:text-red-700 text-sm"
+                  {questionForm.options.map((option, index) => {
+                    if (option.is_active === false) return null;
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center bg-gray-50 p-2 rounded-lg"
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
+                        {editingOptionIndex === index ? (
+                          <div className="flex-1 flex gap-2">
+                            <input
+                              type="text"
+                              value={editingOptionText}
+                              onChange={(e) =>
+                                setEditingOptionText(e.target.value)
+                              }
+                              className="flex-1 border border-gray-300 rounded-lg p-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              autoFocus
+                              onKeyPress={(e) =>
+                                e.key === "Enter" && saveEditOption()
+                              }
+                            />
+                            <button
+                              type="button"
+                              onClick={saveEditOption}
+                              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEditOption}
+                              className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-sm text-slate-700 flex-1">
+                              {option.text}
+                            </span>
+                            <div className="flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => startEditOption(index, option)}
+                                className="text-blue-500 hover:text-blue-700 text-xs px-2 py-1"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteOption(index)}
+                                className="text-red-500 hover:text-red-700 text-xs px-2 py-1"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+              )}
+
+              {/* Show message if no active options */}
+              {questionForm.options.filter((opt) => opt.is_active !== false)
+                .length === 0 && (
+                <p className="text-sm text-gray-400 italic text-center py-2">
+                  No active options. Add some options above.
+                </p>
               )}
             </div>
           )}
