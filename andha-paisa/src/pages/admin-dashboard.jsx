@@ -4,17 +4,17 @@ import AdminLayout from "../components/common/admin-app-layout";
 import QuestionModal from "../components/surveys/question-modal";
 import {
   createUpdateSurvey,
+  getSurveysList,
   clearError,
   clearSuccessMessage,
 } from "../store/slices/survey-slice";
 
 export default function AdminSurveys() {
   const dispatch = useDispatch();
-  const { isLoading, error, successMessage } = useSelector(
+  const { surveys, isLoading, error, successMessage } = useSelector(
     (state) => state.survey,
   );
 
-  const [surveys, setSurveys] = useState([]);
   const [form, setForm] = useState({
     name: "",
     reward: "",
@@ -23,6 +23,14 @@ export default function AdminSurveys() {
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [editingQuestionIndex, setEditingQuestionIndex] = useState(null);
+  const [openSurveyId, setOpenSurveyId] = useState(null);
+  const [editingSurvey, setEditingSurvey] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Fetch surveys on component mount
+  useEffect(() => {
+    dispatch(getSurveysList());
+  }, [dispatch]);
 
   // Clear messages after 3 seconds
   useEffect(() => {
@@ -39,6 +47,60 @@ export default function AdminSurveys() {
       return () => clearTimeout(timer);
     }
   }, [successMessage, error, dispatch]);
+
+  const toggleSurvey = (surveyId) => {
+    setOpenSurveyId(openSurveyId === surveyId ? null : surveyId);
+  };
+
+  const handleEditSurvey = (survey) => {
+    setEditingSurvey(survey);
+    setForm({
+      name: survey.name,
+      reward: survey.reward,
+    });
+    // Transform API questions format to component format
+    const transformedQuestions = survey.questions.map((q) => ({
+      id: q.id,
+      text: q.question_text,
+      type: q.question_type,
+      options: q.options.map((opt) => opt.option_text),
+      is_active: q.is_active,
+    }));
+    setQuestions(transformedQuestions);
+    setIsEditMode(true);
+    document
+      .getElementById("survey-form")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDeleteSurvey = (surveyId, surveyName) => {
+    if (window.confirm(`Are you sure you want to delete "${surveyName}"?`)) {
+      // Call the same API with is_active: false
+      const deleteData = {
+        surveyBasicInfo: {
+          id: surveyId,
+          name: surveyName,
+          reward: "0",
+          is_active: false,
+        },
+        questions: [],
+      };
+
+      dispatch(createUpdateSurvey(deleteData)).then((result) => {
+        if (result.payload?.surveyId) {
+          dispatch(getSurveysList());
+          alert(`Survey "${surveyName}" deleted successfully!`);
+        }
+      });
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingSurvey(null);
+    setForm({ name: "", reward: "" });
+    setQuestions([]);
+    setIsEditMode(false);
+  };
 
   const openQuestionModal = (question = null, index = null) => {
     setEditingQuestion(question);
@@ -57,13 +119,14 @@ export default function AdminSurveys() {
       const updatedQuestions = [...questions];
       updatedQuestions[editingQuestionIndex] = {
         ...questionData,
-        id: Date.now(),
+        id: editingQuestion?.id,
+        is_active: true, // Reactivate if it was previously inactive
       };
       setQuestions(updatedQuestions);
     } else {
       const newQuestion = {
-        id: Date.now(),
         ...questionData,
+        is_active: true, // New questions are active
       };
       setQuestions([...questions, newQuestion]);
     }
@@ -71,62 +134,88 @@ export default function AdminSurveys() {
   };
 
   const deleteQuestion = (indexToDelete) => {
-    setQuestions(questions.filter((_, index) => index !== indexToDelete));
+    const updatedQuestions = [...questions];
+    const questionToDelete = updatedQuestions[indexToDelete];
+
+    if (questionToDelete.id) {
+      // Mark as inactive (soft delete) - will be sent to API with is_active: false
+      updatedQuestions[indexToDelete] = {
+        ...questionToDelete,
+        is_active: false,
+      };
+    } else {
+      // New question that hasn't been saved to backend - remove completely
+      updatedQuestions.splice(indexToDelete, 1);
+    }
+
+    setQuestions(updatedQuestions);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (questions.length === 0) {
+    const activeQuestions = questions.filter((q) => q.is_active !== false);
+
+    if (activeQuestions.length === 0) {
       alert("Please add at least one question to the survey");
       return;
     }
 
-    // Format questions for API
-    const formattedQuestions = questions.map((q) => ({
-      question_text: q.text,
-      question_type: q.type,
-      is_active: true,
-      ...(q.type === "with_options" && {
-        options: q.options.map((opt) => ({
+    // Format questions for API - include ALL questions (active and inactive)
+    const formattedQuestions = questions.map((q) => {
+      const questionObj = {
+        question_text: q.text,
+        question_type: q.type,
+        is_active: q.is_active !== undefined ? q.is_active : true,
+      };
+
+      // Only include id if it exists
+      if (q.id) {
+        questionObj.id = q.id;
+      }
+
+      // Add options if type is with_options
+      if (q.type === "with_options" && q.options) {
+        questionObj.options = q.options.map((opt) => ({
           option_text: opt,
           is_active: true,
-        })),
-      }),
-    }));
+        }));
+      }
 
-    const result = await dispatch(
-      createUpdateSurvey({
-        surveyBasicInfo: {
-          name: form.name,
-          reward: form.reward,
-          is_active: true,
-        },
-        questions: formattedQuestions,
-        surveyId: null,
-      }),
-    );
+      return questionObj;
+    });
 
-    if (result.payload?.success) {
-      // Add to local list
-      const newSurvey = {
-        id: result.payload.surveyId,
+    // Prepare request data
+    const requestData = {
+      surveyBasicInfo: {
         name: form.name,
         reward: form.reward,
-        questions: questions,
-        createdAt: new Date().toISOString(),
-      };
-      setSurveys([newSurvey, ...surveys]);
+        is_active: true,
+      },
+      questions: formattedQuestions,
+    };
 
-      // Reset form
-      setForm({ name: "", reward: "" });
-      setQuestions([]);
+    // Add id if in edit mode
+    if (isEditMode && editingSurvey) {
+      requestData.surveyBasicInfo.id = editingSurvey.id;
+    }
+
+    const result = await dispatch(createUpdateSurvey(requestData));
+
+    if (result.payload?.surveyId) {
+      dispatch(getSurveysList());
+      alert(
+        isEditMode
+          ? "Survey updated successfully!"
+          : "Survey created successfully!",
+      );
+      cancelEdit();
     }
   };
 
   const getQuestionTypeLabel = (type) => {
     const types = {
-      input: "Text Input", // Changed from "text" to "input"
+      input: "Text Input",
       email: "Email",
       mobile: "Mobile Number",
       with_options: "Multiple Choice",
@@ -159,14 +248,18 @@ export default function AdminSurveys() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* CREATE FORM */}
+        {/* CREATE/EDIT FORM */}
         <div className="lg:col-span-5">
-          <div className="bg-white rounded-xl shadow p-5">
+          <div className="bg-white rounded-xl shadow p-5 sticky top-4">
             <h3 className="text-lg font-semibold mb-4 text-slate-700">
-              Create New Survey
+              {isEditMode ? "Edit Survey" : "Create New Survey"}
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              id="survey-form"
+              onSubmit={handleSubmit}
+              className="space-y-4"
+            >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Survey Name *
@@ -211,95 +304,125 @@ export default function AdminSurveys() {
                 </div>
 
                 {/* Questions List */}
-                {questions.length === 0 ? (
+                {questions.filter((q) => q.is_active !== false).length === 0 ? (
                   <p className="text-sm text-gray-400 italic text-center py-4">
                     No questions added yet. Click "Add Question" to start.
                   </p>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {questions.map((question, idx) => (
-                      <div
-                        key={question.id || idx}
-                        className="bg-gray-50 p-3 rounded-lg border border-gray-200"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="text-sm font-semibold text-slate-600">
-                                Q{idx + 1}.
-                              </span>
-                              <span className="text-sm font-medium text-slate-800">
-                                {question.text}
-                              </span>
-                              <span className="text-xs px-2 py-1 bg-gray-200 rounded-full text-slate-600">
-                                {getQuestionTypeLabel(question.type)}
-                              </span>
+                    {questions.map((question, idx) => {
+                      // Don't show inactive questions in the list
+                      if (question.is_active === false) return null;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="bg-gray-50 p-3 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-sm font-semibold text-slate-600">
+                                  Q{idx + 1}.
+                                </span>
+                                <span className="text-sm font-medium text-slate-800">
+                                  {question.text}
+                                </span>
+                                <span className="text-xs px-2 py-1 bg-gray-200 rounded-full text-slate-600">
+                                  {getQuestionTypeLabel(question.type)}
+                                </span>
+                              </div>
+
+                              {question.type === "with_options" &&
+                                question.options.length > 0 && (
+                                  <div className="mt-2 ml-6">
+                                    <p className="text-xs text-gray-500 mb-1">
+                                      Options:
+                                    </p>
+                                    <ul className="list-disc list-inside text-sm text-gray-600">
+                                      {question.options.map(
+                                        (option, optIdx) => (
+                                          <li key={optIdx}>{option}</li>
+                                        ),
+                                      )}
+                                    </ul>
+                                  </div>
+                                )}
                             </div>
 
-                            {question.type === "with_options" &&
-                              question.options.length > 0 && (
-                                <div className="mt-2 ml-6">
-                                  <p className="text-xs text-gray-500 mb-1">
-                                    Options:
-                                  </p>
-                                  <ul className="list-disc list-inside text-sm text-gray-600">
-                                    {question.options.map((option, optIdx) => (
-                                      <li key={optIdx}>{option}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                          </div>
-
-                          <div className="flex gap-2 ml-2">
-                            <button
-                              type="button"
-                              onClick={() => openQuestionModal(question, idx)}
-                              className="text-blue-500 hover:text-blue-700 text-sm"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteQuestion(idx)}
-                              className="text-red-500 hover:text-red-700 text-sm"
-                            >
-                              Delete
-                            </button>
+                            <div className="flex gap-2 ml-2">
+                              <button
+                                type="button"
+                                onClick={() => openQuestionModal(question, idx)}
+                                className="text-blue-500 hover:text-blue-700 text-sm"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteQuestion(idx)}
+                                className="text-red-500 hover:text-red-700 text-sm"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
-                {questions.length > 0 && (
+                {questions.filter((q) => q.is_active !== false).length > 0 && (
                   <p className="text-xs text-gray-400 mt-2">
-                    Total questions: {questions.length}
+                    Total questions:{" "}
+                    {questions.filter((q) => q.is_active !== false).length}
                   </p>
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Creating..." : "Create Survey"}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading
+                    ? "Saving..."
+                    : isEditMode
+                      ? "Update Survey"
+                      : "Create Survey"}
+                </button>
+
+                {isEditMode && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition mt-4"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>
 
-        {/* LIST - Existing Surveys */}
+        {/* LIST - Existing Surveys with Dropdown */}
         <div className="lg:col-span-7">
           <div className="bg-white rounded-xl shadow p-5">
             <h3 className="text-lg font-semibold mb-4 text-slate-700">
               Existing Surveys
             </h3>
 
-            <div className="space-y-4 max-h-[600px] overflow-y-auto">
-              {surveys.length === 0 && (
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              {isLoading && surveys.length === 0 && (
+                <p className="text-sm text-gray-500 text-center py-8">
+                  Loading surveys...
+                </p>
+              )}
+
+              {!isLoading && surveys.length === 0 && (
                 <p className="text-sm text-gray-500 text-center py-8">
                   No surveys created yet. Create your first survey!
                 </p>
@@ -308,63 +431,161 @@ export default function AdminSurveys() {
               {surveys.map((survey) => (
                 <div
                   key={survey.id}
-                  className="border rounded-lg overflow-hidden"
+                  className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow duration-200"
                 >
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-b">
-                    <div>
-                      <h4 className="font-semibold text-slate-800 text-lg">
-                        {survey.name}
-                      </h4>
-                      <p className="text-sm text-emerald-600 font-medium mt-1">
-                        Reward: ₹{survey.reward}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Created:{" "}
-                        {new Date(survey.createdAt).toLocaleDateString()}
-                      </p>
+                  {/* Survey Header */}
+                  <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
+                    <div className="flex items-center justify-between">
+                      {/* Left side - Clickable for dropdown */}
+                      <button
+                        onClick={() => toggleSurvey(survey.id)}
+                        className="flex-1 text-left group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <svg
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-300 group-hover:text-gray-600 ${
+                              openSurveyId === survey.id ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                          <h4 className="font-semibold text-slate-800 text-lg">
+                            {survey.name}
+                          </h4>
+                          <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                            {survey.questions.length} questions
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 ml-7">
+                          <p className="text-sm text-emerald-600 font-medium">
+                            ₹{survey.reward}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Code: {survey.code}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(survey.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => handleEditSurvey(survey)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group"
+                          title="Edit Survey"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteSurvey(survey.id, survey.name)
+                          }
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                          title="Delete Survey"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-4">
-                    <h5 className="text-sm font-medium text-slate-600 mb-3">
-                      Questions ({survey.questions.length}):
-                    </h5>
-                    {survey.questions.length === 0 ? (
-                      <p className="text-sm text-gray-400 italic">
-                        No questions in this survey
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {survey.questions.map((question, idx) => (
-                          <div
-                            key={question.id}
-                            className="bg-gray-50 p-2 rounded"
-                          >
-                            <div className="flex items-start gap-2">
-                              <span className="text-xs font-medium text-slate-500 mt-0.5">
-                                {idx + 1}.
-                              </span>
-                              <div className="flex-1">
-                                <p className="text-sm text-slate-700">
-                                  {question.text}
-                                </p>
-                                <span className="text-xs text-gray-400">
-                                  Type: {getQuestionTypeLabel(question.type)}
+                  {/* Questions List - Collapsible */}
+                  <div
+                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                      openSurveyId === survey.id ? "max-h-[500px]" : "max-h-0"
+                    }`}
+                  >
+                    <div className="p-4 border-t bg-gray-50">
+                      <h5 className="text-sm font-medium text-slate-600 mb-3">
+                        Questions:
+                      </h5>
+                      {survey.questions.length === 0 ? (
+                        <p className="text-sm text-gray-400 italic">
+                          No questions in this survey
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {survey.questions.map((question, idx) => (
+                            <div
+                              key={question.id}
+                              className="bg-white p-3 rounded-lg border border-gray-200"
+                            >
+                              <div className="flex items-start gap-2">
+                                <span className="text-xs font-medium text-slate-500 mt-0.5">
+                                  {idx + 1}.
                                 </span>
-                                {question.type === "with_options" &&
-                                  question.options.length > 0 && (
-                                    <div className="mt-1">
-                                      <p className="text-xs text-gray-500">
-                                        Options: {question.options.join(", ")}
-                                      </p>
-                                    </div>
-                                  )}
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="text-sm text-slate-700">
+                                      {question.question_text}
+                                    </p>
+                                    <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-slate-600">
+                                      {getQuestionTypeLabel(
+                                        question.question_type,
+                                      )}
+                                    </span>
+                                  </div>
+                                  {question.question_type === "with_options" &&
+                                    question.options.length > 0 && (
+                                      <div className="mt-2">
+                                        <p className="text-xs text-gray-500 mb-1">
+                                          Options:
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {question.options.map(
+                                            (opt, optIdx) => (
+                                              <span
+                                                key={optIdx}
+                                                className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600"
+                                              >
+                                                {opt.option_text}
+                                              </span>
+                                            ),
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
