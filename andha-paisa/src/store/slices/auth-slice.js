@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+const BE_URL = import.meta.env.VITE_BE_URL;
+
 // Helper functions for token management
 const storeTokens = (accessToken, refreshToken) => {
   if (accessToken) localStorage.setItem('accessToken', accessToken);
@@ -25,7 +27,7 @@ export const refreshAccessToken = createAsyncThunk(
         return rejectWithValue('No refresh token available');
       }
       
-      const response = await fetch('http://localhost:3000/auth/refresh', {
+      const response = await fetch(`${BE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ export const sendOTP = createAsyncThunk(
   'auth/sendOTP',
   async ({ mobile, country_code, email }, { rejectWithValue }) => {
     try {
-      const response = await fetch('http://localhost:3000/auth/send-otp', {
+      const response = await fetch(`${BE_URL}/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile, country_code: country_code || '+91', email })
@@ -86,7 +88,7 @@ export const verifyOTP = createAsyncThunk(
       if (email) body.email = email;
       if (mobile) body.mobile = mobile;
       
-      const response = await fetch('http://localhost:3000/auth/verify-otp', {
+      const response = await fetch(`${BE_URL}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -99,7 +101,7 @@ export const verifyOTP = createAsyncThunk(
       }
       
       // Store tokens if they exist in response
-      if (data.data.accessToken && data.data.refreshToken) {
+      if (data.data?.accessToken && data.data?.refreshToken) {
         storeTokens(data.data.accessToken, data.data.refreshToken);
       }
       
@@ -124,7 +126,7 @@ export const registerUser = createAsyncThunk(
       if (mobile_number) body.mobile_number = mobile_number;
       if (password) body.password = password;
       
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch(`${BE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -137,8 +139,8 @@ export const registerUser = createAsyncThunk(
       }
       
       // Store tokens if they exist in response
-      if (data.data.data.accessToken && data.data.data.refreshToken) {
-        storeTokens(data.data.data.accessToken, data.data.data.refreshToken);
+      if (data.data?.accessToken && data.data?.refreshToken) {
+        storeTokens(data.data.accessToken, data.data.refreshToken);
       }
       
       return data;
@@ -152,7 +154,7 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${BE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -165,7 +167,7 @@ export const loginUser = createAsyncThunk(
       }
       
       // Store tokens in localStorage
-      if (data.data.accessToken && data.data.refreshToken) {
+      if (data.data?.accessToken && data.data?.refreshToken) {
         storeTokens(data.data.accessToken, data.data.refreshToken);
       }
       
@@ -234,15 +236,15 @@ const authSlice = createSlice({
       })
       .addCase(verifyOTP.fulfilled, (state, action) => {
         state.isLoading = false;
-        if (action.payload.accessToken) {
-          state.accessToken = action.payload.accessToken;
+        if (action.payload.data?.accessToken) {
+          state.accessToken = action.payload.data.accessToken;
           state.isAuthenticated = true;
         }
-        if (action.payload.refreshToken) {
-          state.refreshToken = action.payload.refreshToken;
+        if (action.payload.data?.refreshToken) {
+          state.refreshToken = action.payload.data.refreshToken;
         }
-        if (action.payload.user) {
-          state.user = action.payload.user;
+        if (action.payload.data?.user) {
+          state.user = action.payload.data.user;
         }
       })
       .addCase(verifyOTP.rejected, (state, action) => {
@@ -257,9 +259,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user || null;
-        state.accessToken = action.payload.accessToken || null;
-        state.refreshToken = action.payload.refreshToken || null;
+        state.accessToken = action.payload.data?.accessToken || null;
+        state.refreshToken = action.payload.data?.refreshToken || null;
         state.isAuthenticated = !!state.accessToken;
         state.error = null;
       })
@@ -276,9 +277,8 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user || null;
-        state.accessToken = action.payload.accessToken || null;
-        state.refreshToken = action.payload.refreshToken || null;
+        state.accessToken = action.payload.data?.accessToken || null;
+        state.refreshToken = action.payload.data?.refreshToken || null;
         state.isAuthenticated = !!state.accessToken;
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -292,9 +292,9 @@ const authSlice = createSlice({
       })
       .addCase(refreshAccessToken.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.accessToken = action.payload.accessToken;
-        if (action.payload.refreshToken) {
-          state.refreshToken = action.payload.refreshToken;
+        state.accessToken = action.payload.data?.accessToken;
+        if (action.payload.data?.refreshToken) {
+          state.refreshToken = action.payload.data.refreshToken;
         }
         state.isAuthenticated = true;
         state.error = null;

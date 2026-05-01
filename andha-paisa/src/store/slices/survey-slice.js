@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
+const BE_URL = import.meta.env.VITE_BE_URL || 'http://localhost:3000';
+
 // Helper function to get token from localStorage
 const getToken = () => {
   return localStorage.getItem("accessToken");
@@ -16,17 +18,14 @@ export const createUpdateSurvey = createAsyncThunk(
         return rejectWithValue("Something went wrong");
       }
 
-      const response = await fetch(
-        "http://localhost:3000/surveys/create-update",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ surveyBasicInfo, questions }),
+      const response = await fetch(`${BE_URL}/surveys/create-update`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ surveyBasicInfo, questions }),
+      });
 
       const data = await response.json();
 
@@ -52,7 +51,7 @@ export const getSurveysList = createAsyncThunk(
         return rejectWithValue("Something went wrong");
       }
 
-      const response = await fetch("http://localhost:3000/surveys/list", {
+      const response = await fetch(`${BE_URL}/surveys/list`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
