@@ -123,11 +123,11 @@ export const createUpdateSurveys = async (data) => {
   // Validate
   if (surveyBasicInfo.is_active) {
     if (!surveyBasicInfo.name || !surveyBasicInfo.reward) {
-      throw new Error("Name and reward are required");
+      throw new Error(validationMessages.SURVEY_MESSAGES.NAME_REWARD_REQUIRED);
     }
 
     if (!questions || questions.length === 0) {
-      throw new Error("At least one question is required");
+      throw new Error(validationMessages.SURVEY_MESSAGES.QUESTIONS_REQUIRED);
     }
   }
 

@@ -5,3 +5,8 @@ export const codes = {
   PG_VERF: "PG_VERF", //Page Verification
   PG_ADM: "PG_ADM", //Page Admin/ Redirect to CMS
 };
+
+export const roles = {
+  ADMIN : 'AD',
+  USER : 'US'
+}

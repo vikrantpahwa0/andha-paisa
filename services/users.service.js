@@ -7,9 +7,108 @@ import {
   validationMessages,
 } from "../constants/messages.js";
 import { codes } from "../constants/codes.js";
+import { sendOTPEmail } from "./send-email.js";
 
-const { USERS, VERIFICATIONS } = db;
+const { USERS, VERIFICATIONS, REFRESH_TOKENS } = db; // Add REFRESH_TOKENS model
 
+// Helper function to generate tokens
+const generateTokens = async (userId, role) => {
+  // Generate access token (short-lived)
+  const accessToken = jwt.sign(
+    { userId, role }, 
+    process.env.JWT_ACCESS_SECRET, // Use different secret
+    { expiresIn: "15m" } // 15 minutes
+  );
+  
+  // Generate refresh token (long-lived)
+  const refreshToken = jwt.sign(
+    { userId, role }, 
+    process.env.JWT_REFRESH_SECRET, // Different secret
+    { expiresIn: "7d" } // 7 days
+  );
+  
+  // Store refresh token in database (optional but recommended)
+  await REFRESH_TOKENS.create({
+    user_id: userId,
+    token: refreshToken,
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    is_active: true
+  });
+  
+  return { accessToken, refreshToken };
+};
+
+// Generate new access token from refresh token
+export const refreshAccessToken = async (refreshToken) => {
+  if (!refreshToken) {
+    throw new Error("No refresh token provided");
+  }
+  
+  try {
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    
+    // Check if token exists in database and is active
+    const storedToken = await REFRESH_TOKENS.findOne({
+      where: { 
+        token: refreshToken, 
+        is_active: true,
+        user_id: decoded.userId
+      }
+    });
+    
+    if (!storedToken) {
+      throw new Error("Invalid refresh token");
+    }
+    
+    // Check if token is expired
+    if (new Date() > new Date(storedToken.expires_at)) {
+      await storedToken.update({ is_active: false });
+      throw new Error("Refresh token expired");
+    }
+    
+    // Generate new access token
+    const newAccessToken = jwt.sign(
+      { userId: decoded.userId, role: decoded.role },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: "15m" }
+    );
+    
+    // Optional: Rotate refresh token (issue new one)
+    const newRefreshToken = jwt.sign(
+      { userId: decoded.userId, role: decoded.role },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+    
+    // Deactivate old refresh token
+    await storedToken.update({ is_active: false });
+    
+    // Store new refresh token
+    await REFRESH_TOKENS.create({
+      user_id: decoded.userId,
+      token: newRefreshToken,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      is_active: true
+    });
+    
+    return { 
+      accessToken: newAccessToken, 
+      refreshToken: newRefreshToken 
+    };
+    
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      throw new Error("Refresh token expired");
+    }
+    if (error.name === 'JsonWebTokenError') {
+      throw new Error("Invalid refresh token");
+    }
+    throw error;
+  }
+};
+
+// Updated registerUser
 export const registerUser = async (data) => {
   const { name, email, mobile_number, country_code, password } = data;
 
@@ -23,9 +122,14 @@ export const registerUser = async (data) => {
     country_code: country_code || null,
   });
 
+  // Generate both tokens
+  const { accessToken, refreshToken } = await generateTokens(user.id, user.role);
+
   return {
     message: successMessages.USER_REGISTERED,
     userId: user.id,
+    accessToken,
+    refreshToken
   };
 };
 
@@ -96,9 +200,7 @@ export const sendOtp = async (data) => {
   // Send OTP based on contact method
   switch (true) {
     case !!normalizedEmail:
-      console.log(
-        `[EMAIL OTP] Sending OTP ${otp} to email: ${normalizedEmail}`,
-      );
+      await sendOTPEmail(normalizedEmail, otp, expiresAt)
       break;
 
     case !!mobile:
@@ -131,7 +233,6 @@ export const verifyOtp = async (data) => {
     throw new Error(validationMessages.OTP_REQUIRED);
   }
 
-  // Normalize email to lowercase if it exists
   const normalizedEmail = email ? email.toLowerCase() : null;
 
   const whereCondition = normalizedEmail
@@ -168,7 +269,6 @@ export const verifyOtp = async (data) => {
       where: { email: normalizedEmail },
     });
   } else if (mobile) {
-    console.log(mobile, country_code);
     existingUser = await USERS.findOne({
       where: {
         mobile_number: mobile,
@@ -176,9 +276,15 @@ export const verifyOtp = async (data) => {
       },
     });
   }
+  
   if (existingUser) {
+    // Generate both tokens for existing user
+    const { accessToken, refreshToken } = await generateTokens(existingUser.id, existingUser.role);
+    
     return {
       code: codes.PG_DSH,
+      accessToken,
+      refreshToken,
     };
   } else {
     return {
@@ -187,13 +293,14 @@ export const verifyOtp = async (data) => {
   }
 };
 
+// Updated loginUser
 export const loginUser = async (data) => {
   const { email, password } = data;
   const normalizedEmail = email.toLowerCase();
 
   const user = await USERS.findOne({
     where: { email: normalizedEmail },
-    attributes: ["role", "password"],
+    attributes: ["id", "role", "password"],
   });
 
   if (!user) {
@@ -206,12 +313,12 @@ export const loginUser = async (data) => {
     throw new Error(failureMessages.INVALID_CREDENTIALS);
   }
 
-  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  // Generate both tokens
+  const { accessToken, refreshToken } = await generateTokens(user.id, user.role);
 
   return {
     code: user.role === "AD" ? codes.PG_ADM : codes.PG_DSH,
-    token,
+    accessToken,
+    refreshToken,
   };
 };

@@ -20,6 +20,7 @@ export const failureMessages = {
     "No active verification found. Please request a new OTP.",
   OTP_EXPIRED: "OTP has expired. Please request a new one.",
   INVALID_OTP: "Invalid OTP. Please try again.",
+  EMAIL_SENDING_FAILED: "Failed to send email. Please try again later.",
 };
 
 export const httpCodes = {
@@ -28,10 +29,20 @@ export const httpCodes = {
   CREATED: 201,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
 };
 
 export const validationMessages = {
   EMAIL_MOBILE_REQUIRED: "Either email or mobile number is required",
   COUNTRY_CODE_REQUIRED: "Country Code is Required",
   OTP_REQUIRED: "OTP is required",
+  SURVEY_MESSAGES : {
+    NAME_REWARD_REQUIRED: "Name and reward are required for active surveys",
+    QUESTIONS_REQUIRED: "At least one question is required",
+  },
+  TOKEN_REQUIRED : 'Authorization token is required',
+  TOKEN_EXPIRED :'Authorization token has expired',
+  INVALID_TOKEN : 'Invalid Token',
+  TOKEN_VERIFICATION_FAILED : 'Token verification failed',
+  UNAUTHORIZED :'You are not authorized to access this resource',
 };

@@ -18,10 +18,14 @@ app.use("/auth", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 
-db.sequelize.authenticate().then(async () => {
-  console.log("Database connected");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+db.sequelize.authenticate()
+  .then(() => {
+    console.log("Database connected");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
+  });
