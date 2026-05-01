@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaGoogle, FaFacebookF } from "react-icons/fa";
+import { FaGoogle, FaFacebookF, FaInfoCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { sendOTP, clearError } from "../../store/slices/auth-slice";
 
@@ -9,72 +9,50 @@ function Login() {
   const dispatch = useDispatch();
   const { isLoading, error } = useSelector((state) => state.auth);
 
-  const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
-  const [mode, setMode] = useState("mobile");
+  const [showTooltip, setShowTooltip] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(clearError());
 
-    if (mode === "mobile") {
-      // Mobile - API call to send OTP
-      const result = await dispatch(
-        sendOTP({
-          mobile: mobile,
-          country_code: "+91",
-        }),
-      );
+    const result = await dispatch(
+      sendOTP({
+        email: email,
+      })
+    );
 
-      if (result.payload?.success) {
-        navigate("/verify", {
-          state: {
-            mode: "mobile",
-            identifier: mobile,
-            requiresVerification: true,
-          },
-        });
-      }
-    } else {
-      const result = await dispatch(
-        sendOTP({
-          email: email,
-        }),
-      );
+    if (result.payload?.success) {
+      switch (result.payload?.data?.code) {
+        case "PG_VERF":
+          navigate("/verify", {
+            state: {
+              mode: "email",
+              identifier: email,
+              requiresVerification: true,
+            },
+          });
+          break;
 
-      if (result.payload?.success) {
-        switch (result.payload?.data?.code) {
-          case "PG_VERF":
-            navigate("/verify", {
-              state: {
-                mode: "email",
-                identifier: email,
-                requiresVerification: true,
-              },
-            });
-            break;
+        case "PG_PASS":
+          navigate("/verify", {
+            state: {
+              mode: "email",
+              identifier: email,
+              requiresVerification: false,
+            },
+          });
+          break;
 
-          case "PG_PASS":
-            navigate("/verify", {
-              state: {
-                mode: "email",
-                identifier: email,
-                requiresVerification: false,
-              },
-            });
-
-            break;
-
-          default:
-            navigate("/verify", {
-              state: {
-                mode: "email",
-                identifier: email,
-                requiresVerification: true,
-              },
-            });
-            break;
-        }
+        default:
+          navigate("/verify", {
+            state: {
+              mode: "email",
+              identifier: email,
+              requiresVerification: true,
+            },
+          });
+          break;
       }
     }
   };
@@ -87,28 +65,15 @@ function Login() {
         </h2>
 
         <form onSubmit={handleSubmit}>
-          {mode === "mobile" ? (
-            <input
-              type="tel"
-              placeholder="Enter mobile number"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              maxLength={10}
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
-            />
-          ) : (
-            <input
-              type="email"
-              placeholder="Enter email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
-            />
-          )}
+          <input
+            type="email"
+            placeholder="Enter email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 text-base focus:outline-none focus:border-green-300 focus:ring-2 focus:ring-green-200 transition disabled:opacity-50"
+          />
 
           {error && (
             <p className="text-red-500 text-sm text-center mb-3">{error}</p>
@@ -132,13 +97,29 @@ function Login() {
           </div>
         </div>
 
-        <button
-          className="w-full py-3 rounded-xl bg-white text-slate-900 border border-gray-200 text-sm font-medium transition active:scale-95 hover:bg-slate-50 mb-6"
-          onClick={() => setMode(mode === "mobile" ? "email" : "mobile")}
-          disabled={isLoading}
-        >
-          {mode === "mobile" ? "Sign in with Email" : "Use Mobile Number"}
-        </button>
+        {/* Mobile Login - Disabled with Coming Soon */}
+        <div className="relative">
+          <button
+            type="button"
+            disabled
+            className="w-full py-3 rounded-xl bg-white text-slate-900 border border-gray-200 text-sm font-medium transition cursor-not-allowed opacity-50 mb-6"
+          >
+            Sign in with Mobile Number
+          </button>
+          <button
+            onMouseEnter={() => setShowTooltip("mobile")}
+            onMouseLeave={() => setShowTooltip(null)}
+            className="absolute -top-2 -right-2 text-gray-400 hover:text-gray-600 transition"
+          >
+            <FaInfoCircle className="w-4 h-4" />
+          </button>
+          {showTooltip === "mobile" && (
+            <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+              Coming soon
+              <div className="absolute top-full right-2 transform translate-x-0 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          )}
+        </div>
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
@@ -149,22 +130,62 @@ function Login() {
           </div>
         </div>
 
+        {/* SSO Buttons - Disabled with Coming Soon */}
         <div className="flex justify-center gap-4">
-          <button
-            type="button"
-            aria-label="Google"
-            className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-red-600 text-xl transition hover:-translate-y-1 active:scale-95 hover:border-gray-300"
-          >
-            <FaGoogle className="mx-auto" />
-          </button>
-          <button
-            type="button"
-            aria-label="Facebook"
-            className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-blue-700 text-xl transition hover:-translate-y-1 active:scale-95 hover:border-gray-300"
-          >
-            <FaFacebookF className="mx-auto" />
-          </button>
+          {/* Google Button */}
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Google"
+              disabled
+              className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-red-600 text-xl transition cursor-not-allowed opacity-50"
+            >
+              <FaGoogle className="mx-auto" />
+            </button>
+            <button
+              onMouseEnter={() => setShowTooltip("google")}
+              onMouseLeave={() => setShowTooltip(null)}
+              className="absolute -top-2 -right-2 text-gray-400 hover:text-gray-600 transition"
+            >
+              <FaInfoCircle className="w-4 h-4" />
+            </button>
+            {showTooltip === "google" && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                Coming soon
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            )}
+          </div>
+
+          {/* Facebook Button */}
+          <div className="relative">
+            <button
+              type="button"
+              aria-label="Facebook"
+              disabled
+              className="w-12 h-12 rounded-xl border border-gray-200 bg-white text-blue-700 text-xl transition cursor-not-allowed opacity-50"
+            >
+              <FaFacebookF className="mx-auto" />
+            </button>
+            <button
+              onMouseEnter={() => setShowTooltip("facebook")}
+              onMouseLeave={() => setShowTooltip(null)}
+              className="absolute -top-2 -right-2 text-gray-400 hover:text-gray-600 transition"
+            >
+              <FaInfoCircle className="w-4 h-4" />
+            </button>
+            {showTooltip === "facebook" && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+                Coming soon
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            )}
+          </div>
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Mobile & social login coming soon
+        </p>
       </div>
     </div>
   );

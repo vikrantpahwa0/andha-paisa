@@ -1,5 +1,54 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+// Helper functions for token management
+const storeTokens = (accessToken, refreshToken) => {
+  if (accessToken) localStorage.setItem('accessToken', accessToken);
+  if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+};
+
+const clearTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};
+
+const getAccessToken = () => localStorage.getItem('accessToken');
+const getRefreshToken = () => localStorage.getItem('refreshToken');
+
+// Refresh token thunk
+export const refreshAccessToken = createAsyncThunk(
+  'auth/refreshToken',
+  async (_, { rejectWithValue }) => {
+    try {
+      const refreshToken = getRefreshToken();
+      
+      if (!refreshToken) {
+        return rejectWithValue('No refresh token available');
+      }
+      
+      const response = await fetch('http://localhost:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${refreshToken}`
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        return rejectWithValue(data.message || 'Failed to refresh token');
+      }
+      
+      // Store new tokens
+      storeTokens(data.data.accessToken, data.data.refreshToken);
+      
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Network error');
+    }
+  }
+);
+
 // Send OTP
 export const sendOTP = createAsyncThunk(
   'auth/sendOTP',
@@ -49,6 +98,11 @@ export const verifyOTP = createAsyncThunk(
         return rejectWithValue(data.message || 'Invalid OTP');
       }
       
+      // Store tokens if they exist in response
+      if (data.data.accessToken && data.data.refreshToken) {
+        storeTokens(data.data.accessToken, data.data.refreshToken);
+      }
+      
       return data;
     } catch (error) {
       return rejectWithValue(error.message || 'Network error');
@@ -82,6 +136,11 @@ export const registerUser = createAsyncThunk(
         return rejectWithValue(data.message || 'Registration failed');
       }
       
+      // Store tokens if they exist in response
+      if (data.data.data.accessToken && data.data.data.refreshToken) {
+        storeTokens(data.data.data.accessToken, data.data.data.refreshToken);
+      }
+      
       return data;
     } catch (error) {
       return rejectWithValue(error.message || 'Network error');
@@ -105,6 +164,11 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue(data.message || 'Login failed');
       }
       
+      // Store tokens in localStorage
+      if (data.data.accessToken && data.data.refreshToken) {
+        storeTokens(data.data.accessToken, data.data.refreshToken);
+      }
+      
       return data;
     } catch (error) {
       return rejectWithValue(error.message || 'Network error');
@@ -112,12 +176,33 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-const initialState = {
-  isLoading: false,
-  error: null,
-  user: null,
-  token: null,
+// Check if token is expired
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true;
+  }
 };
+
+// Initialize state from localStorage
+const getInitialState = () => {
+  const accessToken = getAccessToken();
+  const refreshToken = getRefreshToken();
+  
+  return {
+    isLoading: false,
+    error: null,
+    user: null,
+    accessToken: accessToken || null,
+    refreshToken: refreshToken || null,
+    isAuthenticated: !!accessToken && !isTokenExpired(accessToken),
+  };
+};
+
+const initialState = getInitialState();
 
 const authSlice = createSlice({
   name: 'auth',
@@ -125,10 +210,6 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
     },
   },
   extraReducers: (builder) => {
@@ -145,18 +226,30 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      
       // Verify OTP
       .addCase(verifyOTP.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(verifyOTP.fulfilled, (state) => {
+      .addCase(verifyOTP.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (action.payload.accessToken) {
+          state.accessToken = action.payload.accessToken;
+          state.isAuthenticated = true;
+        }
+        if (action.payload.refreshToken) {
+          state.refreshToken = action.payload.refreshToken;
+        }
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
       })
       .addCase(verifyOTP.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
+      
       // Login User
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
@@ -164,13 +257,18 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.data?.user || null;
-        state.token = action.payload.data?.token || null;
+        state.user = action.payload.user || null;
+        state.accessToken = action.payload.accessToken || null;
+        state.refreshToken = action.payload.refreshToken || null;
+        state.isAuthenticated = !!state.accessToken;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+        state.isAuthenticated = false;
       })
+      
       // Register User
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -178,15 +276,39 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.data?.user || null;
-        state.token = action.payload.data?.token || null;
+        state.user = action.payload.user || null;
+        state.accessToken = action.payload.accessToken || null;
+        state.refreshToken = action.payload.refreshToken || null;
+        state.isAuthenticated = !!state.accessToken;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      
+      // Refresh Token
+      .addCase(refreshAccessToken.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(refreshAccessToken.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.accessToken = action.payload.accessToken;
+        if (action.payload.refreshToken) {
+          state.refreshToken = action.payload.refreshToken;
+        }
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(refreshAccessToken.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.isAuthenticated = false;
+        state.accessToken = null;
+        state.refreshToken = null;
+        clearTokens();
       });
   },
 });
 
-export const { clearError, logout } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;
