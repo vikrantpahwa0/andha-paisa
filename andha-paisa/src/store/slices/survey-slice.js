@@ -1,12 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
+// Helper function to get token from localStorage
+const getToken = () => {
+  return localStorage.getItem("accessToken");
+};
+
 // Create or Update Survey
 export const createUpdateSurvey = createAsyncThunk(
   "survey/createUpdateSurvey",
-  async ({ surveyBasicInfo, questions }, { rejectWithValue, getState }) => {
+  async ({ surveyBasicInfo, questions }, { rejectWithValue }) => {
     try {
-      const { auth } = getState();
-      const token = auth.token;
+      const token = getToken();
+
+      if (!token) {
+        return rejectWithValue("Something went wrong");
+      }
 
       const response = await fetch(
         "http://localhost:3000/surveys/create-update",
@@ -36,10 +44,13 @@ export const createUpdateSurvey = createAsyncThunk(
 // Get All Surveys
 export const getSurveysList = createAsyncThunk(
   "survey/getSurveysList",
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const { auth } = getState();
-      const token = auth.token;
+      const token = getToken();
+
+      if (!token) {
+        return rejectWithValue("Something went wrong");
+      }
 
       const response = await fetch("http://localhost:3000/surveys/list", {
         method: "GET",
