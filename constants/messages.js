@@ -21,6 +21,9 @@ export const failureMessages = {
   OTP_EXPIRED: "OTP has expired. Please request a new one.",
   INVALID_OTP: "Invalid OTP. Please try again.",
   EMAIL_SENDING_FAILED: "Failed to send email. Please try again later.",
+  EMAIL_SERVICE_MESSAGES : {
+    BREVO_API_KEY_NOT_CONFIGURED: 'BREVO_API_KEY not configured in environment variables'
+  }
 };
 
 export const httpCodes = {
