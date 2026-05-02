@@ -161,6 +161,9 @@ const processSurveysForUser = async (surveys, userId) => {
     const survey = surveys[i];
     const surveyObj = survey.toJSON(); // Convert Sequelize instance to plain object
     
+    // Remove questions key
+    delete surveyObj.questions;
+    
     // Add reward points
     surveyObj.rewardPoints = parseInt(survey.reward) * parseInt(process.env.SURVEY_REWARD_POINTS);
     
@@ -174,7 +177,7 @@ const processSurveysForUser = async (surveys, userId) => {
       nextSurveyFound = true;
 
       // Create transaction record - use try/catch to handle duplicates
-        const existingTransaction = await USER_SURVEY_TRANSACTIONS.findOne({
+      const existingTransaction = await USER_SURVEY_TRANSACTIONS.findOne({
         where: {
           user_id: userId,
           survey_id: surveyObj.id
