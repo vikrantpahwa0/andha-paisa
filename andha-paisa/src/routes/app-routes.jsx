@@ -5,6 +5,7 @@ import Registration from "../pages/auth/registration";
 import Dashboard from "../pages/dashboard";
 import Offerwall from "../pages/offerwalls-and-surveys/offerwall";
 import AdminDashboard from "../pages/admin-dashboard";
+import Survey from "../pages/offerwalls-and-surveys/survey";
 
 export default function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/survey/:id" element={<Survey />} />
       </Routes>
     </BrowserRouter>
   );

@@ -81,9 +81,8 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-medium text-slate-800">{survey.name}</h3>
                 <p className="text-emerald-600 font-semibold mt-1">
-                  +{survey.rewardPoints || parseInt(survey.reward) * 10} Coins
+                  +{survey.rewardPoints} Points 
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Questions: {survey.questions?.length || 0}</p>
                 {survey.status === "LCK" && <p className="text-xs text-yellow-600 mt-1">Locked - Complete previous survey first</p>}
                 {survey.status === "ALS" && <p className="text-xs text-green-600 mt-1">Completed</p>}
                 {survey.status === "STR" && <p className="text-xs text-blue-600 mt-1">Ready to start</p>}
