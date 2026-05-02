@@ -1,11 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
-
-const surveys = [
-  { id: 1, title: "Complete Survey & Earn ₹20", reward: "₹20" },
-  { id: 2, title: "Quick Survey - ₹15", reward: "₹15" },
-];
 
 const games = [
   { id: 3, title: "Spin & Win - ₹50", reward: "₹50" },
@@ -23,11 +20,23 @@ const offers = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("games");
+  const dispatch = useDispatch();
+  const { surveys, isLoading } = useSelector((state) => state.userSurvey);
+  const [activeTab, setActiveTab] = useState("surveys");
+
+  useEffect(() => {
+    dispatch(getUserSurveys());
+  }, [dispatch]);
 
   const handleStart = (item) => {
     if (item.link) {
       navigate(item.link);
+    }
+  };
+
+  const handleStartSurvey = (survey) => {
+    if (survey.status === "STR") {
+      navigate(`/survey/${survey.id}`);
     }
   };
 
@@ -40,6 +49,7 @@ export default function Dashboard() {
         >
           <div>
             <h3 className="text-lg font-medium text-slate-800">{item.title}</h3>
+            {item.reward && <p className="text-emerald-600 font-semibold mt-1">{item.reward}</p>}
           </div>
 
           <button
@@ -53,10 +63,54 @@ export default function Dashboard() {
     </div>
   );
 
+  const renderSurveyCards = () => {
+    if (isLoading) return <p className="text-center py-8">Loading surveys...</p>;
+    
+    return (
+      <div className="grid gap-4">
+        {surveys.map((survey) => {
+          const isDisabled = survey.status !== "STR";
+          
+          return (
+            <div
+              key={survey.id}
+              className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center ${
+                isDisabled ? "opacity-75" : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+              }`}
+            >
+              <div>
+                <h3 className="text-lg font-medium text-slate-800">{survey.name}</h3>
+                <p className="text-emerald-600 font-semibold mt-1">
+                  +{survey.rewardPoints || parseInt(survey.reward) * 10} Coins
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Questions: {survey.questions?.length || 0}</p>
+                {survey.status === "LCK" && <p className="text-xs text-yellow-600 mt-1">Locked - Complete previous survey first</p>}
+                {survey.status === "ALS" && <p className="text-xs text-green-600 mt-1">Completed</p>}
+                {survey.status === "STR" && <p className="text-xs text-blue-600 mt-1">Ready to start</p>}
+              </div>
+
+              <button
+                onClick={() => handleStartSurvey(survey)}
+                disabled={isDisabled}
+                className={`px-5 py-2 rounded-xl font-semibold transition active:scale-95 shadow-sm ${
+                  isDisabled
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
+                }`}
+              >
+                {survey.status === "ALS" ? "Completed" : survey.status === "LCK" ? "Locked" : "Start"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const getActiveData = () => {
-    if (activeTab === "games") return games;
-    if (activeTab === "surveys") return surveys;
     if (activeTab === "offers") return offers;
+    if (activeTab === "games") return games;
+    return [];
   };
 
   return (
@@ -65,23 +119,12 @@ export default function Dashboard() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-800">Earn Rewards</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Play games, complete surveys or try offers to earn coins
+          Complete surveys, try offers or play games to earn coins
         </p>
       </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit mb-6">
-        <button
-          onClick={() => setActiveTab("games")}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
-            activeTab === "games"
-              ? "bg-green-200 text-slate-900"
-              : "text-slate-600 hover:bg-green-100"
-          }`}
-        >
-          🎮 Games
-        </button>
-
         <button
           onClick={() => setActiveTab("surveys")}
           className={`px-4 py-2 rounded-xl font-medium transition ${
@@ -93,7 +136,6 @@ export default function Dashboard() {
           📝 Surveys
         </button>
 
-        {/* ✅ UPDATED OFFERS TAB */}
         <button
           onClick={() => setActiveTab("offers")}
           className={`px-4 py-2 rounded-xl font-medium transition ${
@@ -103,6 +145,17 @@ export default function Dashboard() {
           }`}
         >
           🔥 Offers
+        </button>
+
+        <button
+          onClick={() => setActiveTab("games")}
+          className={`px-4 py-2 rounded-xl font-medium transition ${
+            activeTab === "games"
+              ? "bg-green-200 text-slate-900"
+              : "text-slate-600 hover:bg-green-100"
+          }`}
+        >
+          🎮 Games
         </button>
       </div>
 
@@ -143,7 +196,7 @@ export default function Dashboard() {
 
         {/* MAIN CONTENT */}
         <div className="lg:col-span-8 order-2 lg:order-1">
-          {renderCards(getActiveData())}
+          {activeTab === "surveys" ? renderSurveyCards() : renderCards(getActiveData())}
         </div>
       </div>
     </AppLayout>
