@@ -17,7 +17,7 @@ const generateTokens = async (userId, role) => {
   const accessToken = jwt.sign(
     { userId, role }, 
     process.env.JWT_ACCESS_SECRET, // Use different secret
-    { expiresIn: "15m" } // 15 minutes
+    { expiresIn: "15d" } // 15 minutes
   );
   
   // Generate refresh token (long-lived)
@@ -71,7 +71,7 @@ export const refreshAccessToken = async (refreshToken) => {
     const newAccessToken = jwt.sign(
       { userId: decoded.userId, role: decoded.role },
       process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "15d" }
     );
     
     // Optional: Rotate refresh token (issue new one)

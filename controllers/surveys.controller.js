@@ -47,3 +47,20 @@ export const listUserSurveys = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
+
+export const getSurveyById = async (req, res) => {
+  try {
+    const survey = await surveyService.getSurveyById({
+      surveyId: req.params.surveyId,
+      userId: req.user.userId
+    });
+    return successResponse(
+      res,
+      survey,
+      successMessages.SURVEY_MODULE_MESSAGES.SURVEY_FETCHED_SUCCESSFULLY,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

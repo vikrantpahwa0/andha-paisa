@@ -6,6 +6,7 @@ export const successMessages = {
   SURVEY_MODULE_MESSAGES: {
     SURVEY_CRETAED: "Survey Created",
     SURVEYS_FETCHED_SUCCESSFULLY: "Surveys Fetched Successfully",
+    SURVEY_FETCHED_SUCCESSFULLY: "Survey Fetched Successfully",
   },
 };
 
@@ -23,7 +24,8 @@ export const failureMessages = {
   EMAIL_SENDING_FAILED: "Failed to send email. Please try again later.",
   EMAIL_SERVICE_MESSAGES : {
     BREVO_API_KEY_NOT_CONFIGURED: 'BREVO_API_KEY not configured in environment variables'
-  }
+  },
+  SURVEY_ACCESS_DENIED: "You don't have access to this survey",
 };
 
 export const httpCodes = {

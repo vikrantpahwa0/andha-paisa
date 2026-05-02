@@ -10,9 +10,6 @@ const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS, USER_SURVEY_TRANSAC
 /**
  * Create or update survey basic info
  */
-/**
- * Create or update survey basic info
- */
 const createUpdateSurveyBasicInfo = async (surveyBasicInfo) => {
   const { id, name, reward, is_active } = surveyBasicInfo;
 
@@ -202,8 +199,6 @@ const processSurveysForUser = async (surveys, userId) => {
   return processedSurveys;
 };
   
-  
-
 export const listSurveys = async (data) => {
   let allSurveys = await SURVEY.findAll({
     where: { is_active: true },
@@ -236,4 +231,53 @@ export const listSurveys = async (data) => {
   }
 
   return allSurveys;
+};
+
+/**
+ * Get single survey by ID for user
+ */
+export const getSurveyById = async (data) => {
+  const { surveyId, userId } = data;
+  
+  const transaction = await USER_SURVEY_TRANSACTIONS.findOne({
+    where: {
+      user_id: userId,
+      survey_id: surveyId,
+      status: "ASSIGNED"
+    }
+  });
+
+  if (!transaction) {
+    throw new Error(failureMessages.SURVEY_ACCESS_DENIED);
+  }
+
+  // Fetch survey with questions and options
+  const survey = await SURVEY.findByPk(surveyId, {
+    where: { is_active: true },
+    include: [
+      {
+        model: SURVEY_QUESTIONS,
+        as: "questions",
+        where: { is_active: true },
+        required: false,
+        include: [
+          {
+            model: SURVEYS_QUESTIONS_OPTIONS,
+            as: "options",
+            where: { is_active: true },
+            required: false,
+          },
+        ],
+      },
+    ],
+    order: [
+      [{ model: SURVEY_QUESTIONS, as: "questions" }, "id", "ASC"],
+    ],
+  });
+
+  if (!survey) {
+    throw new Error(failureMessages.SURVEY_NOT_FOUND);
+  }
+
+  return survey;
 };
