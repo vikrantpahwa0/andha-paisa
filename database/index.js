@@ -4,7 +4,8 @@ import SurveysQuestions from "./models/surveys/surveys-questions.js";
 import SurveysQuestionsOptions from "./models/surveys/surveys-questions-options.js";
 import UsersModel from "./models/users.js";
 import VerificationsModel from "./models/verifications.js";
-import refreshTokensModel from "./models/refresh-token.js"; // New model for refresh tokens
+import refreshTokensModel from "./models/refresh-token.js"; 
+import usersSurveysTransactions from "./models/surveys/users-surveys-transactions.js";// New model for refresh tokens
 
 // Initialize all models
 const Survey = SurveyModel(sequelize);
@@ -13,6 +14,7 @@ const SurveyQuestionOptions = SurveysQuestionsOptions(sequelize);
 const Users = UsersModel(sequelize);
 const Verifications = VerificationsModel(sequelize);
 const RefreshTokens = refreshTokensModel(sequelize); // Initialize refresh tokens model
+const UsersSurveysTransactions = usersSurveysTransactions(sequelize); // Initialize users surveys transactions model
 // Create models object for associations
 const models = {
   Survey,
@@ -38,6 +40,7 @@ const db = {
   USERS: Users,
   VERIFICATIONS: Verifications,
   REFRESH_TOKENS: RefreshTokens,
+  USER_SURVEY_TRANSACTIONS: UsersSurveysTransactions,
 };
 
 export default db;

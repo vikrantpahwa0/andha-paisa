@@ -5,7 +5,7 @@ import {
   validationMessages,
 } from "../constants/messages.js";
 
-const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS } = db;
+const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS, USER_SURVEY_TRANSACTIONS } = db;
 
 /**
  * Create or update survey basic info
@@ -142,8 +142,67 @@ export const createUpdateSurveys = async (data) => {
   };
 };
 
+const processSurveysForUser = async (surveys, userId) => {
+  const lastCompletedSurvey = await USER_SURVEY_TRANSACTIONS.findOne({
+    where: {
+      user_id: userId,
+      status: ["ATTEMPTED", "COMPLETED"]
+    },
+    order: [["survey_id", "DESC"]],
+    attributes: ["survey_id"]
+  });
+
+  // Convert to plain objects
+  const processedSurveys = [];
+
+  let nextSurveyFound = false;
+  
+  for (let i = 0; i < surveys.length; i++) {
+    const survey = surveys[i];
+    const surveyObj = survey.toJSON(); // Convert Sequelize instance to plain object
+    
+    // Add reward points
+    surveyObj.rewardPoints = parseInt(survey.reward) * parseInt(process.env.SURVEY_REWARD_POINTS);
+    
+    // Add status
+    if (lastCompletedSurvey && surveyObj.id <= lastCompletedSurvey.survey_id) {
+      surveyObj.status = "ALS"; // Already Submitted
+    } 
+    else if (!nextSurveyFound) {
+      // This is the next survey after the last completed one
+      surveyObj.status = "STR"; // Start
+      nextSurveyFound = true;
+
+      // Create transaction record - use try/catch to handle duplicates
+        const existingTransaction = await USER_SURVEY_TRANSACTIONS.findOne({
+        where: {
+          user_id: userId,
+          survey_id: surveyObj.id
+        }
+      });
+
+      if (!existingTransaction) {
+        await USER_SURVEY_TRANSACTIONS.create({
+          user_id: userId,
+          survey_id: surveyObj.id,
+          status: "ASSIGNED"
+        });
+      }
+    }
+    else {
+      surveyObj.status = "LCK"; // Locked
+    }
+    
+    processedSurveys.push(surveyObj);
+  }
+  
+  return processedSurveys;
+};
+  
+  
+
 export const listSurveys = async (data) => {
-  return await SURVEY.findAll({
+  let allSurveys = await SURVEY.findAll({
     where: { is_active: true },
     include: [
       {
@@ -162,8 +221,16 @@ export const listSurveys = async (data) => {
       },
     ],
     order: [
-      ["created_at", "DESC"], // Latest surveys first
-      [{ model: SURVEY_QUESTIONS, as: "questions" }, "created_at", "ASC"],
+      ["id", "ASC"],
+      [{ model: SURVEY_QUESTIONS, as: "questions" }, "id", "ASC"],
     ],
   });
+
+  if (data?.forUsers) {
+    if (data.forUsers && data.userId) {
+    allSurveys = await processSurveysForUser(allSurveys, data.userId);
+  }
+  }
+
+  return allSurveys;
 };
