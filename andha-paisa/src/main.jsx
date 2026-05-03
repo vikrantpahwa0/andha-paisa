@@ -1,12 +1,21 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./app";
-import { Provider } from "react-redux";
-import { store } from "./store/store";
-import "./index.css";  // ← This imports Tailwind
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
+import { store } from './store/store'
+import App from './App'
+import './index.css'
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <App />
-  </Provider>
-);
+// Register service worker for PWA
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+  })
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>,
+)

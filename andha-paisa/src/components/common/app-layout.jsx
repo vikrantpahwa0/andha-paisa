@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Sidebar from "./sidebar";
+import PWAPrompt from "./PWAPrompt";
 
 export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +42,9 @@ export default function AppLayout({ children }) {
 
         {children}
       </div>
+
+      {/* PWA Install Prompt */}
+      <PWAPrompt />
     </div>
   );
 }
