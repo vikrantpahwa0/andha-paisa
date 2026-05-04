@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getSurveyById, clearCurrentSurvey } from "../../store/slices/user-survey-slice";
+import { 
+  getSurveyById, 
+  clearCurrentSurvey,
+  submitUserSurvey      // <-- import the new thunk
+} from "../../store/slices/user-survey-slice";
 import AppLayout from "../../components/common/app-layout";
 
 export default function Survey() {
@@ -10,10 +14,10 @@ export default function Survey() {
   const dispatch = useDispatch();
   const { currentSurvey, isLoading, error } = useSelector((state) => state.userSurvey);
   const [answers, setAnswers] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(getSurveyById(id));
-    
     return () => {
       dispatch(clearCurrentSurvey());
     };
@@ -27,8 +31,40 @@ export default function Survey() {
   };
 
   const handleSubmit = async () => {
-    // Submit answers - to be implemented
-    console.log("Answers:", answers);
+    // 1. Check if all questions are answered
+    const totalQuestions = currentSurvey?.questions?.length || 0;
+    const answeredCount = Object.keys(answers).length;
+    if (answeredCount !== totalQuestions) {
+      alert(`Please answer all ${totalQuestions} questions before submitting.`);
+      return;
+    }
+
+    // 2. Format answers for the API
+    const answersArray = currentSurvey.questions.map(question => {
+      const answerValue = answers[question.id];
+      const isOptionsType = question.question_type === "with_options";
+
+      return {
+        questionId: question.id,
+        optionChosenId: isOptionsType ? parseInt(answerValue) : null,
+        textAnswer: !isOptionsType ? answerValue : null,
+      };
+    });
+
+    setSubmitting(true);
+    try {
+      await dispatch(submitUserSurvey({ 
+        surveyId: parseInt(id), 
+        answers: answersArray 
+      })).unwrap();
+      
+      alert("Survey submitted successfully! You've earned points.");
+      navigate("/dashboard");
+    } catch (err) {
+      alert(err || "Submission failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -139,9 +175,12 @@ export default function Survey() {
         <div className="mt-8 mb-12">
           <button
             onClick={handleSubmit}
-            className="w-full max-w-md bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 font-semibold py-3 rounded-xl hover:from-green-300 hover:to-green-500 transition active:scale-95 shadow-md"
+            disabled={submitting}
+            className={`w-full max-w-md bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 font-semibold py-3 rounded-xl hover:from-green-300 hover:to-green-500 transition active:scale-95 shadow-md ${
+              submitting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Submit Survey
+            {submitting ? "Submitting..." : "Submit Survey"}
           </button>
         </div>
       </div>

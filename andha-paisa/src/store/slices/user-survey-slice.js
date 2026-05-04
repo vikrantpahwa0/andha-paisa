@@ -71,6 +71,37 @@ export const getSurveyById = createAsyncThunk(
   },
 );
 
+export const submitUserSurvey = createAsyncThunk(
+  "userSurvey/submitUserSurvey",
+  async ({ surveyId, answers }, { rejectWithValue }) => {
+    try {
+      const token = getToken();
+      if (!token) {
+        return rejectWithValue("Authentication required");
+      }
+
+      const response = await fetch(`${BE_URL}/surveys/submit-user-survey`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ surveyId, answers }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return rejectWithValue(data.message || "Submission failed");
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Network error");
+    }
+  }
+);
+
 const initialState = {
   surveys: [],
   currentSurvey: null,
@@ -119,7 +150,19 @@ const userSurveySlice = createSlice({
       .addCase(getSurveyById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-      });
+      }).
+      addCase(submitUserSurvey.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(submitUserSurvey.fulfilled, (state) => {
+      state.isLoading = false;
+      state.currentSurvey = null; // clear after successful submission
+    })
+    .addCase(submitUserSurvey.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
   },
 });
 
