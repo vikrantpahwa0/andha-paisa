@@ -5,7 +5,7 @@ import {
   validationMessages,
 } from "../constants/messages.js";
 
-const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS, USER_SURVEY_TRANSACTIONS } = db;
+const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS, USER_SURVEY_TRANSACTIONS, USER_SURVEY_ANSWERS } = db;
 
 /**
  * Create or update survey basic info
@@ -280,4 +280,142 @@ export const getSurveyById = async (data) => {
   }
 
   return survey;
+};
+
+export const  submitUserSurvey = async (data) => {
+  const { userId, surveyId, answers } = data;
+
+  if (!userId || !surveyId || !answers || !Array.isArray(answers)) {
+    throw new Error(validationMessages.SURVEY_MODULE_MESSAGES.INVALID_SUBMISSION_DATA);
+  }
+
+  // Start a database transaction
+  const transaction = await db.sequelize.transaction();
+
+  try {
+    // 1. Verify the survey is assigned to this user with status "ASSIGNED"
+    const userTransaction = await USER_SURVEY_TRANSACTIONS.findOne({
+      where: {
+        user_id: userId,
+        survey_id: surveyId,
+        status: "ASSIGNED",
+      },
+      transaction,
+    });
+
+    if (!userTransaction) {
+      throw new Error(failureMessages.SURVEY_ACCESS_DENIED);
+    }
+
+    // 2. Fetch the survey with its questions and options (to validate answers)
+    const survey = await SURVEY.findByPk(surveyId, {
+      where: { is_active: true },
+      include: [
+        {
+          model: SURVEY_QUESTIONS,
+          as: "questions",
+          where: { is_active: true },
+          required: false,
+          include: [
+            {
+              model: SURVEYS_QUESTIONS_OPTIONS,
+              as: "options",
+              where: { is_active: true },
+              required: false,
+            },
+          ],
+        },
+      ],
+      transaction,
+    });
+
+    if (!survey) {
+      throw new Error(failureMessages.SURVEY_NOT_FOUND);
+    }
+
+    // Build a map of question_id -> question object for quick lookup
+    const questionMap = new Map();
+    survey.questions.forEach((question) => {
+      questionMap.set(question.id, question);
+    });
+
+    // 3. Validate and prepare answer records
+    const answerRecords = [];
+
+    for (const ans of answers) {
+      const { questionId, optionChosenId, textAnswer } = ans;
+
+      if (!questionId) {
+        throw new Error(validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_ID_REQUIRED);
+      }
+
+      const question = questionMap.get(questionId);
+      if (!question) {
+        throw new Error(
+          `${validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_NOT_FOUND}: ${questionId}`
+        );
+      }
+
+      // For "with_options" type, we need a valid option
+      if (question.question_type === "with_options") {
+        if (!optionChosenId) {
+          throw new Error(
+            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_REQUIRED} for question ${questionId}`
+          );
+        }
+        // Verify the option belongs to this question and is active
+        const validOption = question.options.some(
+          (opt) => opt.id === optionChosenId
+        );
+        if (!validOption) {
+          throw new Error(
+            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_NOT_FOUND}: ${optionChosenId}`
+          );
+        }
+      } else {
+        // For other question types (text, numeric, etc.), textAnswer is required
+        if (!textAnswer || textAnswer.trim() === "") {
+          throw new Error(
+            `${validationMessages.SURVEY_MODULE_MESSAGES.TEXT_ANSWER_REQUIRED} for question ${questionId}`
+          );
+        }
+      }
+
+      answerRecords.push({
+        user_transaction_id: userTransaction.id,
+        question_id: questionId,
+        option_chosen_id: optionChosenId || null,
+        text_answer: textAnswer || null,
+      });
+    }
+
+    // Optional: check that all questions in the survey have been answered
+    // (only if the survey requires complete answers)
+    const allQuestionIds = survey.questions.map((q) => q.id);
+    const answeredQuestionIds = answerRecords.map((rec) => rec.question_id);
+    const missingQuestions = allQuestionIds.filter(
+      (id) => !answeredQuestionIds.includes(id)
+    );
+    if (missingQuestions.length > 0) {
+      throw new Error(
+        `${validationMessages.SURVEY_MODULE_MESSAGES.MISSING_ANSWERS}: ${missingQuestions.join(
+          ", "
+        )}`
+      );
+    }
+
+    // 4. Insert answers
+    await USER_SURVEY_ANSWERS.bulkCreate(answerRecords, { transaction });
+
+    // 5. Update transaction status to "ATTEMPTED"
+    await userTransaction.update({ status: "ATTEMPTED" }, { transaction });
+
+    // Commit transaction
+    await transaction.commit();
+
+  } catch (error) {
+    // Rollback transaction on any error
+    await transaction.rollback();
+    throw error;
+  }
 };

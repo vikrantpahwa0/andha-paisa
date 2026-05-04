@@ -7,6 +7,7 @@ export const successMessages = {
     SURVEY_CRETAED: "Survey Created",
     SURVEYS_FETCHED_SUCCESSFULLY: "Surveys Fetched Successfully",
     SURVEY_FETCHED_SUCCESSFULLY: "Survey Fetched Successfully",
+    SURVEY_SUBMITTED: "Survey Submitted",
   },
 };
 
@@ -26,6 +27,8 @@ export const failureMessages = {
     BREVO_API_KEY_NOT_CONFIGURED: 'BREVO_API_KEY not configured in environment variables'
   },
   SURVEY_ACCESS_DENIED: "You don't have access to this survey",
+  SURVEY_NOT_FOUND: "Survey not found",
+  
 };
 
 export const httpCodes = {
@@ -50,4 +53,13 @@ export const validationMessages = {
   INVALID_TOKEN : 'Invalid Token',
   TOKEN_VERIFICATION_FAILED : 'Token verification failed',
   UNAUTHORIZED :'You are not authorized to access this resource',
+  SURVEY_MODULE_MESSAGES: {
+    INVALID_SUBMISSION_DATA: "Invalid submission data. Please check your answers.",
+    QUESTION_NOT_FOUND:'Question not found in the survey',
+    QUESTION_ID_REQUIRED:'Question ID is required for each answer',
+    OPTION_REQUIRED:'Option chosen is required for multiple choice questions',
+    OPTION_NOT_FOUND:'Chosen option not found for the question',
+    TEXT_ANSWER_REQUIRED:'Text answer is required for text type questions',
+    MISSING_ANSWERS:'Missing answers for questions',
+  },
 };

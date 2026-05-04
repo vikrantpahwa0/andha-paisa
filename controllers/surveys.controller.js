@@ -64,3 +64,17 @@ export const getSurveyById = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
+
+export const submitUserSurvey = async (req, res) => {
+  try {
+    await surveyService.submitUserSurvey({ userId: req.user.userId, ...req.body });
+    return successResponse(
+      res,
+      {},
+      successMessages.SURVEY_MODULE_MESSAGES.SURVEY_SUBMITTED,
+      httpCodes.CREATED,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

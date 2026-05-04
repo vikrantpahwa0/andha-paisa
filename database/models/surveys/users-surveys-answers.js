@@ -51,7 +51,7 @@ export default (sequelize) => {
   );
 
   UsersSurveysAnswer.associate = (models) => {
-    UsersSurveysAnswer.belongsTo(models.UsersSurveysTransaction, {
+    UsersSurveysAnswer.belongsTo(models.UsersSurveysTransactions, {
       foreignKey: "user_transaction_id",
       as: "userTransaction",
     });
