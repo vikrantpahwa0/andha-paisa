@@ -1,74 +1,87 @@
 // src/store/slices/user-personal.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const BE_URL = import.meta.env.VITE_BE_URL;
 
 const getAuthHeader = (getState) => {
   const token = getState().auth.accessToken;
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 export const fetchUserProfile = createAsyncThunk(
-  'userPersonal/fetchProfile',
+  "userPersonal/fetchProfile",
   async (options, { rejectWithValue, getState }) => {
     try {
-      const response = await fetch(`${BE_URL}/auth/fetchUser${options?.fetchBankDetails ? '?includeBankDetails=true' : ''}`, {
-        headers: { 'Content-Type': 'application/json', ...getAuthHeader(getState) },
-      });
+      const response = await fetch(
+        `${BE_URL}/auth/fetchUser${options?.fetchBankDetails ? "?includeBankDetails=true" : ""}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader(getState),
+          },
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || 'Failed to fetch profile');
+        return rejectWithValue(data.message || "Failed to fetch profile");
       }
       return data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateUserProfile = createAsyncThunk(
-  'userPersonal/updateProfile',
+  "userPersonal/updateProfile",
   async (profileData, { rejectWithValue, getState, dispatch }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
-      if (!userId) throw new Error('User ID missing');
+      if (!userId) throw new Error("User ID missing");
 
       const response = await fetch(`${BE_URL}/auth/update-user`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeader(getState) },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(getState),
+        },
         body: JSON.stringify({ userId, userDetails: profileData }),
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || 'Profile update failed');
+        return rejectWithValue(data.message || "Profile update failed");
       }
       // Refetch to get the latest user data (including new profilePicture URL)
       await dispatch(fetchUserProfile());
-      // Return the optimistic update
-      return profileData;
+      // Return only non-image fields for optimistic update (name, email, etc.)
+      const { profilePicture, ...optimisticData } = profileData;
+      return optimisticData;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateUserBankDetails = createAsyncThunk(
-  'userPersonal/updateBankDetails',
+  "userPersonal/updateBankDetails",
   async (bankData, { rejectWithValue, getState, dispatch }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
-      if (!userId) throw new Error('User ID missing');
+      if (!userId) throw new Error("User ID missing");
 
       const response = await fetch(`${BE_URL}/auth/update-user`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeader(getState) },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(getState),
+        },
         body: JSON.stringify({ userId, bankDetails: bankData }),
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || 'Bank details update failed');
+        return rejectWithValue(data.message || "Bank details update failed");
       }
       // Refetch to get the latest bank details from server
       await dispatch(fetchUserProfile());
@@ -77,7 +90,7 @@ export const updateUserBankDetails = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 const initialState = {
@@ -88,7 +101,7 @@ const initialState = {
 };
 
 const userPersonalSlice = createSlice({
-  name: 'userPersonal',
+  name: "userPersonal",
   initialState,
   reducers: {
     clearUserPersonal: (state) => {
@@ -111,7 +124,7 @@ const userPersonalSlice = createSlice({
           email: action.payload.email,
           profilePicture: action.payload.profilePicture || null,
           balance: 0,
-          joinDate: new Date().toISOString().split('T')[0],
+          joinDate: new Date().toISOString().split("T")[0],
         };
         if (action.payload.bankDetail) {
           state.bankDetails = {
@@ -135,7 +148,7 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          // Optimistic update: merge the changes (name, profilePicture base64)
+          // Only update non-image fields (name, email, etc.) - preserve the existing profilePicture
           state.profile = { ...state.profile, ...action.payload };
         }
       })
