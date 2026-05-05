@@ -54,7 +54,7 @@ export const updateUserProfile = createAsyncThunk(
       }
       // Refetch to get the latest user data (including new profilePicture URL)
       await dispatch(fetchUserProfile());
-      // Return only non-image fields for optimistic update (name, email, etc.)
+      // Exclude profilePicture from optimistic update to preserve the URL
       const { profilePicture, ...optimisticData } = profileData;
       return optimisticData;
     } catch (error) {
@@ -85,7 +85,7 @@ export const updateUserBankDetails = createAsyncThunk(
       }
       // Refetch to get the latest bank details from server
       await dispatch(fetchUserProfile());
-      // Return the optimistic update
+      // Return the optimistic update for bank details
       return bankData;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -148,7 +148,7 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          // Only update non-image fields (name, email, etc.) - preserve the existing profilePicture
+          // Merge only non-image fields (name, email, etc.) - preserve the existing profilePicture URL
           state.profile = { ...state.profile, ...action.payload };
         }
       })
