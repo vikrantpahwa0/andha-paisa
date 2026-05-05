@@ -6,10 +6,7 @@ export default function Sidebar() {
   const location = useLocation();
 
   const menu = [
-    { name: "Earn", path: "/", icon: Home },
-    { name: "Games", path: "/games", icon: Gamepad2 },
-    { name: "Surveys", path: "/surveys", icon: ClipboardList },
-    { name: "Offers", path: "/offers", icon: Gift },
+    { name: "Earn", path: "/dashboard", icon: Home },
     { name: "Account", path: "/profile", icon: User },
   ];
 

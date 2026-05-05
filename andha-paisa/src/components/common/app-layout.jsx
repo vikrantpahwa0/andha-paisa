@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Sidebar from "./sidebar";
 import PWAPrompt from "./PWAPrompt";
+import UserMenu from "./user-menu";   // <-- import
 
 export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,6 +39,13 @@ export default function AppLayout({ children }) {
           <h1 className="text-lg font-semibold text-green-600">
             Andha Paisa 💰
           </h1>
+          {/* UserMenu on mobile (right side) */}
+          <UserMenu />
+        </div>
+
+        {/* Desktop Topbar - User Menu */}
+        <div className="hidden md:flex justify-end mb-6">
+          <UserMenu />
         </div>
 
         {children}
