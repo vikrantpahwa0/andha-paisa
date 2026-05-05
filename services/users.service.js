@@ -8,6 +8,7 @@ import {
 } from "../constants/messages.js";
 import { codes } from "../constants/codes.js";
 import { sendOTPEmail } from "./send-email.js";
+import { saveBase64Image } from '../utils/saveBase64Image.js';
 
 const { USERS, VERIFICATIONS, REFRESH_TOKENS, USER_BANK_DETAIL } = db; // Add REFRESH_TOKENS model
 
@@ -336,7 +337,7 @@ export const fetchUser = async (userId, fetchBankDetails = false) => {
 
   const user = await USERS.findOne({
     where: { id: userId },
-    attributes: ["id", "name", "email"],
+    attributes: ["id", "name", "email", "profilePicture"],
     include,
   });
 
@@ -348,14 +349,27 @@ export const fetchUser = async (userId, fetchBankDetails = false) => {
 };
 
 export const updateUser = async (data) => {
-  const {userId, userDetails, bankDetails} = data;
+  const { userId, userDetails, bankDetails } = data;
 
-  if(userDetails){
+  if (userDetails) {
+    // If profilePicture is a base64 string, save to file and replace with URL
+    if (userDetails.profilePicture && userDetails.profilePicture.startsWith('data:image')) {
+      try {
+        const imageUrl = saveBase64Image(userDetails.profilePicture, userId);
+        userDetails.profilePicture = imageUrl; // Replace base64 with URL
+      } catch (error) {
+        console.error('Failed to save profile picture:', error);
+        // Optionally keep the original base64 or throw
+        throw new Error('Invalid image data');
+      }
+    }
+
     await USERS.update(userDetails, {
       where: { id: userId },
     });
   }
-  if(bankDetails){
+
+  if (bankDetails) {
     const existingBankDetail = await USER_BANK_DETAIL.findOne({
       where: { user_id: userId },
     });

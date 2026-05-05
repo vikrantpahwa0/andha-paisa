@@ -36,6 +36,12 @@ export default (sequelize) => {
         type: DataTypes.STRING,
       },
 
+      profilePicture: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: "URL to user's profile picture",
+      },
+
       is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
