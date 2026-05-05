@@ -3,12 +3,14 @@ export const successMessages = {
   USER_REGISTERED: "User registered",
   LOGIN_SUCCESS: "Login successful",
   OTP_SENT: "Otp sent",
+  OTP_VERIFIED: "Otp verified",
   SURVEY_MODULE_MESSAGES: {
     SURVEY_CRETAED: "Survey Created",
     SURVEYS_FETCHED_SUCCESSFULLY: "Surveys Fetched Successfully",
     SURVEY_FETCHED_SUCCESSFULLY: "Survey Fetched Successfully",
     SURVEY_SUBMITTED: "Survey Submitted",
   },
+  USER_FETCHED: "User fetched successfully",
 };
 
 export const failureMessages = {
@@ -28,7 +30,7 @@ export const failureMessages = {
   },
   SURVEY_ACCESS_DENIED: "You don't have access to this survey",
   SURVEY_NOT_FOUND: "Survey not found",
-  
+  USER_NOT_FOUND : "User not found",
 };
 
 export const httpCodes = {

@@ -322,3 +322,14 @@ export const loginUser = async (data) => {
     refreshToken,
   };
 };
+
+export const fetchUser = async (userId) => {
+  const user = await USERS.findOne({
+    where: { id: userId },
+    attributes: ["id", "name", "email"],
+  });
+  if (!user) {
+    throw new Error(failureMessages.USER_NOT_FOUND);
+  }
+  return user;
+};

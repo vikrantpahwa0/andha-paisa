@@ -61,3 +61,17 @@ export const verifyOtp = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.UNAUTHORIZED, err);
   }
 };
+
+export const fetchUser = async (req, res) => {
+  try {
+    const user = await userService.fetchUser(req.user.userId);
+    return successResponse(
+      res,
+      user,
+      successMessages.USER_FETCHED,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};
