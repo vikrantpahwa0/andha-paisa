@@ -9,7 +9,7 @@ import {
 import { codes } from "../constants/codes.js";
 import { sendOTPEmail } from "./send-email.js";
 
-const { USERS, VERIFICATIONS, REFRESH_TOKENS } = db; // Add REFRESH_TOKENS model
+const { USERS, VERIFICATIONS, REFRESH_TOKENS, USER_BANK_DETAIL } = db; // Add REFRESH_TOKENS model
 
 // Helper function to generate tokens
 const generateTokens = async (userId, role) => {
@@ -323,13 +323,48 @@ export const loginUser = async (data) => {
   };
 };
 
-export const fetchUser = async (userId) => {
+export const fetchUser = async (userId, fetchBankDetails = false) => {
+  const include = fetchBankDetails
+    ? [
+        {
+          model: USER_BANK_DETAIL,
+          as: "bankDetail", // matches the alias defined in association
+          attributes: ["account_holder_name", "bank_name", "account_number", "ifsc_code"],
+        },
+      ]
+    : [];
+
   const user = await USERS.findOne({
     where: { id: userId },
     attributes: ["id", "name", "email"],
+    include,
   });
+
   if (!user) {
     throw new Error(failureMessages.USER_NOT_FOUND);
   }
+
   return user;
+};
+
+export const updateUser = async (data) => {
+  const {userId, userDetails, bankDetails} = data;
+
+  if(userDetails){
+    await USERS.update(userDetails, {
+      where: { id: userId },
+    });
+  }
+  if(bankDetails){
+    const existingBankDetail = await USER_BANK_DETAIL.findOne({
+      where: { user_id: userId },
+    });
+    if (existingBankDetail) {
+      await USER_BANK_DETAIL.update(bankDetails, {
+        where: { user_id: userId },
+      });
+    } else {
+      await USER_BANK_DETAIL.create({ user_id: userId, ...bankDetails });
+    }
+  }
 };

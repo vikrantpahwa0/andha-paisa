@@ -61,5 +61,12 @@ export default (sequelize) => {
     },
   );
 
+  User.associate = (models) => {
+    User.hasOne(models.UserBankDetail, {
+      foreignKey: "user_id",
+      as: "bankDetail",
+    });
+  };
+
   return User;
 };

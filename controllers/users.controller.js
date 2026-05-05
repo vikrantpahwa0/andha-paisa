@@ -64,12 +64,26 @@ export const verifyOtp = async (req, res) => {
 
 export const fetchUser = async (req, res) => {
   try {
-    const user = await userService.fetchUser(req.user.userId);
+    const user = await userService.fetchUser(req.user.userId, req.query.includeBankDetails);
     return successResponse(
       res,
       user,
       successMessages.USER_FETCHED,
       httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    await userService.updateUser({ userId: req.user.userId, ...req.body });
+    return successResponse(
+      res,
+      {},
+      successMessages.USER_UPDATED,
+      httpCodes.CREATED,
     );
   } catch (err) {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);

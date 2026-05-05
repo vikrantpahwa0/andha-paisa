@@ -4,9 +4,10 @@ import SurveysQuestions from "./models/surveys/surveys-questions.js";
 import SurveysQuestionsOptions from "./models/surveys/surveys-questions-options.js";
 import UsersModel from "./models/users.js";
 import VerificationsModel from "./models/verifications.js";
-import refreshTokensModel from "./models/refresh-token.js"; 
-import usersSurveysTransactions from "./models/surveys/users-surveys-transactions.js";// New model for refresh tokens
-import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js"; // New model for user survey answers
+import refreshTokensModel from "./models/refresh-token.js";
+import usersSurveysTransactions from "./models/surveys/users-surveys-transactions.js";
+import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js";
+import UserBankDetailModel from "./models/user-bank-details.js";   // ✅ ADD THIS
 
 // Initialize all models
 const Survey = SurveyModel(sequelize);
@@ -14,9 +15,11 @@ const SurveyQuestions = SurveysQuestions(sequelize);
 const SurveyQuestionOptions = SurveysQuestionsOptions(sequelize);
 const Users = UsersModel(sequelize);
 const Verifications = VerificationsModel(sequelize);
-const RefreshTokens = refreshTokensModel(sequelize); // Initialize refresh tokens model
-const UsersSurveysTransactions = usersSurveysTransactions(sequelize); // Initialize users surveys transactions model
-const UsersSurveyAnswers = usersSurveyAnswers(sequelize); // Initialize users survey answers model
+const RefreshTokens = refreshTokensModel(sequelize);
+const UsersSurveysTransactions = usersSurveysTransactions(sequelize);
+const UsersSurveyAnswers = usersSurveyAnswers(sequelize);
+const UserBankDetail = UserBankDetailModel(sequelize);   // ✅ ADD THIS
+
 // Create models object for associations
 const models = {
   Survey,
@@ -27,7 +30,7 @@ const models = {
   Verifications,
   UsersSurveyAnswers,
   UsersSurveysTransactions,
-  
+  UserBankDetail,   // ✅ ADD THIS
 };
 
 // Call associate functions
@@ -47,6 +50,7 @@ const db = {
   REFRESH_TOKENS: RefreshTokens,
   USER_SURVEY_TRANSACTIONS: UsersSurveysTransactions,
   USER_SURVEY_ANSWERS: UsersSurveyAnswers,
+  USER_BANK_DETAIL: UserBankDetail,   // ✅ ADD THIS
 };
 
 export default db;

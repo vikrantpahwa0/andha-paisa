@@ -11,6 +11,7 @@ export const successMessages = {
     SURVEY_SUBMITTED: "Survey Submitted",
   },
   USER_FETCHED: "User fetched successfully",
+  USER_UPDATED: "User updated successfully",
 };
 
 export const failureMessages = {
