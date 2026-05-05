@@ -53,8 +53,8 @@ export const updateUserProfile = createAsyncThunk(
         return rejectWithValue(data.message || "Profile update failed");
       }
       // Refetch to get the latest user data (including new profilePicture URL)
-      await dispatch(fetchUserProfile());
-      // Exclude profilePicture from optimistic update to preserve the URL
+      await dispatch(fetchUserProfile({ fetchBankDetails: true }));
+      // Return only non-image fields for optimistic update (name, email, etc.)
       const { profilePicture, ...optimisticData } = profileData;
       return optimisticData;
     } catch (error) {
@@ -84,8 +84,8 @@ export const updateUserBankDetails = createAsyncThunk(
         return rejectWithValue(data.message || "Bank details update failed");
       }
       // Refetch to get the latest bank details from server
-      await dispatch(fetchUserProfile());
-      // Return the optimistic update for bank details
+      await dispatch(fetchUserProfile({ fetchBankDetails: true }));
+      // Return the optimistic update
       return bankData;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -133,9 +133,8 @@ const userPersonalSlice = createSlice({
             account_number: action.payload.bankDetail.account_number,
             ifsc_code: action.payload.bankDetail.ifsc_code,
           };
-        } else {
-          state.bankDetails = null;
         }
+        // ✅ CHANGE: removed "else { state.bankDetails = null; }" - now keeps existing bankDetails if API doesn't return them
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -148,7 +147,7 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          // Merge only non-image fields (name, email, etc.) - preserve the existing profilePicture URL
+          // Only update non-image fields (name, email, etc.) - preserve the existing profilePicture
           state.profile = { ...state.profile, ...action.payload };
         }
       })
