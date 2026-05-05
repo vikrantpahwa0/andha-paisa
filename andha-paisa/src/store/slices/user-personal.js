@@ -19,7 +19,7 @@ export const fetchUserProfile = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Failed to fetch profile');
       }
-      return data.data; // { id, name, email, profilePicture, bankDetail }
+      return data.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -43,10 +43,10 @@ export const updateUserProfile = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Profile update failed');
       }
-      // ✅ Only refetch, do not return profileData
+      // Refetch to get the latest user data (including new profilePicture URL)
       await dispatch(fetchUserProfile());
-      // Return a dummy value to keep the promise resolved
-      return { success: true };
+      // Return the optimistic update
+      return profileData;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -70,8 +70,9 @@ export const updateUserBankDetails = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Bank details update failed');
       }
-      // Refetch to get updated bank details from server
+      // Refetch to get the latest bank details from server
       await dispatch(fetchUserProfile());
+      // Return the optimistic update
       return bankData;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -108,7 +109,7 @@ const userPersonalSlice = createSlice({
           id: action.payload.id,
           name: action.payload.name,
           email: action.payload.email,
-          profilePicture: action.payload.profilePicture || null,  // ✅ store profilePicture URL
+          profilePicture: action.payload.profilePicture || null,
           balance: 0,
           joinDate: new Date().toISOString().split('T')[0],
         };
@@ -132,6 +133,11 @@ const userPersonalSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          // Optimistic update: merge the changes (name, profilePicture base64)
+          state.profile = { ...state.profile, ...action.payload };
+        }
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -142,6 +148,11 @@ const userPersonalSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserBankDetails.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          // Optimistic update: set the new bank details immediately
+          state.bankDetails = action.payload;
+        }
       })
       .addCase(updateUserBankDetails.rejected, (state, action) => {
         state.isLoading = false;
