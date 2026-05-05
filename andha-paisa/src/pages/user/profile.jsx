@@ -1,33 +1,53 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../../components/common/app-layout';
+import {
+  updateUserProfile,
+  updateUserBankDetails,
+} from '../../store/slices/user-personal';
 import { Camera, Edit2, Save, X, Plus, AlertCircle } from 'lucide-react';
-
+ 
 export default function Profile() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const fileInputRef = useRef(null);
-  const [user, setUser] = useState({
-    name: 'Rahul Sharma',
-    email: 'rahul@example.com',
-    avatarUrl: null,
-    bankDetails: null, // will store object once added
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [nameInput, setNameInput] = useState(user.name);
 
-  // Bank details state
+  const { profile, bankDetails, isLoading, error } = useSelector(
+    (state) => state.userPersonal
+  );
+
+  // Local UI states
+  const [isEditing, setIsEditing] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [showBankForm, setShowBankForm] = useState(false);
   const [bankFormData, setBankFormData] = useState({
-    accountHolderName: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
+    account_holder_name: '',
+    bank_name: '',
+    account_number: '',
+    ifsc_code: '',
   });
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
   const [bankErrors, setBankErrors] = useState({});
 
-  // Avatar handlers (unchanged)
-  const handleAvatarChange = (e) => {
+  // ✅ Only populate local state from Redux – no fetch call
+  useEffect(() => {
+    if (profile) {
+      setNameInput(profile.name);
+    }
+    if (bankDetails) {
+      setBankFormData({
+        account_holder_name: bankDetails.account_holder_name || '',
+        bank_name: bankDetails.bank_name || '',
+        account_number: bankDetails.account_number || '',
+        ifsc_code: bankDetails.ifsc_code || '',
+      });
+    }
+  }, [profile, bankDetails]);
+
+  // Avatar upload (base64) – calls updateUserProfile
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
       if (file.size > 2 * 1024 * 1024) {
@@ -35,8 +55,10 @@ export default function Profile() {
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setUser({ ...user, avatarUrl: reader.result });
+      reader.onloadend = async () => {
+        const base64 = reader.result;
+        setAvatarPreview(base64);
+        await dispatch(updateUserProfile({ avatarUrl: base64 }));
       };
       reader.readAsDataURL(file);
     } else {
@@ -44,14 +66,15 @@ export default function Profile() {
     }
   };
 
-  const saveName = () => {
+  // Save name
+  const saveName = async () => {
     if (nameInput.trim()) {
-      setUser({ ...user, name: nameInput.trim() });
+      await dispatch(updateUserProfile({ name: nameInput.trim() }));
       setIsEditing(false);
     }
   };
 
-  // Bank validation helpers
+  // Bank validation
   const validateIFSC = (ifsc) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc.toUpperCase());
   const validateAccountNumber = (acc) => /^\d{9,18}$/.test(acc);
 
@@ -61,66 +84,43 @@ export default function Profile() {
     if (bankErrors[name]) setBankErrors({ ...bankErrors, [name]: '' });
   };
 
-  const saveBankDetails = () => {
+  const saveBankDetails = async () => {
     const errors = {};
-    if (!bankFormData.accountHolderName.trim())
-      errors.accountHolderName = 'Account holder name required';
-    if (!bankFormData.bankName.trim())
-      errors.bankName = 'Bank name required';
-    if (!bankFormData.accountNumber.trim())
-      errors.accountNumber = 'Account number required';
-    else if (!validateAccountNumber(bankFormData.accountNumber.trim()))
-      errors.accountNumber = 'Account number must be 9–18 digits';
-    if (!bankFormData.ifscCode.trim())
-      errors.ifscCode = 'IFSC code required';
-    else if (!validateIFSC(bankFormData.ifscCode.trim()))
-      errors.ifscCode = 'Invalid IFSC (e.g., SBIN0001234)';
-    if (bankFormData.accountNumber !== confirmAccountNumber)
-      errors.confirmAccountNumber = 'Account numbers do not match';
+    if (!bankFormData.account_holder_name.trim())
+      errors.account_holder_name = 'Account holder name required';
+    if (!bankFormData.bank_name.trim())
+      errors.bank_name = 'Bank name required';
+    if (!bankFormData.account_number.trim())
+      errors.account_number = 'Account number required';
+    else if (!validateAccountNumber(bankFormData.account_number.trim()))
+      errors.account_number = 'Account number must be 9–18 digits';
+    if (!bankFormData.ifsc_code.trim())
+      errors.ifsc_code = 'IFSC code required';
+    else if (!validateIFSC(bankFormData.ifsc_code.trim()))
+      errors.ifsc_code = 'Invalid IFSC (e.g., SBIN0001234)';
+    if (bankFormData.account_number !== confirmAccountNumber)
+      errors.confirm_account_number = 'Account numbers do not match';
 
     if (Object.keys(errors).length) {
       setBankErrors(errors);
       return;
     }
 
-    setUser({
-      ...user,
-      bankDetails: {
-        accountHolderName: bankFormData.accountHolderName.trim(),
-        bankName: bankFormData.bankName.trim(),
-        accountNumber: bankFormData.accountNumber.trim(),
-        ifscCode: bankFormData.ifscCode.trim().toUpperCase(),
-      },
-    });
-    // Reset form and close
+    await dispatch(updateUserBankDetails(bankFormData));
     setShowBankForm(false);
-    setBankFormData({
-      accountHolderName: '',
-      bankName: '',
-      accountNumber: '',
-      ifscCode: '',
-    });
-    setConfirmAccountNumber('');
     setBankErrors({});
   };
 
   const openBankForm = () => {
-    // If bank details exist, pre‑fill form for editing
-    if (user.bankDetails) {
-      setBankFormData({
-        accountHolderName: user.bankDetails.accountHolderName,
-        bankName: user.bankDetails.bankName,
-        accountNumber: user.bankDetails.accountNumber,
-        ifscCode: user.bankDetails.ifscCode,
-      });
-      setConfirmAccountNumber(user.bankDetails.accountNumber);
+    if (bankDetails) {
+      setBankFormData({ ...bankDetails });
+      setConfirmAccountNumber(bankDetails.account_number);
     } else {
-      // Reset form
       setBankFormData({
-        accountHolderName: '',
-        bankName: '',
-        accountNumber: '',
-        ifscCode: '',
+        account_holder_name: '',
+        bank_name: '',
+        account_number: '',
+        ifsc_code: '',
       });
       setConfirmAccountNumber('');
     }
@@ -133,19 +133,42 @@ export default function Profile() {
     setBankErrors({});
   };
 
+  // Helper for fallback avatar
   const getInitials = (name) =>
-    name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-
+    name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?';
   const getAvatarColor = (name) => {
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < name?.length; i++)
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return `hsl(${hash % 360}, 70%, 55%)`;
   };
+
+  if (isLoading && !profile) {
+    return (
+      <AppLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700">
+          Error: {error}
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const displayAvatar = avatarPreview || profile?.avatarUrl;
 
   return (
     <AppLayout>
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column – Profile card */}
+        {/* Left column – Profile card */}
         <div className="w-full lg:w-1/2 xl:w-2/5">
           <div className="mb-6">
             <h1 className="text-2xl font-semibold text-slate-800">Your Profile</h1>
@@ -153,14 +176,14 @@ export default function Profile() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border p-6">
-            {/* Avatar section (unchanged) */}
+            {/* Avatar */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative cursor-pointer group" onClick={() => fileInputRef.current.click()}>
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-green-200" />
+                {displayAvatar ? (
+                  <img src={displayAvatar} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-green-200" />
                 ) : (
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-green-200" style={{ backgroundColor: getAvatarColor(user.name) }}>
-                    {getInitials(user.name)}
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-green-200" style={{ backgroundColor: getAvatarColor(profile?.name) }}>
+                    {getInitials(profile?.name)}
                   </div>
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition">
@@ -181,7 +204,7 @@ export default function Profile() {
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <button onClick={() => { setNameInput(user.name); setIsEditing(false); }} className="text-gray-500 hover:text-gray-700"><X size={16} /></button>
+                    <button onClick={() => { setNameInput(profile.name); setIsEditing(false); }} className="text-gray-500 hover:text-gray-700"><X size={16} /></button>
                     <button onClick={saveName} className="text-green-600 hover:text-green-700"><Save size={16} /></button>
                   </div>
                 )}
@@ -194,107 +217,94 @@ export default function Profile() {
                   className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none"
                 />
               ) : (
-                <p className="px-4 py-2 bg-slate-50 rounded-xl text-slate-700">{user.name}</p>
+                <p className="px-4 py-2 bg-slate-50 rounded-xl text-slate-700">{profile?.name}</p>
               )}
             </div>
 
-            {/* Email (read‑only) */}
+            {/* Email (read-only) */}
             <div className="mt-4">
               <label className="font-medium text-slate-700 mb-1 block">Email Address</label>
-              <p className="px-4 py-2 bg-slate-50 rounded-xl text-slate-700">{user.email}</p>
+              <p className="px-4 py-2 bg-slate-50 rounded-xl text-slate-700">{profile?.email}</p>
             </div>
 
-            {/* Bank Details Section */}
+            {/* Bank details section */}
             <div className="mt-6 border-t pt-6">
               <div className="flex justify-between items-center mb-3">
                 <label className="font-medium text-slate-700">Bank Account (for withdrawals)</label>
                 {!showBankForm && (
-                  <button
-                    onClick={openBankForm}
-                    className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700"
-                  >
-                    <Plus size={14} /> {user.bankDetails ? 'Edit Bank Details' : 'Add Bank Details'}
+                  <button onClick={openBankForm} className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700">
+                    <Plus size={14} /> {bankDetails ? 'Edit Bank Details' : 'Add Bank Details'}
                   </button>
                 )}
               </div>
 
-              {!showBankForm && user.bankDetails && (
+              {!showBankForm && bankDetails && (
                 <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
-                  <div><span className="text-slate-500">Account Holder:</span> {user.bankDetails.accountHolderName}</div>
-                  <div><span className="text-slate-500">Bank:</span> {user.bankDetails.bankName}</div>
-                  <div><span className="text-slate-500">Account No:</span> ••••{user.bankDetails.accountNumber.slice(-4)}</div>
-                  <div><span className="text-slate-500">IFSC:</span> {user.bankDetails.ifscCode}</div>
+                  <div><span className="text-slate-500">Account Holder:</span> {bankDetails.account_holder_name}</div>
+                  <div><span className="text-slate-500">Bank:</span> {bankDetails.bank_name}</div>
+                  <div><span className="text-slate-500">Account No:</span> ••••{bankDetails.account_number.slice(-4)}</div>
+                  <div><span className="text-slate-500">IFSC:</span> {bankDetails.ifsc_code}</div>
                 </div>
               )}
 
               {showBankForm && (
                 <div className="mt-3 space-y-4">
-                  {/* Account Holder Name */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Account Holder Name *</label>
                     <input
                       type="text"
-                      name="accountHolderName"
-                      value={bankFormData.accountHolderName}
+                      name="account_holder_name"
+                      value={bankFormData.account_holder_name}
                       onChange={handleBankFieldChange}
-                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.accountHolderName ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
+                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.account_holder_name ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
                     />
-                    {bankErrors.accountHolderName && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {bankErrors.accountHolderName}</p>}
+                    {bankErrors.account_holder_name && <p className="text-red-500 text-xs mt-1"><AlertCircle size={12} /> {bankErrors.account_holder_name}</p>}
                   </div>
-
-                  {/* Bank Name */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name *</label>
                     <input
                       type="text"
-                      name="bankName"
-                      value={bankFormData.bankName}
+                      name="bank_name"
+                      value={bankFormData.bank_name}
                       onChange={handleBankFieldChange}
-                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.bankName ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
+                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.bank_name ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
                     />
-                    {bankErrors.bankName && <p className="text-red-500 text-xs mt-1">{bankErrors.bankName}</p>}
+                    {bankErrors.bank_name && <p className="text-red-500 text-xs mt-1">{bankErrors.bank_name}</p>}
                   </div>
-
-                  {/* Account Number */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Account Number *</label>
                     <input
                       type="text"
-                      name="accountNumber"
-                      value={bankFormData.accountNumber}
+                      name="account_number"
+                      value={bankFormData.account_number}
                       onChange={handleBankFieldChange}
-                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.accountNumber ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
+                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.account_number ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
                     />
-                    {bankErrors.accountNumber && <p className="text-red-500 text-xs mt-1">{bankErrors.accountNumber}</p>}
+                    {bankErrors.account_number && <p className="text-red-500 text-xs mt-1">{bankErrors.account_number}</p>}
                   </div>
-
-                  {/* Confirm Account Number */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Account Number *</label>
                     <input
                       type="text"
                       value={confirmAccountNumber}
                       onChange={(e) => setConfirmAccountNumber(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.confirmAccountNumber ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
+                      className={`w-full px-3 py-2 rounded-xl border ${bankErrors.confirm_account_number ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
                     />
-                    {bankErrors.confirmAccountNumber && <p className="text-red-500 text-xs mt-1">{bankErrors.confirmAccountNumber}</p>}
+                    {bankErrors.confirm_account_number && <p className="text-red-500 text-xs mt-1">{bankErrors.confirm_account_number}</p>}
                   </div>
-
-                  {/* IFSC Code */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">IFSC Code *</label>
                     <input
                       type="text"
-                      name="ifscCode"
-                      value={bankFormData.ifscCode}
+                      name="ifsc_code"
+                      value={bankFormData.ifsc_code}
                       onChange={handleBankFieldChange}
                       placeholder="e.g., SBIN0001234"
-                      className={`w-full px-3 py-2 rounded-xl border uppercase ${bankErrors.ifscCode ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
+                      className={`w-full px-3 py-2 rounded-xl border uppercase ${bankErrors.ifsc_code ? 'border-red-400' : 'border-slate-200'} focus:border-green-400 focus:ring-2 focus:ring-green-200 outline-none`}
                     />
-                    {bankErrors.ifscCode && <p className="text-red-500 text-xs mt-1">{bankErrors.ifscCode}</p>}
+                    {bankErrors.ifsc_code && <p className="text-red-500 text-xs mt-1">{bankErrors.ifsc_code}</p>}
                     <p className="text-xs text-slate-500 mt-1">11 characters: first 4 letters, then '0', then 6 alphanumeric</p>
                   </div>
-
                   <div className="flex gap-3 pt-2">
                     <button onClick={saveBankDetails} className="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition">Save Bank Details</button>
                     <button onClick={cancelBankForm} className="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Cancel</button>
@@ -312,7 +322,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Right Column – reserved for video */}
+        {/* Right column – Video placeholder */}
         <div className="w-full lg:w-1/2 xl:w-3/5 mt-6 lg:mt-0">
           <div className="bg-white rounded-2xl shadow-sm border p-6 h-64 flex items-center justify-center text-slate-400">
             🎥 Video / Promotional content will appear here
