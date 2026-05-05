@@ -58,7 +58,7 @@ export default function Profile() {
       reader.onloadend = async () => {
         const base64 = reader.result;
         setAvatarPreview(base64);
-        await dispatch(updateUserProfile({ avatarUrl: base64 }));
+        await dispatch(updateUserProfile({ profilePicture: base64 }));
       };
       reader.readAsDataURL(file);
     } else {
@@ -163,7 +163,7 @@ export default function Profile() {
     );
   }
 
-  const displayAvatar = avatarPreview || profile?.avatarUrl;
+  const displayAvatar = profile?.profilePicture?`${import.meta.env.VITE_BE_URL}${profile?.profilePicture}`:avatarPreview;
 
   return (
     <AppLayout>

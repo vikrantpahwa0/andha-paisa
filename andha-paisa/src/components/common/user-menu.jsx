@@ -58,9 +58,9 @@ export default function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white shadow-sm border border-slate-100 hover:shadow-md transition-all duration-200"
       >
-        {profile.avatarUrl ? (
+        {profile.profilePicture ? (
           <img
-            src={profile.avatarUrl}
+            src={`${import.meta.env.VITE_BE_URL}${profile?.profilePicture}`}
             alt={profile.name}
             className="w-8 h-8 rounded-full object-cover"
           />

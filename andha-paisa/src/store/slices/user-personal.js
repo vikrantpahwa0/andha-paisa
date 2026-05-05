@@ -19,7 +19,7 @@ export const fetchUserProfile = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Failed to fetch profile');
       }
-      return data.data; // { id, name, email, bankDetail }
+      return data.data; // { id, name, email, profilePicture, bankDetail }
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -28,7 +28,7 @@ export const fetchUserProfile = createAsyncThunk(
 
 export const updateUserProfile = createAsyncThunk(
   'userPersonal/updateProfile',
-  async (profileData, { rejectWithValue, getState }) => {
+  async (profileData, { rejectWithValue, getState, dispatch }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
@@ -43,7 +43,10 @@ export const updateUserProfile = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Profile update failed');
       }
-      return profileData;
+      // ✅ Only refetch, do not return profileData
+      await dispatch(fetchUserProfile());
+      // Return a dummy value to keep the promise resolved
+      return { success: true };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -52,7 +55,7 @@ export const updateUserProfile = createAsyncThunk(
 
 export const updateUserBankDetails = createAsyncThunk(
   'userPersonal/updateBankDetails',
-  async (bankData, { rejectWithValue, getState }) => {
+  async (bankData, { rejectWithValue, getState, dispatch }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
@@ -67,6 +70,8 @@ export const updateUserBankDetails = createAsyncThunk(
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Bank details update failed');
       }
+      // Refetch to get updated bank details from server
+      await dispatch(fetchUserProfile());
       return bankData;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -103,11 +108,10 @@ const userPersonalSlice = createSlice({
           id: action.payload.id,
           name: action.payload.name,
           email: action.payload.email,
-          avatarUrl: null,
+          profilePicture: action.payload.profilePicture || null,  // ✅ store profilePicture URL
           balance: 0,
           joinDate: new Date().toISOString().split('T')[0],
         };
-        // ✅ FIX: map `bankDetail` (singular) from API to `bankDetails` (plural)
         if (action.payload.bankDetail) {
           state.bankDetails = {
             account_holder_name: action.payload.bankDetail.account_holder_name,
@@ -128,8 +132,6 @@ const userPersonalSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.profile = { ...state.profile, ...action.payload };
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -140,8 +142,6 @@ const userPersonalSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserBankDetails.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.bankDetails = action.payload;
       })
       .addCase(updateUserBankDetails.rejected, (state, action) => {
         state.isLoading = false;
