@@ -1,30 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-const BE_URL = import.meta.env.VITE_BE_URL || 'http://localhost:3000';
-
-// Helper function to get token from localStorage
-const getToken = () => {
-  return localStorage.getItem("accessToken");
-};
+import { fetchWithAuth } from "../../utils/retry-api-calls"; // adjust import path as needed
 
 // Get User Surveys (For users dashboard)
 export const getUserSurveys = createAsyncThunk(
   "userSurvey/getUserSurveys",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch, getState }) => {
     try {
-      const token = getToken();
-
-      if (!token) {
-        return rejectWithValue("Something went wrong");
-      }
-
-      const response = await fetch(`${BE_URL}/surveys/list-user-surveys`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        "/surveys/list-user-surveys",
+        { method: "GET" },
+        { rejectWithValue, dispatch, getState }
+      );
 
       const data = await response.json();
 
@@ -42,21 +28,13 @@ export const getUserSurveys = createAsyncThunk(
 // Get Single Survey by ID
 export const getSurveyById = createAsyncThunk(
   "userSurvey/getSurveyById",
-  async (surveyId, { rejectWithValue }) => {
+  async (surveyId, { rejectWithValue, dispatch, getState }) => {
     try {
-      const token = getToken();
-
-      if (!token) {
-        return rejectWithValue("Something went wrong");
-      }
-
-      const response = await fetch(`${BE_URL}/surveys/get-survey/${surveyId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        `/surveys/get-survey/${surveyId}`,
+        { method: "GET" },
+        { rejectWithValue, dispatch, getState }
+      );
 
       const data = await response.json();
 
@@ -73,21 +51,16 @@ export const getSurveyById = createAsyncThunk(
 
 export const submitUserSurvey = createAsyncThunk(
   "userSurvey/submitUserSurvey",
-  async ({ surveyId, answers }, { rejectWithValue }) => {
+  async ({ surveyId, answers }, { rejectWithValue, dispatch, getState }) => {
     try {
-      const token = getToken();
-      if (!token) {
-        return rejectWithValue("Authentication required");
-      }
-
-      const response = await fetch(`${BE_URL}/surveys/submit-user-survey`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetchWithAuth(
+        "/surveys/submit-user-survey",
+        {
+          method: "POST",
+          body: JSON.stringify({ surveyId, answers }),
         },
-        body: JSON.stringify({ surveyId, answers }),
-      });
+        { rejectWithValue, dispatch, getState }
+      );
 
       const data = await response.json();
 
@@ -150,19 +123,19 @@ const userSurveySlice = createSlice({
       .addCase(getSurveyById.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-      }).
-      addCase(submitUserSurvey.pending, (state) => {
-      state.isLoading = true;
-      state.error = null;
-    })
-    .addCase(submitUserSurvey.fulfilled, (state) => {
-      state.isLoading = false;
-      state.currentSurvey = null; // clear after successful submission
-    })
-    .addCase(submitUserSurvey.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload;
-    });
+      })
+      .addCase(submitUserSurvey.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(submitUserSurvey.fulfilled, (state) => {
+        state.isLoading = false;
+        state.currentSurvey = null; // clear after successful submission
+      })
+      .addCase(submitUserSurvey.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
   },
 });
 

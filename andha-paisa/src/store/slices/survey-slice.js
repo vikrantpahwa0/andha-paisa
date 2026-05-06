@@ -1,31 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-const BE_URL = import.meta.env.VITE_BE_URL || 'http://localhost:3000';
-
-// Helper function to get token from localStorage
-const getToken = () => {
-  return localStorage.getItem("accessToken");
-};
+import { fetchWithAuth } from "../../utils/retry-api-calls"; // adjust import path as needed
 
 // Create or Update Survey
 export const createUpdateSurvey = createAsyncThunk(
   "survey/createUpdateSurvey",
-  async ({ surveyBasicInfo, questions }, { rejectWithValue }) => {
+  async ({ surveyBasicInfo, questions }, { rejectWithValue, dispatch, getState }) => {
     try {
-      const token = getToken();
-
-      if (!token) {
-        return rejectWithValue("Something went wrong");
-      }
-
-      const response = await fetch(`${BE_URL}/surveys/create-update`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetchWithAuth(
+        "/surveys/create-update",
+        {
+          method: "POST",
+          body: JSON.stringify({ surveyBasicInfo, questions }),
         },
-        body: JSON.stringify({ surveyBasicInfo, questions }),
-      });
+        { rejectWithValue, dispatch, getState }
+      );
 
       const data = await response.json();
 
@@ -35,29 +23,22 @@ export const createUpdateSurvey = createAsyncThunk(
 
       return data;
     } catch (error) {
+      // If error comes from fetchWithAuth (e.g., refresh failure), it's already a rejected value
       return rejectWithValue(error.message || "Network error");
     }
-  },
+  }
 );
 
 // Get All Surveys
 export const getSurveysList = createAsyncThunk(
   "survey/getSurveysList",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch, getState }) => {
     try {
-      const token = getToken();
-
-      if (!token) {
-        return rejectWithValue("Something went wrong");
-      }
-
-      const response = await fetch(`${BE_URL}/surveys/list`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetchWithAuth(
+        "/surveys/list",
+        { method: "GET" },
+        { rejectWithValue, dispatch, getState }
+      );
 
       const data = await response.json();
 
@@ -69,7 +50,7 @@ export const getSurveysList = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.message || "Network error");
     }
-  },
+  }
 );
 
 const initialState = {

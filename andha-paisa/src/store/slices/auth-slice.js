@@ -36,7 +36,7 @@ export const refreshAccessToken = createAsyncThunk(
       });
       
       const data = await response.json();
-      
+
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || 'Failed to refresh token');
       }
@@ -313,11 +313,15 @@ const authSlice = createSlice({
       .addCase(refreshAccessToken.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+  // Only clear & logout if there is no valid token left
+  const currentToken = state.accessToken || localStorage.getItem('accessToken');
+  if (!currentToken || isTokenExpired(currentToken)) {
         state.isAuthenticated = false;
         state.accessToken = null;
         state.refreshToken = null;
         clearTokens();
-      });
+  }
+})
   },
 });
 

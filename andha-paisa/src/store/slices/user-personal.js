@@ -1,25 +1,16 @@
 // src/store/slices/user-personal.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-const BE_URL = import.meta.env.VITE_BE_URL;
-
-const getAuthHeader = (getState) => {
-  const token = getState().auth.accessToken;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import { fetchWithAuth } from "../../utils/retry-api-calls"; // adjust import path as needed
 
 export const fetchUserProfile = createAsyncThunk(
   "userPersonal/fetchProfile",
-  async (options, { rejectWithValue, getState }) => {
+  async (options, { rejectWithValue, dispatch, getState }) => {
     try {
-      const response = await fetch(
-        `${BE_URL}/auth/fetchUser${options?.fetchBankDetails ? "?includeBankDetails=true" : ""}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            ...getAuthHeader(getState),
-          },
-        },
+      const query = options?.fetchBankDetails ? "?includeBankDetails=true" : "";
+      const response = await fetchWithAuth(
+        `/auth/fetchUser${query}`,
+        { method: "GET" },
+        { rejectWithValue, dispatch, getState }
       );
       const data = await response.json();
       if (!response.ok || !data.success) {
@@ -34,20 +25,20 @@ export const fetchUserProfile = createAsyncThunk(
 
 export const updateUserProfile = createAsyncThunk(
   "userPersonal/updateProfile",
-  async (profileData, { rejectWithValue, getState, dispatch }) => {
+  async (profileData, { rejectWithValue, dispatch, getState }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
       if (!userId) throw new Error("User ID missing");
 
-      const response = await fetch(`${BE_URL}/auth/update-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(getState),
+      const response = await fetchWithAuth(
+        "/auth/update-user",
+        {
+          method: "POST",
+          body: JSON.stringify({ userId, userDetails: profileData }),
         },
-        body: JSON.stringify({ userId, userDetails: profileData }),
-      });
+        { rejectWithValue, dispatch, getState }
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || "Profile update failed");
@@ -65,20 +56,20 @@ export const updateUserProfile = createAsyncThunk(
 
 export const updateUserBankDetails = createAsyncThunk(
   "userPersonal/updateBankDetails",
-  async (bankData, { rejectWithValue, getState, dispatch }) => {
+  async (bankData, { rejectWithValue, dispatch, getState }) => {
     try {
       const { auth, userPersonal } = getState();
       const userId = userPersonal.profile?.id || auth.user?.id;
       if (!userId) throw new Error("User ID missing");
 
-      const response = await fetch(`${BE_URL}/auth/update-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(getState),
+      const response = await fetchWithAuth(
+        "/auth/update-user",
+        {
+          method: "POST",
+          body: JSON.stringify({ userId, bankDetails: bankData }),
         },
-        body: JSON.stringify({ userId, bankDetails: bankData }),
-      });
+        { rejectWithValue, dispatch, getState }
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
         return rejectWithValue(data.message || "Bank details update failed");
@@ -134,7 +125,7 @@ const userPersonalSlice = createSlice({
             ifsc_code: action.payload.bankDetail.ifsc_code,
           };
         }
-        // ✅ CHANGE: removed "else { state.bankDetails = null; }" - now keeps existing bankDetails if API doesn't return them
+        // Keeps existing bankDetails if API doesn't return them
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.isLoading = false;
@@ -147,7 +138,7 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          // Only update non-image fields (name, email, etc.) - preserve the existing profilePicture
+          // Only update non-image fields (name, email, etc.) - preserve profilePicture
           state.profile = { ...state.profile, ...action.payload };
         }
       })
@@ -162,7 +153,6 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserBankDetails.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          // Optimistic update: set the new bank details immediately
           state.bankDetails = action.payload;
         }
       })
