@@ -1,5 +1,5 @@
 // utils/apiClient.js
-import { refreshAccessToken } from '../store/slices/auth-slice';
+import { refreshAccessToken, logout } from '../store/slices/auth-slice';
 
 let refreshPromise = null;
 
@@ -27,6 +27,7 @@ export const fetchWithAuth = async (url, options, thunkAPI) => {
       token = getToken();
       response = await makeRequest(token);
     } catch {
+      dispatch(logout());   
       return rejectWithValue('Session expired. Please login again.');
     }
   }

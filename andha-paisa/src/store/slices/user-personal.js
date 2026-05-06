@@ -1,6 +1,7 @@
 // src/store/slices/user-personal.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { fetchWithAuth } from "../../utils/retry-api-calls"; // adjust import path as needed
+import { logout } from "./auth-slice";                 // ✅ import logout action
+import { fetchWithAuth } from "../../utils/retry-api-calls";
 
 export const fetchUserProfile = createAsyncThunk(
   "userPersonal/fetchProfile",
@@ -159,6 +160,13 @@ const userPersonalSlice = createSlice({
       .addCase(updateUserBankDetails.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      // ✅ Clear profile when logout is dispatched
+      .addCase(logout, (state) => {
+        state.profile = null;
+        state.bankDetails = null;
+        state.isLoading = false;
+        state.error = null;
       });
   },
 });

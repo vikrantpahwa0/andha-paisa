@@ -10,7 +10,6 @@ import Profile from "../pages/user/profile"
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/verify" element={<Verification />} />
@@ -21,6 +20,5 @@ export default function AppRoutes() {
         <Route path="/survey/:id" element={<Survey />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
-    </BrowserRouter>
   );
 }

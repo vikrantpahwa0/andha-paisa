@@ -215,14 +215,12 @@ const authSlice = createSlice({
     },
     // Added logout reducer
     logout: (state) => {
-      state.user = null;
       state.accessToken = null;
       state.refreshToken = null;
       state.isAuthenticated = false;
       state.isLoading = false;
       state.error = null;
       clearTokens();
-      localStorage.removeItem('user');
     },
   },
   extraReducers: (builder) => {
@@ -311,16 +309,14 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshAccessToken.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-  // Only clear & logout if there is no valid token left
-  const currentToken = state.accessToken || localStorage.getItem('accessToken');
-  if (!currentToken || isTokenExpired(currentToken)) {
-        state.isAuthenticated = false;
-        state.accessToken = null;
-        state.refreshToken = null;
-        clearTokens();
-  }
+  state.isLoading = false;
+  state.error = action.payload;
+  // Refresh token is invalid/expired – force logout
+  state.isAuthenticated = false;
+  state.accessToken = null;
+  state.refreshToken = null;
+  clearTokens();
+  
 })
   },
 });
