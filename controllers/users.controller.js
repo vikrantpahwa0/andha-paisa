@@ -62,6 +62,20 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const user = await userService.refreshAccessToken(req.headers.authorization.substring(7));
+    return successResponse(
+      res,
+      user,
+      successMessages.ACCESS_TOKEN_REFRESHED,
+      httpCodes.CREATED,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};
+
 export const fetchUser = async (req, res) => {
   try {
     const user = await userService.fetchUser(req.user.userId, req.query.includeBankDetails);

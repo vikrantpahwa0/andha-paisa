@@ -12,6 +12,7 @@ export const successMessages = {
   },
   USER_FETCHED: "User fetched successfully",
   USER_UPDATED: "User updated successfully",
+  ACCESS_TOKEN_REFRESHED: "Access token refreshed successfully",
 };
 
 export const failureMessages = {
@@ -32,6 +33,8 @@ export const failureMessages = {
   SURVEY_ACCESS_DENIED: "You don't have access to this survey",
   SURVEY_NOT_FOUND: "Survey not found",
   USER_NOT_FOUND : "User not found",
+  INVALID_TOKEN : "Invalid token",
+  TOKEN_EXPIRED : "Token has expired",
 };
 
 export const httpCodes = {

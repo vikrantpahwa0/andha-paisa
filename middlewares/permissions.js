@@ -15,39 +15,61 @@ import jwt from "jsonwebtoken";
 export const authMiddleware = (requiredRole) => {
   return async (req, res, next) => {
     try {
-      const token = req.headers.authorization.substring(7);
-
-      console.log(token)
-      console.log(process.env.JWT_ACCESS_SECRET)
-      
-      if (!token) {
-        throw new Error(validationMessages.TOKEN_REQUIRED)
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return errorResponse(
+          res,
+          validationMessages.TOKEN_REQUIRED,
+          httpCodes.BAD_REQUEST,  // ← 401, not 400
+          null
+        );
       }
+
+      const token = authHeader.substring(7);
       
       try {
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
         req.user = decoded;
       } catch (jwtError) {
-        // Handle specific JWT errors
         if (jwtError.name === 'TokenExpiredError') {
-          throw new Error(validationMessages.TOKEN_REQUIRED)
+          return errorResponse(
+            res,
+            validationMessages.TOKEN_EXPIRED,  // ← better message
+            httpCodes.UNAUTHORIZED,
+            null
+          );
         }
         if (jwtError.name === 'JsonWebTokenError') {
-          throw new Error(validationMessages.INVALID_TOKEN)
+          return errorResponse(
+            res,
+            validationMessages.INVALID_TOKEN,
+            httpCodes.BAD_REQUEST,
+            null
+          );
         }
-        throw new Error(validationMessages.TOKEN_VERIFICATION_FAILED);
+        return errorResponse(
+          res,
+          validationMessages.TOKEN_VERIFICATION_FAILED,
+          httpCodes.BAD_REQUEST,
+          null
+        );
       }
       
-      if (req.user.role !== requiredRole) {
-        throw new Error(validationMessages.UNAUTHORIZED);
+      if (requiredRole && req.user.role !== requiredRole) {
+        return errorResponse(
+          res,
+          validationMessages.UNAUTHORIZED,
+          httpCodes.BAD_REQUEST,
+          null
+        );
       }
       
       next();
     } catch (error) {
       return errorResponse(
-        res, 
-        error.message, 
-        httpCodes.BAD_REQUEST, 
+        res,
+        error.message,
+        httpCodes.INTERNAL_SERVER_ERROR,
         error
       );
     }

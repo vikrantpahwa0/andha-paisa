@@ -18,14 +18,14 @@ const generateTokens = async (userId, role) => {
   const accessToken = jwt.sign(
     { userId, role }, 
     process.env.JWT_ACCESS_SECRET, // Use different secret
-    { expiresIn: "15d" } // 15 minutes
+    { expiresIn: process.env.ACCESSTOKEN_EXPIRY } // 15 seconds
   );
   
   // Generate refresh token (long-lived)
   const refreshToken = jwt.sign(
     { userId, role }, 
     process.env.JWT_REFRESH_SECRET, // Different secret
-    { expiresIn: "7d" } // 7 days
+    { expiresIn: process.env.REFRESSHTOKEN_EXPIRY } // 7 days
   );
   
   // Store refresh token in database (optional but recommended)
@@ -42,7 +42,7 @@ const generateTokens = async (userId, role) => {
 // Generate new access token from refresh token
 export const refreshAccessToken = async (refreshToken) => {
   if (!refreshToken) {
-    throw new Error("No refresh token provided");
+    throw new Error(validationMessages.TOKEN_REQUIRED);
   }
   
   try {
@@ -59,44 +59,20 @@ export const refreshAccessToken = async (refreshToken) => {
     });
     
     if (!storedToken) {
-      throw new Error("Invalid refresh token");
+      throw new Error(failureMessages.INVALID_TOKEN);
     }
     
     // Check if token is expired
     if (new Date() > new Date(storedToken.expires_at)) {
       await storedToken.update({ is_active: false });
-      throw new Error("Refresh token expired");
+      throw new Error(failureMessages.TOKEN_EXPIRED);
     }
     
-    // Generate new access token
-    const newAccessToken = jwt.sign(
-      { userId: decoded.userId, role: decoded.role },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: "15d" }
-    );
-    
-    // Optional: Rotate refresh token (issue new one)
-    const newRefreshToken = jwt.sign(
-      { userId: decoded.userId, role: decoded.role },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" }
-    );
-    
-    // Deactivate old refresh token
+    // Deactivate the old refresh token (prevent replay)
     await storedToken.update({ is_active: false });
     
-    // Store new refresh token
-    await REFRESH_TOKENS.create({
-      user_id: decoded.userId,
-      token: newRefreshToken,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      is_active: true
-    });
-    
-    return { 
-      accessToken: newAccessToken, 
-      refreshToken: newRefreshToken 
-    };
+    // Reuse the first function to generate new tokens and store the new refresh token
+    return await generateTokens(decoded.userId, decoded.role);
     
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
