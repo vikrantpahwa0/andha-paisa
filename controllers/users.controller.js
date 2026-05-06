@@ -72,7 +72,7 @@ export const refreshAccessToken = async (req, res) => {
       httpCodes.CREATED,
     );
   } catch (err) {
-    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+    return errorResponse(res, err.message, httpCodes.UNAUTHORIZED, err);
   }
 };
 
