@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Menu, Coins } from "lucide-react";
 import Sidebar from "./sidebar";
 import PWAPrompt from "./PWAPrompt";
-import UserMenu from "./user-menu";   // <-- import
+import UserMenu from "./user-menu";
 
 export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,12 +35,14 @@ export default function AppLayout({ children }) {
             onClick={() => setSidebarOpen(true)}
             className="px-3 py-2 bg-white rounded-lg shadow"
           >
-            ☰
+            <Menu className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-lg font-semibold text-green-600">
-            Andha Paisa 💰
-          </h1>
-          {/* UserMenu on mobile (right side) */}
+          <div className="flex items-center gap-1.5">
+            <Coins className="w-5 h-5 text-green-600" />
+            <h1 className="text-lg font-semibold text-green-600">
+              Andha Paisa
+            </h1>
+          </div>
           <UserMenu />
         </div>
 

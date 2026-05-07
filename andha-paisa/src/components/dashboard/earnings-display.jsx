@@ -1,21 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { 
-  CheckCircle, 
-  Wallet, 
-  Gift, 
-  Clock, 
-  AlertCircle,
-  TrendingUp,
-  Lock
+  CheckCircle, Wallet, Gift, Clock, AlertCircle, TrendingUp
 } from "lucide-react";
+import { fetchUserEarnings } from "../../store/slices/user-earnings";
 
-const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
+export default function EarningsSidebar() {
   const navigate = useNavigate();
-  const withdrawalLimit = 500;
-  const canWithdraw = confirmedAmount >= withdrawalLimit;
-  const progressPercent = Math.min(100, (confirmedAmount / withdrawalLimit) * 100);
+  const dispatch = useDispatch();
+  const { confirmedPoints, reviewAmount, withdrawLimit, completedAmount, isLoading, error } = useSelector(
+    (state) => state.earnings
+  );
   const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchUserEarnings());
+  }, [dispatch]);
+
+  const canWithdraw = confirmedPoints >= withdrawLimit;
+  const progressPercent = Math.min(100, (completedAmount / withdrawLimit) * 100);
 
   const handleWithdrawClick = () => {
     if (canWithdraw) {
@@ -25,6 +29,14 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
       setTimeout(() => setShowTooltip(false), 2000);
     }
   };
+
+  if (isLoading) {
+    return <div className="space-y-4 animate-pulse">Loading earnings...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-600">Failed to load earnings: {error}</div>;
+  }
 
   return (
     <div className="space-y-4">
@@ -36,7 +48,7 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
             <h4 className="text-sm text-slate-700 font-medium">Confirmed</h4>
           </div>
         </div>
-        <p className="text-3xl font-bold mt-2 text-slate-900">₹{confirmedAmount}</p>
+        <p className="text-3xl font-bold mt-2 text-slate-900">{confirmedPoints} Points</p>
         <p className="text-xs text-slate-600 mt-1">Earnings that have been verified</p>
 
         {/* Withdraw Button */}
@@ -56,7 +68,7 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
                   <span className="font-semibold text-slate-800">Withdraw</span>
                 </div>
                 <span className="text-sm font-mono text-slate-700 bg-white/60 px-2 py-0.5 rounded-full">
-                  ₹{confirmedAmount}/{withdrawalLimit}
+                  ₹{completedAmount}/{withdrawLimit}
                 </span>
               </div>
             </div>
@@ -65,7 +77,7 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
           {showTooltip && (
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 flex items-center gap-1.5 whitespace-nowrap z-20 shadow-lg">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>Amount is withdrawable at ₹{withdrawalLimit}</span>
+              <span>Amount is withdrawable at ₹{withdrawLimit}</span>
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
             </div>
           )}
@@ -92,7 +104,7 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
             Pending
           </span>
         </div>
-        <p className="text-3xl font-bold mt-2 text-slate-900">₹{reviewAmount}</p>
+        <p className="text-3xl font-bold mt-2 text-slate-900">{reviewAmount} Points</p>
         <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
           <Clock className="w-3 h-3" />
           Awaiting approval (usually 2 - 4 hrs)
@@ -100,6 +112,4 @@ const EarningsSidebar = ({ confirmedAmount = 120, reviewAmount = 40 }) => {
       </div>
     </div>
   );
-};
-
-export default EarningsSidebar;
+}

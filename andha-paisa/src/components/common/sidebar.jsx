@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, ClipboardList, Gift, User } from "lucide-react";
+import { Home, Gamepad2, ClipboardList, Gift, User, Coins } from "lucide-react";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -13,9 +13,10 @@ export default function Sidebar() {
   return (
     <div className="h-full bg-white shadow-md flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b">
+      <div className="p-6 border-b flex items-center gap-2">
+        <Coins className="w-6 h-6 text-green-600" />
         <h1 className="text-xl font-bold text-green-600 tracking-tight">
-          Andha Paisa 💰
+          Andha Paisa
         </h1>
       </div>
 

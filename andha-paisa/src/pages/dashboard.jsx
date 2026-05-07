@@ -167,7 +167,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* RIGHT SECTION */}
         <div className="lg:col-span-4 order-1 lg:order-2">
-          <EarningsSidebar confirmedAmount={120} reviewAmount={35} />
+          <EarningsSidebar/>
         </div>
 
         {/* MAIN CONTENT */}

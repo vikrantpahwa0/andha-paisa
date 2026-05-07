@@ -3,6 +3,7 @@ import authReducer from "./slices/auth-slice";
 import surveyReducer from "./slices/survey-slice";
 import userSurveyReducer from "./slices/user-survey-slice";
 import userPersonalReducer from "./slices/user-personal";
+import earningsReducer from "./slices/user-earnings";
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     survey: surveyReducer,
     userSurvey: userSurveyReducer,
     userPersonal: userPersonalReducer,
+    earnings: earningsReducer
   },
 });

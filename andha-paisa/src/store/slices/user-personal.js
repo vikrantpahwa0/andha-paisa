@@ -9,7 +9,7 @@ export const fetchUserProfile = createAsyncThunk(
     try {
       const query = options?.fetchBankDetails ? "?includeBankDetails=true" : "";
       const response = await fetchWithAuth(
-        `/auth/fetchUser${query}`,
+        `/auth/fetch-user${query}`,
         { method: "GET" },
         { rejectWithValue, dispatch, getState }
       );
