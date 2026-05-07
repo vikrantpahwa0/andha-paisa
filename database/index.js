@@ -7,7 +7,8 @@ import VerificationsModel from "./models/verifications.js";
 import refreshTokensModel from "./models/refresh-token.js";
 import usersSurveysTransactions from "./models/surveys/users-surveys-transactions.js";
 import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js";
-import UserBankDetailModel from "./models/user-bank-details.js";   // ✅ ADD THIS
+import UserBankDetailModel from "./models/user-bank-details.js"; 
+import configsModel from "./models/configs.js";
 
 // Initialize all models
 const Survey = SurveyModel(sequelize);
@@ -18,7 +19,8 @@ const Verifications = VerificationsModel(sequelize);
 const RefreshTokens = refreshTokensModel(sequelize);
 const UsersSurveysTransactions = usersSurveysTransactions(sequelize);
 const UsersSurveyAnswers = usersSurveyAnswers(sequelize);
-const UserBankDetail = UserBankDetailModel(sequelize);   // ✅ ADD THIS
+const UserBankDetail = UserBankDetailModel(sequelize);
+const Config = configsModel(sequelize);
 
 // Create models object for associations
 const models = {
@@ -50,7 +52,8 @@ const db = {
   REFRESH_TOKENS: RefreshTokens,
   USER_SURVEY_TRANSACTIONS: UsersSurveysTransactions,
   USER_SURVEY_ANSWERS: UsersSurveyAnswers,
-  USER_BANK_DETAIL: UserBankDetail,   // ✅ ADD THIS
+  USER_BANK_DETAIL: UserBankDetail, 
+  CONFIG:Config
 };
 
 export default db;

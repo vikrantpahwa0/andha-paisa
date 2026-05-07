@@ -11,6 +11,7 @@ export const successMessages = {
     SURVEY_SUBMITTED: "Survey Submitted",
   },
   USER_FETCHED: "User fetched successfully",
+  EARNINGS_FETCHED: "Earnings fetched successfully",
   USER_UPDATED: "User updated successfully",
   ACCESS_TOKEN_REFRESHED: "Access token refreshed successfully",
 };
@@ -35,6 +36,14 @@ export const failureMessages = {
   USER_NOT_FOUND : "User not found",
   INVALID_TOKEN : "Invalid token",
   TOKEN_EXPIRED : "Token has expired",
+  CONFIG_MESSAGES: {
+    NOT_FOUND: "Configuration key not found",
+    INVALID_VALUE: "Configuration value could not be parsed",
+    FETCH_FAILED: "Failed to retrieve configuration",
+  },
+  CONFIG_MESSAGES: {
+  NOT_FOUND: "Configuration key not found",
+},
 };
 
 export const httpCodes = {
@@ -68,4 +77,7 @@ export const validationMessages = {
     TEXT_ANSWER_REQUIRED:'Text answer is required for text type questions',
     MISSING_ANSWERS:'Missing answers for questions',
   },
+  CONFIG_MESSAGES: {
+  CODES_ARRAY_REQUIRED: "Codes must be a non-empty array",
+},
 };

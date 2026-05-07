@@ -9,8 +9,9 @@ import {
 import { codes } from "../constants/codes.js";
 import { sendOTPEmail } from "./send-email.js";
 import { saveBase64Image } from '../utils/saveBase64Image.js';
-
-const { USERS, VERIFICATIONS, REFRESH_TOKENS, USER_BANK_DETAIL } = db; // Add REFRESH_TOKENS model
+import { getMultipleConfigs } from "../utils/commonFunctions.js";
+const { sequelize } = db;
+const { USERS, VERIFICATIONS, REFRESH_TOKENS, USER_BANK_DETAIL, USER_SURVEY_TRANSACTIONS } = db; // Add REFRESH_TOKENS model
 
 // Helper function to generate tokens
 const generateTokens = async (userId, role) => {
@@ -357,4 +358,20 @@ export const updateUser = async (data) => {
       await USER_BANK_DETAIL.create({ user_id: userId, ...bankDetails });
     }
   }
+};
+
+export const fetchEarnings = async (userId, fetchBankDetails = false) => {
+
+  const result = await sequelize.query("SELECT UST.status, SUM(CAST(S.reward AS INTEGER)) AS total_earnings FROM users_surveys_transactions UST LEFT JOIN surveys S ON UST.survey_id = S.id WHERE UST.user_id = :userId GROUP BY UST.status", {
+  replacements: { userId },
+  type: sequelize.QueryTypes.SELECT,
+});
+
+const configVariables = await getMultipleConfigs(['SURVEY_REWARD_POINTS','WITHDRAW_LIMIT']);
+  
+const attempted = result.find(r => r.status === "ATTEMPTED")?.total_earnings || 0;
+    const completed = result.find(r => r.status === "COMPLETED")?.total_earnings || 0;
+
+  return {attempted:Number(attempted) * Number(configVariables.SURVEY_REWARD_POINTS), completed: Number(completed),points : Number(completed) * Number(configVariables.SURVEY_REWARD_POINTS), withdrawLimit: Number(configVariables.WITHDRAW_LIMIT) };
+
 };

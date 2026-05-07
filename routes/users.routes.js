@@ -6,7 +6,8 @@ import {
   verifyOtp,
   fetchUser,
   updateUser,
-  refreshAccessToken
+  refreshAccessToken,
+  fetchEarnings
 } from "../controllers/users.controller.js";
 import {authMiddleware} from "../middlewares/permissions.js";
 import { roles } from "../constants/codes.js";
@@ -18,8 +19,9 @@ router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/refresh", refreshAccessToken);
 
-router.get("/fetchUser", authMiddleware(roles.USER), fetchUser);
+router.get("/fetch-user", authMiddleware(roles.USER), fetchUser);
 router.post("/update-user", authMiddleware(roles.USER), updateUser);
+router.get("/fetch-earnings", authMiddleware(roles.USER), fetchEarnings);
 
 
 
