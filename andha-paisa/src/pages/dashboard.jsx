@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { FileText, Flame, Gamepad2 } from "lucide-react";
 import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
+import EarningsSidebar from "../components/dashboard/earnings-display";
 
 const games = [
   { id: 3, title: "Spin & Win - ₹50", reward: "₹50" },
@@ -123,38 +125,41 @@ export default function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit mb-6">
+      <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit gap-1 mb-6">
         <button
           onClick={() => setActiveTab("surveys")}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 ${
             activeTab === "surveys"
               ? "bg-green-200 text-slate-900"
               : "text-slate-600 hover:bg-green-100"
           }`}
         >
-          📝 Surveys
+          <FileText className="w-4 h-4" />
+          Surveys
         </button>
 
         <button
           onClick={() => setActiveTab("offers")}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 ${
             activeTab === "offers"
               ? "bg-green-200 text-slate-900"
               : "text-slate-600 hover:bg-green-100"
           }`}
         >
-          🔥 Offers
+          <Flame className="w-4 h-4" />
+          Offers
         </button>
 
         <button
           onClick={() => setActiveTab("games")}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition flex items-center gap-2 ${
             activeTab === "games"
               ? "bg-green-200 text-slate-900"
               : "text-slate-600 hover:bg-green-100"
           }`}
         >
-          🎮 Games
+          <Gamepad2 className="w-4 h-4" />
+          Games
         </button>
       </div>
 
@@ -162,35 +167,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* RIGHT SECTION */}
         <div className="lg:col-span-4 order-1 lg:order-2">
-          {/* Balance Card */}
-          <div className="bg-gradient-to-br from-green-200 via-green-300 to-green-400 rounded-2xl shadow-md p-6">
-            <h3 className="text-sm text-slate-700">Your Balance</h3>
-
-            <p className="text-4xl font-bold mt-2 text-slate-900">₹120</p>
-
-            <p className="text-xs mt-1 text-slate-600">
-              Keep earning to withdraw 💰
-            </p>
-
-            <button
-              onClick={() => navigate("/profile")}
-              className="mt-6 w-full bg-white text-green-600 font-semibold py-2 rounded-xl hover:bg-green-100 transition"
-            >
-              Withdraw / Account
-            </button>
-          </div>
-
-          {/* Today’s Goal */}
-          <div className="bg-gradient-to-br from-green-200 via-green-300 to-green-400 rounded-2xl shadow-md p-5 mt-4">
-            <h4 className="text-sm text-slate-700">Today’s Goal</h4>
-            <p className="text-lg font-semibold mt-1 text-slate-900">
-              Earn ₹50
-            </p>
-
-            <div className="w-full bg-white/50 h-2 rounded-full mt-3">
-              <div className="bg-green-600 h-2 rounded-full w-[40%]" />
-            </div>
-          </div>
+          <EarningsSidebar confirmedAmount={120} reviewAmount={35} />
         </div>
 
         {/* MAIN CONTENT */}
