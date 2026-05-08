@@ -52,6 +52,11 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },
+
+      registration_used: {
+  type: DataTypes.BOOLEAN,
+  defaultValue: false,
+}
     },
     {
       tableName: "verifications",

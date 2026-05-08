@@ -25,6 +25,8 @@ export const failureMessages = {
   INVALID_METHOD: "Invalid contact method",
   NO_ACTIVE_VERIFICATION:
     "No active verification found. Please request a new OTP.",
+    VERIFICATION_EXPIRED: "Verification session has expired. Please request a new OTP.",
+    VERIFICATION_SESSION_USED: "Verification session has already been used. Please request a new OTP.",
   OTP_EXPIRED: "OTP has expired. Please request a new one.",
   INVALID_OTP: "Invalid OTP. Please try again.",
   EMAIL_SENDING_FAILED: "Failed to send email. Please try again later.",

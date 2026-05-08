@@ -88,10 +88,24 @@ export const refreshAccessToken = async (refreshToken) => {
 
 // Updated registerUser
 export const registerUser = async (data) => {
-  const { name, email, mobile_number, country_code, password } = data;
+  const { name, email, mobile_number, country_code, password, verificationId } = data;
 
+  // 1. Validate the verification record
+  const verification = await VERIFICATIONS.findByPk(verificationId);
+  if (!verification) {
+    throw new Error(failureMessages.NO_ACTIVE_VERIFICATION);
+  }
+
+  // 2. Check that it's verified, not already used, and not expired
+  if (!verification.is_verified || verification.registration_used) {
+    throw new Error(failureMessages.VERIFICATION_SESSION_USED);
+  }
+  if (verification.expires_at < new Date()) {
+    throw new Error(failureMessages.VERIFICATION_EXPIRED);
+  }
+
+  // 4. Create the user (use data from verification record for email/mobile)
   const password_hash = password && (await bcrypt.hash(password, 10));
-
   const user = await USERS.create({
     name,
     password: password_hash || null,
@@ -100,14 +114,17 @@ export const registerUser = async (data) => {
     country_code: country_code || null,
   });
 
-  // Generate both tokens
+  // 5. Mark verification as used
+  await verification.update({ registration_used: true });
+
+  // 6. Generate tokens
   const { accessToken, refreshToken } = await generateTokens(user.id, user.role);
 
   return {
     message: successMessages.USER_REGISTERED,
     userId: user.id,
     accessToken,
-    refreshToken
+    refreshToken,
   };
 };
 
@@ -267,6 +284,7 @@ export const verifyOtp = async (data) => {
   } else {
     return {
       code: codes.PG_ONB,
+      verificationId: verification.id, 
     };
   }
 };
