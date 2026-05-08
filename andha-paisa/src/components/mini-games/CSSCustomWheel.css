@@ -1,0 +1,30 @@
+/* src/components/mini-games/CSSCustomWheel.css */
+.spin-container .spin-btn::before {
+  content: '';
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 20px solid #f59e0b; /* golden triangle pointer */
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+  z-index: 2;
+}
+
+/* Optional: hover effect for spin button */
+.spin-container .spin-btn:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  filter: brightness(1.05);
+}
+
+.spin-container .spin-btn:active {
+  transform: translate(-50%, -50%) scale(0.98);
+}
+
+/* Wheel outer ring subtle glow */
+.spin-wheel {
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5), 0 0 0 4px #e2e8f0;
+}

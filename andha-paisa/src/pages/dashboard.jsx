@@ -5,6 +5,7 @@ import { FileText, Flame, Gamepad2 } from "lucide-react";
 import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
 import EarningsSidebar from "../components/dashboard/earnings-display";
+import GamesSection from "../components/games-section/games-section";  
 
 const games = [
   { id: 3, title: "Spin & Win - ₹50", reward: "₹50" },
@@ -172,7 +173,9 @@ export default function Dashboard() {
 
         {/* MAIN CONTENT */}
         <div className="lg:col-span-8 order-2 lg:order-1">
-          {activeTab === "surveys" ? renderSurveyCards() : renderCards(getActiveData())}
+          {activeTab === "surveys" && renderSurveyCards()}
+          {activeTab === "offers" && renderCards(offers)}
+          {activeTab === "games" && <GamesSection />}
         </div>
       </div>
     </AppLayout>
