@@ -7,13 +7,21 @@ import Offerwall from "../pages/offerwalls-and-surveys/offerwall";
 import AdminDashboard from "../pages/admin-dashboard";
 import Survey from "../pages/offerwalls-and-surveys/survey";
 import Profile from "../pages/user/profile"
+import RegisterGuard from "../components/guards/RegistrationGuard";
 
 export default function AppRoutes() {
   return (
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/verify" element={<Verification />} />
-        <Route path="/register" element={<Registration />} />
+        <Route
+        path="/register"
+        element={
+          <RegisterGuard>
+            <Registration />
+          </RegisterGuard>
+        }
+      />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

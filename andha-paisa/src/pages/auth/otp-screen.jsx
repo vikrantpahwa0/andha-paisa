@@ -66,27 +66,25 @@ function Verification() {
     console.log(result);
 
     if (result.payload?.success) {
-      switch (result.payload?.data?.code) {
-        case "PG_DSH":
-          navigate("/dashboard", {
-            state: {
-              mode: mode,
-              identifier: identifier,
-            },
-          });
-          break;
+  switch (result.payload?.data?.code) {
+    case "PG_DSH":
+      navigate("/dashboard", {
+        state: { mode, identifier },
+      });
+      break;
 
-        case "PG_ONB":
-          navigate("/register", {
-            state: {
-              mode: mode,
-              identifier: identifier,
-            },
-          });
-      }
-
-      setLoading(false);
-    }
+    case "PG_ONB":
+      navigate("/register", {
+        state: {
+          mode: mode,
+          identifier: identifier,
+          verificationId: result.payload.data.verificationId   
+        },
+      });
+      break;
+  }
+  setLoading(false);
+}
 
     setLoading(false);
   };

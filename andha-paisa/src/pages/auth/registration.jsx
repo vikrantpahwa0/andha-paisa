@@ -9,7 +9,8 @@ function Registration() {
   const dispatch = useDispatch();
   const { isLoading: reduxLoading, error: reduxError } = useSelector((state) => state.auth);
   
-  const { mode, identifier } = location.state || {};
+  // 👇 Add verificationId here
+  const { mode, identifier, verificationId } = location.state || {};
   
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +53,8 @@ function Registration() {
     const body = {
       name: name.trim(),
       country_code: "+91",
-      terms_accepted: true
+      terms_accepted: true,
+      verificationId,   // 👈 Add this line
     };
 
     if (mode === "mobile") {

@@ -114,12 +114,13 @@ export const verifyOTP = createAsyncThunk(
 
 export const registerUser = createAsyncThunk(
   'auth/registerUser',
-  async ({ name, email, mobile_number, country_code, password, terms_accepted }, { rejectWithValue }) => {
+  async ({ name, email, mobile_number, country_code, password, terms_accepted, verificationId }, { rejectWithValue }) => {
     try {
       const body = {
         name,
         country_code: country_code || '+91',
-        terms_accepted
+        terms_accepted,
+        verificationId
       };
       
       if (email) body.email = email;
