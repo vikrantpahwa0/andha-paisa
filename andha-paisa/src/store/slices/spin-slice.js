@@ -28,30 +28,6 @@ export const spinWheel = createAsyncThunk(
   },
 );
 
-// Get user points
-export const getUserPoints = createAsyncThunk(
-  "spin/getUserPoints",
-  async (_, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const response = await fetchWithAuth(
-        "mini-games/spin/user-points",
-        { method: "GET" },
-        { rejectWithValue, dispatch, getState },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || "Failed to fetch points");
-      }
-
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message || "Network error");
-    }
-  },
-);
-
 const initialState = {
   points: 0,
   isLoading: false,
@@ -86,19 +62,6 @@ const spinSlice = createSlice({
       })
       .addCase(spinWheel.rejected, (state, action) => {
         state.isSpinning = false;
-        state.error = action.payload;
-      })
-      // Get User Points
-      .addCase(getUserPoints.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(getUserPoints.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.points = action.payload.data.points;
-      })
-      .addCase(getUserPoints.rejected, (state, action) => {
-        state.isLoading = false;
         state.error = action.payload;
       });
   },
