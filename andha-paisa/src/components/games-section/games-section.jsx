@@ -1,27 +1,30 @@
-// src/components/dashboard/GamesSection.jsx
+// src/components/games-section/games-section.jsx
 import { useState } from "react";
-import { Gamepad2, Trophy, Sparkles } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { Gamepad2, Trophy } from "lucide-react";
 import CSSCustomWheel from "../mini-games/spin-wheel";
-import Toast from "../common/toast"; // 👈 import toast
+import Toast from "../common/toast";
+import { fetchUserEarnings } from "../../store/slices/user-earnings";
 
 const games = [
   { id: 3, title: "Spin & Win", reward: "₹50", icon: Gamepad2 },
   { id: 4, title: "Play Game & Earn ₹30", reward: "₹30", icon: Trophy },
 ];
 
+// Removed Bonus spin prize
 const wheelPrizes = [
   { name: "10 points", probability: 0.1, value: 10, color: "#86efac" },
   { name: "20 points", probability: 0.1, value: 20, color: "#4ade80" },
   { name: "50 points", probability: 0.1, value: 50, color: "#22c55e" },
   { name: "100 points", probability: 0.1, value: 100, color: "#10b981" },
-  { name: "Bonus spin", probability: 0.1, value: 0, isBonus: true, color: "#fbbf24" },
-  { name: "Try again", probability: 0.5, value: 0, color: "#94a3b8" },
+  { name: "Try again", probability: 0.6, value: 0, color: "#94a3b8" },
 ];
 
 const GamesSection = () => {
+  const dispatch = useDispatch();
   const [showWheelModal, setShowWheelModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
-  const [toast, setToast] = useState(null); // 👈 toast state
+  const [toast, setToast] = useState(null);
 
   const showToast = (message, type) => {
     setToast({ message, type });
@@ -33,12 +36,13 @@ const GamesSection = () => {
     setShowWheelModal(true);
   };
 
-  const handleSpinEnd = (prize) => {
+  const handleSpinEnd = async (prize) => {
     if (prize.value > 0) {
-      showToast(`You won ${prize.value} points!`, "success");
-      // TODO: dispatch action to add points
-    } else if (prize.name === "Bonus spin") {
-      showToast("Bonus spin! Click SPIN again.", "bonus");
+      showToast(`You won ${prize.value} points! `, "success");
+      // Refresh earnings to update points in sidebar
+      await dispatch(fetchUserEarnings());
+    } else if (prize.error) {
+      showToast(prize.message || "Something went wrong!", "error");
     } else {
       showToast("No points this time. Better luck next spin!", "error");
     }
@@ -59,8 +63,12 @@ const GamesSection = () => {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium text-slate-800">{game.title}</h3>
-                  <p className="text-emerald-600 font-semibold mt-1">{game.reward}</p>
+                  <h3 className="text-lg font-medium text-slate-800">
+                    {game.title}
+                  </h3>
+                  <p className="text-emerald-600 font-semibold mt-1">
+                    {game.reward}
+                  </p>
                 </div>
               </div>
               <button
@@ -84,7 +92,9 @@ const GamesSection = () => {
             >
               ✕
             </button>
-            <h2 className="text-xl font-bold text-center text-slate-800 mb-4">{selectedGame?.title}</h2>
+            <h2 className="text-xl font-bold text-center text-slate-800 mb-4">
+              {selectedGame?.title}
+            </h2>
             <CSSCustomWheel
               key={selectedGame?.id}
               prizes={wheelPrizes}

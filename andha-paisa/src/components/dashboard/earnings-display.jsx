@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { 
-  CheckCircle, Wallet, Gift, Clock, AlertCircle, TrendingUp
+import {
+  CheckCircle,
+  Wallet,
+  Gift,
+  Clock,
+  AlertCircle,
+  TrendingUp,
 } from "lucide-react";
 import { fetchUserEarnings } from "../../store/slices/user-earnings";
 
 export default function EarningsSidebar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { confirmedPoints, reviewAmount, withdrawLimit, completedAmount, isLoading, error } = useSelector(
-    (state) => state.earnings
-  );
+  const {
+    confirmedPoints,
+    reviewAmount,
+    withdrawLimit,
+    completedAmount,
+    isLoading,
+    error,
+  } = useSelector((state) => state.earnings);
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -19,7 +29,10 @@ export default function EarningsSidebar() {
   }, [dispatch]);
 
   const canWithdraw = confirmedPoints >= withdrawLimit;
-  const progressPercent = Math.min(100, (completedAmount / withdrawLimit) * 100);
+  const progressPercent = Math.min(
+    100,
+    (completedAmount / withdrawLimit) * 100,
+  );
 
   const handleWithdrawClick = () => {
     if (canWithdraw) {
@@ -48,8 +61,12 @@ export default function EarningsSidebar() {
             <h4 className="text-sm text-slate-700 font-medium">Confirmed</h4>
           </div>
         </div>
-        <p className="text-3xl font-bold mt-2 text-slate-900">{confirmedPoints} Points</p>
-        <p className="text-xs text-slate-600 mt-1">Earnings that have been verified</p>
+        <p className="text-3xl font-bold mt-2 text-slate-900">
+          {confirmedPoints} Points
+        </p>
+        <p className="text-xs text-slate-600 mt-1">
+          Earnings that have been verified
+        </p>
 
         {/* Withdraw Button */}
         <div className="relative mt-4">
@@ -104,7 +121,9 @@ export default function EarningsSidebar() {
             Pending
           </span>
         </div>
-        <p className="text-3xl font-bold mt-2 text-slate-900">{reviewAmount} Points</p>
+        <p className="text-3xl font-bold mt-2 text-slate-900">
+          {reviewAmount} Points
+        </p>
         <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
           <Clock className="w-3 h-3" />
           Awaiting approval (usually 2 - 4 hrs)
