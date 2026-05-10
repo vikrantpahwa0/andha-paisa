@@ -7,8 +7,12 @@ import VerificationsModel from "./models/verifications.js";
 import refreshTokensModel from "./models/refresh-token.js";
 import usersSurveysTransactions from "./models/surveys/users-surveys-transactions.js";
 import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js";
-import UserBankDetailModel from "./models/user-bank-details.js"; 
+import UserBankDetailModel from "./models/user-bank-details.js";
 import configsModel from "./models/configs.js";
+
+// Import spin models
+import SpinPrizeModel from "./models/spin-the-wheel/spin-prize.js";
+import SpinTransactionModel from "./models/spin-the-wheel/spin-transaction.js";
 
 // Initialize all models
 const Survey = SurveyModel(sequelize);
@@ -22,6 +26,10 @@ const UsersSurveyAnswers = usersSurveyAnswers(sequelize);
 const UserBankDetail = UserBankDetailModel(sequelize);
 const Config = configsModel(sequelize);
 
+// Initialize spin models
+const SpinPrize = SpinPrizeModel(sequelize);
+const SpinTransaction = SpinTransactionModel(sequelize);
+
 // Create models object for associations
 const models = {
   Survey,
@@ -32,7 +40,10 @@ const models = {
   Verifications,
   UsersSurveyAnswers,
   UsersSurveysTransactions,
-  UserBankDetail,   // ✅ ADD THIS
+  UserBankDetail,
+  Config,
+  SpinPrize,
+  SpinTransaction,
 };
 
 // Call associate functions
@@ -52,8 +63,10 @@ const db = {
   REFRESH_TOKENS: RefreshTokens,
   USER_SURVEY_TRANSACTIONS: UsersSurveysTransactions,
   USER_SURVEY_ANSWERS: UsersSurveyAnswers,
-  USER_BANK_DETAIL: UserBankDetail, 
-  CONFIG:Config
+  USER_BANK_DETAIL: UserBankDetail,
+  CONFIG: Config,
+  SPIN_PRIZE: SpinPrize,
+  SPIN_TRANSACTION: SpinTransaction,
 };
 
 export default db;

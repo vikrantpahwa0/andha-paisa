@@ -8,6 +8,7 @@ import fs from "fs";
 import db from "./database/index.js";
 import surveyRoutes from "./routes/surveys.routes.js";
 import userRoutes from "./routes/users.routes.js";
+import miniGamesRoutes from "./routes/games/spin-wheel.js";
 
 dotenv.config();
 
@@ -33,10 +34,12 @@ if (!fs.existsSync(uploadDir)) {
 
 app.use("/surveys", surveyRoutes);
 app.use("/auth", userRoutes);
+app.use("/mini-games", miniGamesRoutes);
 
 const PORT = process.env.PORT || 3000;
 
-db.sequelize.authenticate()
+db.sequelize
+  .authenticate()
   .then(() => {
     console.log("Database connected");
     app.listen(PORT, () => {
