@@ -1,45 +1,55 @@
 // src/components/mini-games/CSSCustomWheel.jsx
-import { useState, useRef } from "react";
-import { useDispatch } from "react-redux";
-import { spinWheel } from "../../store/slices/spin-slice";
+import { useState, useRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { spinWheel, getSpinCount } from "../../store/slices/spin-slice";
 import "./CSSCustomWheel.css";
 
 const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
   const dispatch = useDispatch();
+  const { isSpinning, spinLimit } = useSelector((state) => state.spin);
   const [initState, setInitState] = useState(true);
   const [randIndex, setRandIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(true);
   const spinningRef = useRef(false);
 
+  // Fetch spin count on mount
+  useEffect(() => {
+    dispatch(getSpinCount());
+  }, [dispatch]);
+
+  // Refresh spin count after spin finishes
+  const refreshSpinCount = () => {
+    dispatch(getSpinCount());
+  };
+
+  const canSpin = spinLimit.remainingSpins > 0 && isFinished && !spinningRef.current && !isSpinning;
+
   const spin = () => {
-    if (!isFinished || spinningRef.current) return;
+    if (!canSpin) return;
 
     spinningRef.current = true;
     setIsFinished(false);
 
-    // Call backend API instead of client-side selection
     dispatch(spinWheel()).then((result) => {
       if (result.payload?.data) {
         const { prize, rotationAngle } = result.payload.data;
 
-        // Find the index of the prize that matches backend result
         const prizeIndex = prizes.findIndex((p) => p.name === prize.name);
-
         if (prizeIndex !== -1) {
           setRandIndex(prizeIndex);
         }
 
-        // Animate wheel
         setInitState(false);
 
-        // Wait for animation to complete
         setTimeout(() => {
           setIsFinished(true);
           spinningRef.current = false;
           if (onSpinEnd) onSpinEnd(prize);
+          // After spin completes, refresh the spin count
+          refreshSpinCount();
         }, 3000);
       } else {
-        // If API fails, reset
+        // API failed
         setIsFinished(true);
         spinningRef.current = false;
         setInitState(true);
@@ -67,7 +77,7 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
       size) *
     100;
 
-  // Dynamic styles matching your theme
+  // Dynamic styles
   const containerStyle = {
     width: size,
     height: size,
@@ -101,12 +111,14 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
     width: 70,
     height: 70,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #10b981, #059669)",
+    background: canSpin
+      ? "linear-gradient(135deg, #10b981, #059669)"
+      : "linear-gradient(135deg, #94a3b8, #64748b)",
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
     border: "none",
-    cursor: "pointer",
+    cursor: canSpin ? "pointer" : "not-allowed",
     position: "absolute",
     top: "50%",
     left: "50%",
@@ -114,6 +126,7 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
     zIndex: 2,
     boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
     transition: "all 0.2s",
+    opacity: canSpin ? 1 : 0.6,
   };
 
   const resetButtonStyle = {
@@ -126,8 +139,8 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
   return (
     <div style={containerStyle} className="spin-container">
       {initState ? (
-        <button onClick={spin} style={spinButtonStyle} className="spin-btn">
-          SPIN
+        <button onClick={spin} style={spinButtonStyle} className="spin-btn" disabled={!canSpin}>
+          {spinLimit.remainingSpins === 0 ? "Limit Reached" : "SPIN"}
         </button>
       ) : (
         <button
@@ -170,9 +183,7 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
                 fontFamily: "'Inter', system-ui, sans-serif",
               }}
             >
-              {prize.name.length > 12
-                ? prize.name.slice(0, 10) + ".."
-                : prize.name}
+              {prize.name.length > 12 ? prize.name.slice(0, 10) + ".." : prize.name}
             </span>
           </div>
         ))}
