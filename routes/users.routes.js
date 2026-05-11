@@ -7,7 +7,8 @@ import {
   fetchUser,
   updateUser,
   refreshAccessToken,
-  fetchEarnings
+  fetchEarnings,
+  fetchTransactions
 } from "../controllers/users.controller.js";
 import {authMiddleware} from "../middlewares/permissions.js";
 import { roles } from "../constants/codes.js";
@@ -22,7 +23,7 @@ router.post("/refresh", refreshAccessToken);
 router.get("/fetch-user", authMiddleware(roles.USER), fetchUser);
 router.post("/update-user", authMiddleware(roles.USER), updateUser);
 router.get("/fetch-earnings", authMiddleware(roles.USER), fetchEarnings);
-
+router.get("/transactions", authMiddleware(roles.USER), fetchTransactions);
 
 
 export default router;

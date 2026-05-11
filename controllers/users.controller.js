@@ -117,3 +117,17 @@ export const fetchEarnings = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
+
+export const fetchTransactions = async (req, res) => {
+  try {
+    const earnings = await userService.fetchTransactions(req.user.userId);
+    return successResponse(
+      res,
+      earnings,
+      successMessages.EARNINGS_FETCHED,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

@@ -413,8 +413,6 @@ export const fetchEarnings = async (userId, fetchBankDetails = false) => {
 
   const spinAndWinPoints = (await getUserPoints(userId)).points;
 
-  console.log(spinAndWinPoints);
-
   const configVariables = await getMultipleConfigs([
     "SURVEY_REWARD_POINTS",
     "WITHDRAW_LIMIT",
@@ -433,4 +431,29 @@ export const fetchEarnings = async (userId, fetchBankDetails = false) => {
       Number(spinAndWinPoints),
     withdrawLimit: Number(configVariables.WITHDRAW_LIMIT),
   };
+};
+
+export const fetchTransactions = async (userId) => {
+  const configVariables = await getMultipleConfigs([
+    "SURVEY_REWARD_POINTS",
+    "WITHDRAW_LIMIT",
+  ]);
+
+  const surveyTransactions = await sequelize.query(
+    `SELECT S.name,S.reward,(CAST(S.reward AS INTEGER) * ${configVariables.SURVEY_REWARD_POINTS}) AS total_points,UST.status,UST.created_at FROM users_surveys_transactions UST LEFT JOIN surveys S ON UST.survey_id = S.id WHERE UST.user_id = :userId AND UST.status IN ('ATTEMPTED','COMPLETED') ORDER BY UST.created_at DESC`,
+    {
+      replacements: { userId },
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+
+  const miniGamesTransactions = await sequelize.query(
+    "SELECT SP.name, SP.value, ST.created_at FROM spin_transactions ST LEFT JOIN spin_prizes SP ON ST.prize_id = SP.id WHERE ST.user_id = :userId",
+    {
+      replacements: { userId },
+      type: sequelize.QueryTypes.SELECT,
+    },
+  );
+
+  return {surveyTransactions,miniGamesTransactions};
 };
