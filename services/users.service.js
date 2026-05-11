@@ -374,7 +374,7 @@ export const updateUser = async (data) => {
       userDetails.profilePicture.startsWith("data:image")
     ) {
       try {
-        const imageUrl = saveBase64Image(userDetails.profilePicture, userId);
+        const imageUrl = await saveBase64Image(userDetails.profilePicture, userId);
         userDetails.profilePicture = imageUrl; // Replace base64 with URL
       } catch (error) {
         console.error("Failed to save profile picture:", error);
