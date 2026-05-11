@@ -1,4 +1,5 @@
 // import db from "../../database/index";
+import { failureMessages } from "../../constants/messages.js";
 import db from "../../database/index.js";
 const { SPIN_PRIZE, SPIN_TRANSACTION, USERS } = db;
 
@@ -45,13 +46,20 @@ const calculateRotationAngle = (segmentIndex, totalSegments) => {
  * Process spin and update user points
  */
 export const processSpin = async (userId) => {
+
+  const spinLimitInformation = await getSpinCount(userId);
+
+  if (spinLimitInformation.usedSpins >= spinLimitInformation.allowedSpins) {
+    throw new Error(failureMessages.SPIN_LIMIT_REACHED);
+  };
+
   const transaction = await db.sequelize.transaction();
 
   try {
     // Get active prizes
     const prizes = await getActivePrizes();
     if (!prizes.length) {
-      throw new Error("No active prizes configured");
+      throw new Error(failureMessages.NO_ACTIVE_PRIZES);
     }
 
     // Select prize on backend
@@ -117,5 +125,30 @@ export const getUserPoints = async (userId) => {
 
   return {
     points: result[0]?.total_points || 0,
+  };
+};
+
+export const getSpinCount = async (userId) => {
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const result = await db.sequelize.query(
+    `SELECT COUNT(*) as count
+     FROM spin_transactions
+     WHERE user_id = :userId
+       AND created_at >= :today`,
+    {
+      replacements: { 
+        userId, 
+        today: today.toISOString() 
+      },
+      type: db.sequelize.QueryTypes.SELECT,
+    }
+  );
+  
+  return {
+    allowedSpins: process.env.SPIN_COUNT,
+    usedSpins: parseInt(result[0]?.count || 0, 10),
   };
 };

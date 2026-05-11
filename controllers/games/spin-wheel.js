@@ -17,3 +17,19 @@ export const spinWheel = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
+
+export const getSpinCount = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await spinService.getSpinCount(userId);
+
+    return successResponse(
+      res,
+      result,
+      successMessages.SUCCESS,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

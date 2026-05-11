@@ -50,6 +50,8 @@ export const failureMessages = {
   CONFIG_MESSAGES: {
     NOT_FOUND: "Configuration key not found",
   },
+  SPIN_LIMIT_REACHED:'You have reached the maximum number of spins allowed for today. Please try again tomorrow.',
+  NO_ACTIVE_PRIZES: "No active prizes configured"
 };
 
 export const httpCodes = {
