@@ -8,7 +8,6 @@ import { fetchUserEarnings } from "../../store/slices/user-earnings";
 
 const games = [
   { id: 3, title: "Spin & Win", reward: "₹50", icon: Gamepad2 },
-  { id: 4, title: "Play Game & Earn ₹30", reward: "₹30", icon: Trophy },
 ];
 
 // Removed Bonus spin prize
