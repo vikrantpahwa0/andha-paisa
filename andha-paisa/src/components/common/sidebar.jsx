@@ -7,6 +7,7 @@ export default function Sidebar() {
 
   const menu = [
     { name: "Earn", path: "/dashboard", icon: Home },
+    { name: "Activity", path: "/activity", icon: ClipboardList },
     { name: "Account", path: "/profile", icon: User },
   ];
 

@@ -8,6 +8,7 @@ import AdminDashboard from "../pages/admin-dashboard";
 import Survey from "../pages/offerwalls-and-surveys/survey";
 import Profile from "../pages/user/profile"
 import RegisterGuard from "../components/guards/RegistrationGuard";
+import Activity from "../pages/activity";
 
 export default function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/survey/:id" element={<Survey />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/activity" element={<Activity />} />
       </Routes>
   );
 }

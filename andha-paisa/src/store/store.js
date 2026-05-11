@@ -5,6 +5,7 @@ import userSurveyReducer from "./slices/user-survey-slice";
 import userPersonalReducer from "./slices/user-personal";
 import earningsReducer from "./slices/user-earnings";
 import spinReducer from "./slices/spin-slice";
+import activityReducer from "./slices/activity-slice";
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     userPersonal: userPersonalReducer,
     earnings: earningsReducer,
     spin: spinReducer,
+    activity: activityReducer,
   },
 });
