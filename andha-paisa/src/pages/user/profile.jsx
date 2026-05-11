@@ -163,7 +163,7 @@ export default function Profile() {
     );
   }
 
-  const displayAvatar = profile?.profilePicture?`${import.meta.env.VITE_BE_URL}${profile?.profilePicture}`:avatarPreview;
+  const displayAvatar = profile?.profilePicture || avatarPreview;
 
   return (
     <AppLayout>

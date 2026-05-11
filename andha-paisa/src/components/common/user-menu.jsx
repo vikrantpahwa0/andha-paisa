@@ -60,7 +60,7 @@ export default function UserMenu() {
       >
         {profile.profilePicture ? (
           <img
-            src={`${import.meta.env.VITE_BE_URL}${profile?.profilePicture}`}
+            src={profile?.profilePicture}
             alt={profile.name}
             className="w-8 h-8 rounded-full object-cover"
           />
