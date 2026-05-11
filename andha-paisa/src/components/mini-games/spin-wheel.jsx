@@ -1,6 +1,7 @@
 // src/components/mini-games/CSSCustomWheel.jsx
 import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { RotateCw } from "lucide-react"; // ✅ better icon
 import { spinWheel, getSpinCount } from "../../store/slices/spin-slice";
 import "./CSSCustomWheel.css";
 
@@ -12,12 +13,10 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
   const [isFinished, setIsFinished] = useState(true);
   const spinningRef = useRef(false);
 
-  // Fetch spin count on mount
   useEffect(() => {
     dispatch(getSpinCount());
   }, [dispatch]);
 
-  // Refresh spin count after spin finishes
   const refreshSpinCount = () => {
     dispatch(getSpinCount());
   };
@@ -45,11 +44,9 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
           setIsFinished(true);
           spinningRef.current = false;
           if (onSpinEnd) onSpinEnd(prize);
-          // After spin completes, refresh the spin count
           refreshSpinCount();
         }, 3000);
       } else {
-        // API failed
         setIsFinished(true);
         spinningRef.current = false;
         setInitState(true);
@@ -77,7 +74,6 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
       size) *
     100;
 
-  // Dynamic styles
   const containerStyle = {
     width: size,
     height: size,
@@ -137,56 +133,67 @@ const CSSCustomWheel = ({ prizes, onSpinEnd, size = 400 }) => {
   };
 
   return (
-    <div style={containerStyle} className="spin-container">
-      {initState ? (
-        <button onClick={spin} style={spinButtonStyle} className="spin-btn" disabled={!canSpin}>
-          {spinLimit.remainingSpins === 0 ? "Limit Reached" : "SPIN"}
-        </button>
-      ) : (
-        <button
-          onClick={resetWheel}
-          disabled={!isFinished}
-          style={resetButtonStyle}
-          className="spin-btn"
-        >
-          RESET
-        </button>
-      )}
-      <div style={wheelStyle} className="spin-wheel">
-        {prizes.map((prize, index) => (
-          <div
-            key={prize.name}
-            className="option"
-            style={{
-              backgroundColor: prize.color || `hsl(${index * 45}, 70%, 65%)`,
-              transform: `rotate(${(360 / prizes.length) * index + 45}deg)`,
-              clipPath: `polygon(0 0, ${sidePercent}% 0, 100% 100%, 0 ${sidePercent}%)`,
-              position: "absolute",
-              top: 0,
-              left: 0,
-              height: "50%",
-              width: "50%",
-              transformOrigin: "bottom right",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              userSelect: "none",
-            }}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={containerStyle} className="spin-container">
+        {initState ? (
+          <button onClick={spin} style={spinButtonStyle} className="spin-btn" disabled={!canSpin}>
+            {spinLimit.remainingSpins === 0 ? "Limit Reached" : "SPIN"}
+          </button>
+        ) : (
+          <button
+            onClick={resetWheel}
+            disabled={!isFinished}
+            style={resetButtonStyle}
+            className="spin-btn"
           >
-            <span
+            RESET
+          </button>
+        )}
+        <div style={wheelStyle} className="spin-wheel">
+          {prizes.map((prize, index) => (
+            <div
+              key={prize.name}
+              className="option"
               style={{
-                color: "#fff",
-                transform: "rotate(45deg)",
-                textShadow: "0 1px 2px rgba(0,0,0,0.3)",
-                fontSize: size / 26,
-                fontWeight: 600,
-                fontFamily: "'Inter', system-ui, sans-serif",
+                backgroundColor: prize.color || `hsl(${index * 45}, 70%, 65%)`,
+                transform: `rotate(${(360 / prizes.length) * index + 45}deg)`,
+                clipPath: `polygon(0 0, ${sidePercent}% 0, 100% 100%, 0 ${sidePercent}%)`,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                height: "50%",
+                width: "50%",
+                transformOrigin: "bottom right",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                userSelect: "none",
               }}
             >
-              {prize.name.length > 12 ? prize.name.slice(0, 10) + ".." : prize.name}
-            </span>
-          </div>
-        ))}
+              <span
+                style={{
+                  color: "#fff",
+                  transform: "rotate(45deg)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.3)",
+                  fontSize: size / 26,
+                  fontWeight: 600,
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                }}
+              >
+                {prize.name.length > 12 ? prize.name.slice(0, 10) + ".." : prize.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Spin limit indicator with proper icon */}
+      <div className="mt-3 text-center text-sm font-medium text-gray-600 flex items-center justify-center gap-1.5">
+        <RotateCw className="w-4 h-4 text-emerald-600" />
+        <span>Spins today: {spinLimit.usedSpins} / {spinLimit.allowedSpins}</span>
+        {spinLimit.remainingSpins > 0 && spinLimit.remainingSpins <= 2 && (
+          <span className="text-yellow-600 text-xs ml-1">(Only {spinLimit.remainingSpins} left!)</span>
+        )}
       </div>
     </div>
   );
