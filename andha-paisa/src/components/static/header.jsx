@@ -1,18 +1,27 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Coins, Menu, X } from "lucide-react";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
   const scrollToSection = (sectionId) => {
     closeMenu();
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    
+    if (location.pathname === "/") {
+      // Already on homepage - just scroll
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    } else {
+      // Navigate to homepage first, then scroll after page loads
+      navigate("/", { state: { scrollTo: sectionId } });
     }
   };
 
@@ -58,18 +67,18 @@ export default function Header() {
             >
               Maximise your earnings
             </Link>
-            <button
-              onClick={navLinks[1].action}
-              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            <Link
+              to={navLinks[3].path}
+              className="text-slate-600 hover:text-green-600 font-medium transition"
             >
               Blogs
-            </button>
-            <button
-              onClick={navLinks[1].action}
-              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            </Link>
+            <Link
+              to={navLinks[4].path}
+              className="text-slate-600 hover:text-green-600 font-medium transition"
             >
               Campaigns
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -114,14 +123,14 @@ export default function Header() {
               Maximise your earnings
             </Link>
             <Link
-              to={navLinks[2].path}
+              to={navLinks[3].path}
               onClick={closeMenu}
               className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
             >
               Blogs
             </Link>
             <Link
-              to={navLinks[2].path}
+              to={navLinks[4].path}
               onClick={closeMenu}
               className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
             >

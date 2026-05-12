@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   FileText, Flame, Gamepad2, TrendingUp, Shield, 
   ChevronDown, ChevronUp 
@@ -9,7 +9,20 @@ import Footer from "../../components/static/footer";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [openFaq, setOpenFaq] = useState(null);
+
+  // Handle scrolling when coming from other pages
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      const element = document.getElementById(location.state.scrollTo);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
+    }
+  }, [location]);
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -126,7 +139,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How It Works Section - ADDED ID */}
+        {/* How It Works Section */}
         <section id="how-it-works" className="py-16 bg-gradient-to-b from-slate-50 to-white scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -173,7 +186,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FAQ Section - ADDED ID */}
+        {/* FAQ Section */}
         <section id="faq" className="py-16 bg-white scroll-mt-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
