@@ -15,11 +15,14 @@ export default function Sidebar() {
     <div className="h-full bg-white shadow-md flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b flex items-center gap-2">
-        <Coins className="w-6 h-6 text-green-600" />
-        <h1 className="text-xl font-bold text-green-600 tracking-tight">
-          Andha Paisa
-        </h1>
-      </div>
+  <img 
+  src="/icons/web-app-manifest-192x192.png" 
+  alt="cash Cash Logo" 
+  className="w-12 h-12 object-contain"
+/>
+  <h1 className="text-xl font-bold text-green-600 tracking-tight">
+  </h1>
+</div>
 
       {/* Menu */}
       <div className="p-3 space-y-1">
