@@ -38,14 +38,17 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
-            <div className="bg-gradient-to-br from-green-300 to-green-500 p-1.5 rounded-xl shadow-sm">
-              <Coins className="w-6 h-6 text-slate-900" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              CashCash
-            </span>
-          </Link>
+          <Link 
+  to="/" 
+  className="flex items-center group flex-shrink-0" 
+  onClick={closeMenu}
+>
+  <img
+    src="/icons/web-app-manifest-192x192.png"
+    alt="CashCash"
+    className="h-16 md:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+  />
+</Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">

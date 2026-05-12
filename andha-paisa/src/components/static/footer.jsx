@@ -9,9 +9,12 @@ export default function Footer() {
           {/* Brand Column - CashCash */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="bg-gradient-to-br from-green-300 to-green-500 p-1.5 rounded-xl">
-                <Coins className="w-5 h-5 text-slate-900" />
-              </div>
+              {/* Yaha image daali hai Coins icon ki jagah */}
+              <img 
+                src="/icons/web-app-manifest-192x192.png" 
+                alt="CashCash Logo" 
+                className="w-8 h-8 rounded-xl"
+              />
               <span className="text-lg font-bold text-slate-800">CashCash</span>
             </div>
             <p className="text-slate-500 text-sm mb-4 max-w-md">
