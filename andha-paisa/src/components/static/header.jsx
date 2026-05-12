@@ -8,10 +8,20 @@ export default function Header() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
+  const scrollToSection = (sectionId) => {
+    closeMenu();
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const navLinks = [
-    { name: "How it works", path: "#" },
-    { name: "FAQ", path: "#" },
+    { name: "How it works", action: () => scrollToSection("how-it-works") },
+    { name: "FAQ", action: () => scrollToSection("faq") },
     { name: "Maximise your earnings", path: "#" },
+    { name: "Blogs", path: "#" },
+    { name: "Campaigns", path: "#" },
   ];
 
   return (
@@ -30,15 +40,36 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className="text-slate-600 hover:text-green-600 font-medium transition"
-              >
-                {link.name}
-              </Link>
-            ))}
+            <button
+              onClick={navLinks[0].action}
+              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            >
+              How it works
+            </button>
+            <button
+              onClick={navLinks[1].action}
+              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            >
+              FAQ
+            </button>
+            <Link
+              to={navLinks[2].path}
+              className="text-slate-600 hover:text-green-600 font-medium transition"
+            >
+              Maximise your earnings
+            </Link>
+            <button
+              onClick={navLinks[1].action}
+              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            >
+              Blogs
+            </button>
+            <button
+              onClick={navLinks[1].action}
+              className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
+            >
+              Campaigns
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -63,16 +94,39 @@ export default function Header() {
             </button>
           </div>
           <nav className="flex flex-col gap-4 px-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                onClick={closeMenu}
-                className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
-              >
-                {link.name}
-              </Link>
-            ))}
+            <button
+              onClick={navLinks[0].action}
+              className="text-left text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              How it works
+            </button>
+            <button
+              onClick={navLinks[1].action}
+              className="text-left text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              FAQ
+            </button>
+            <Link
+              to={navLinks[2].path}
+              onClick={closeMenu}
+              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              Maximise your earnings
+            </Link>
+            <Link
+              to={navLinks[2].path}
+              onClick={closeMenu}
+              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              Blogs
+            </Link>
+            <Link
+              to={navLinks[2].path}
+              onClick={closeMenu}
+              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              Campaigns
+            </Link>
           </nav>
         </div>
 

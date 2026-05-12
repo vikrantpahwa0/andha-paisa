@@ -12,6 +12,7 @@ import Activity from "../pages/activity";
 // import ForgotPassword from "../pages/auth/forgot-password";
 // import ResetPassword from "../pages/auth/reset-password";
 import HomePage from "../pages/static/home-page";
+import PrivacyPolicy from "../components/static/privacy-policy";
 
 export default function AppRoutes() {
   return (
@@ -35,8 +36,7 @@ export default function AppRoutes() {
         {/* <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} /> */}
         <Route path="/" element={<HomePage />} />
-
-
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
   );
 }

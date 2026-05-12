@@ -1,10 +1,19 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Flame, Gamepad2, TrendingUp, Clock, Shield, Award } from "lucide-react";
+import { 
+  FileText, Flame, Gamepad2, TrendingUp, Shield, 
+  ChevronDown, ChevronUp 
+} from "lucide-react";
 import Header from "../../components/static/header";
 import Footer from "../../components/static/footer";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   const features = [
     {
@@ -27,10 +36,31 @@ export default function HomePage() {
     },
   ];
 
-  const stats = [
-    { icon: <Users className="w-5 h-5" />, value: "10,000+", label: "Active Users" },
-    { icon: <Award className="w-5 h-5" />, value: "₹50L+", label: "Rewards Paid" },
-    { icon: <Clock className="w-5 h-5" />, value: "24/7", label: "New Opportunities" },
+  const faqs = [
+    {
+      question: "How do I start earning money?",
+      answer: "Simply sign up for a free account, complete your profile, and start taking surveys, trying offers, or playing games. Each activity earns you points that can be redeemed for cash or gifts."
+    },
+    {
+      question: "Is CashCash really free to use?",
+      answer: "Yes! CashCash is completely free to join and use. There are no hidden fees or charges. You only earn rewards for completing tasks."
+    },
+    {
+      question: "How do I withdraw my earnings?",
+      answer: "You can withdraw your earnings via bank transfer currently."
+    },
+    {
+      question: "How long does it take to receive payments?",
+      answer: "Withdrawals are typically processed within 24-48 hours. Bank transfers may take 2-3 business days depending on your bank."
+    },
+    {
+      question: "Are there any limits on how much I can earn?",
+      answer: "No, there's no upper limit! The more surveys, offers, and games you complete, the more you earn."
+    },
+    {
+      question: "Is my personal information safe?",
+      answer: "Absolutely. We never share your personal data with third parties without your consent. Your privacy is our priority."
+    }
   ];
 
   return (
@@ -96,8 +126,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-16 bg-gradient-to-b from-slate-50 to-white">
+        {/* How It Works Section - ADDED ID */}
+        <section id="how-it-works" className="py-16 bg-gradient-to-b from-slate-50 to-white scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-slate-800 mb-3">
@@ -143,6 +173,51 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* FAQ Section - ADDED ID */}
+        <section id="faq" className="py-16 bg-white scroll-mt-20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-slate-500">
+                Got questions? We've got answers
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {faqs.map((faq, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-green-200 transition-all duration-200"
+                >
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="w-full px-6 py-4 flex justify-between items-center text-left hover:bg-green-50/30 transition"
+                  >
+                    <span className="font-semibold text-slate-800 text-lg">
+                      {faq.question}
+                    </span>
+                    {openFaq === index ? (
+                      <ChevronUp className="w-5 h-5 text-emerald-600 flex-shrink-0 ml-4" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-slate-400 flex-shrink-0 ml-4" />
+                    )}
+                  </button>
+                  
+                  {openFaq === index && (
+                    <div className="px-6 pb-4 pt-0">
+                      <p className="text-slate-600 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -167,28 +242,5 @@ export default function HomePage() {
 
       <Footer />
     </div>
-  );
-}
-
-// Helper icon component for Users (still referenced in the removed stats object, but no longer used – you can delete this if you want)
-function Users(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
   );
 }

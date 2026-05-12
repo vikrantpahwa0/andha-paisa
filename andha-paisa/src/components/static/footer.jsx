@@ -34,17 +34,12 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  Dashboard
+                  Blogs
                 </Link>
               </li>
               <li>
                 <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  Offers
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  Games
+                  Campaigns
                 </Link>
               </li>
             </ul>
@@ -56,17 +51,22 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
                   Terms & Conditions
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
+                <Link to="/privacy-policy" className="text-slate-500 hover:text-green-600 text-sm transition">
                   Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
+                  Contact Us
                 </Link>
               </li>
             </ul>
