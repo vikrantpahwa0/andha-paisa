@@ -9,11 +9,14 @@ import Survey from "../pages/offerwalls-and-surveys/survey";
 import Profile from "../pages/user/profile"
 import RegisterGuard from "../components/guards/RegistrationGuard";
 import Activity from "../pages/activity";
+// import ForgotPassword from "../pages/auth/forgot-password";
+// import ResetPassword from "../pages/auth/reset-password";
+import HomePage from "../pages/static/home-page";
 
 export default function AppRoutes() {
   return (
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/verify" element={<Verification />} />
         <Route
         path="/register"
@@ -29,6 +32,11 @@ export default function AppRoutes() {
         <Route path="/survey/:id" element={<Survey />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/activity" element={<Activity />} />
+        {/* <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} /> */}
+        <Route path="/" element={<HomePage />} />
+
+
       </Routes>
   );
 }
