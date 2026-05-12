@@ -23,13 +23,13 @@ export default defineConfig({
             src: "/icons/web-app-manifest-192x192.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable"  // Changed: Added 'any' with maskable
+            purpose: "any"  // Changed: Added 'any' with maskable
           },
           {
             src: "/icons/web-app-manifest-512x512.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable"  // Changed: Added 'any' with maskable
+            purpose: "any"  // Changed: Added 'any' with maskable
           },
           // Added a 144x144 icon as fallback (minimum requirement)
           {
