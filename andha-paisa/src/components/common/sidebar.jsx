@@ -16,7 +16,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b flex items-center gap-2">
   <img 
-  src="/icons/web-app-manifest-192x192.png" 
+  src="/icons/icon.png" 
   alt="cash Cash Logo" 
   className="w-12 h-12 object-contain"
 />
