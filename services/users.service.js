@@ -18,7 +18,11 @@ const {
   REFRESH_TOKENS,
   USER_BANK_DETAIL,
   USER_SURVEY_TRANSACTIONS,
+  PASSWORD_RESET_TOKEN
 } = db; // Add REFRESH_TOKENS model
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "./send-email.js";
+import { Op } from 'sequelize';
 
 // Helper function to generate tokens
 const generateTokens = async (userId, role) => {
@@ -456,4 +460,76 @@ export const fetchTransactions = async (userId) => {
   );
 
   return {surveyTransactions,miniGamesTransactions};
+};
+
+export const forgotPassword = async (data) => {
+  const { email } = data;
+  if (!email) throw new Error(validationMessages.EMAIL_MOBILE_REQUIRED);
+
+  const user = await USERS.findOne({ where: { email: email.toLowerCase() } });
+  // Always return same response for security (don't reveal if email exists)
+  if (!user) {
+    throw new Error(failureMessages.SOMETHING_WENT_WRONG)
+  }
+
+  // Generate token
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  // Delete any existing unused tokens for this user
+  await PASSWORD_RESET_TOKEN.destroy({
+    where: { user_id: user.id, used: false },
+  });
+
+  // Create new token record
+  await PASSWORD_RESET_TOKEN.create({
+    user_id: user.id,
+    token_hash: tokenHash,
+    expires_at: expiresAt,
+    used: false,
+  });
+
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+  await sendPasswordResetEmail(email, resetLink);
+
+  return { message: successMessages.RESET_LINK_SENT };
+};
+
+export const resetPassword = async (data) => {
+  const { token, email, newPassword } = data;
+  if (!token || !email || !newPassword) {
+    throw new Error(validationMessages.TOKEN_EMAIL_REQUIRED);
+  }
+
+  const user = await USERS.findOne({ where: { email: email.toLowerCase() } });
+  if (!user) {
+    throw new Error(failureMessages.SOMETHING_WENT_WRONG)
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const resetToken = await PASSWORD_RESET_TOKEN.findOne({
+    where: {
+      user_id: user.id,
+      token_hash: tokenHash,
+      used: false,
+      expires_at: { [Op.gt]: new Date() },
+    },
+  });
+
+  if (!resetToken) {
+    throw new Error(failureMessages.TOKEN_EXPIRED);
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await USERS.update({ password: hashedPassword }, { where: { id: user.id } });
+
+  // Mark token as used
+  await resetToken.update({ used: true });
+
+  // Optionally invalidate all refresh tokens for user (security)
+  await REFRESH_TOKENS.update({ is_active: false }, { where: { user_id: user.id } });
+
+  return { message: successMessages.PASSWORD_RESET_SUCCESSFUL };
 };

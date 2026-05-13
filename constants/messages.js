@@ -15,9 +15,13 @@ export const successMessages = {
   USER_UPDATED: "User updated successfully",
   ACCESS_TOKEN_REFRESHED: "Access token refreshed successfully",
   SPIN_COMPLETED: "Spin Completed",
+  
+  RESET_LINK_SENT : 'Reset Link sent to your email',
+  PASSWORD_RESET_SUCCESSFUL:"Password reset successfully. Please login."
 };
 
 export const failureMessages = {
+
   SOMETHING_WENT_WRONG: "Something went wrong",
   REGISTRATION_FAILED: "Registration failed",
   LOGIN_FAILED: "Login failed",
@@ -64,7 +68,9 @@ export const httpCodes = {
 };
 
 export const validationMessages = {
+  TOKEN_EMAIL_REQUIRED:'Required Fields Missing',
   EMAIL_MOBILE_REQUIRED: "Either email or mobile number is required",
+  EMAIL : 'Email is Required',
   COUNTRY_CODE_REQUIRED: "Country Code is Required",
   OTP_REQUIRED: "OTP is required",
   SURVEY_MESSAGES: {

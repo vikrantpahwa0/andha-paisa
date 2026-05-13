@@ -131,3 +131,31 @@ export const fetchTransactions = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const result = await userService.forgotPassword(req.body);
+    return successResponse(
+      res,
+      result,
+      result.message,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const result = await userService.resetPassword(req.body);
+    return successResponse(
+      res,
+      result,
+      result.message,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

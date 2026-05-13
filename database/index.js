@@ -9,6 +9,7 @@ import usersSurveysTransactions from "./models/surveys/users-surveys-transaction
 import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js";
 import UserBankDetailModel from "./models/user-bank-details.js";
 import configsModel from "./models/configs.js";
+import passwordResetTokensModel from "./models/password-reset-tokens.js";
 
 // Import spin models
 import SpinPrizeModel from "./models/spin-the-wheel/spin-prize.js";
@@ -19,6 +20,7 @@ const Survey = SurveyModel(sequelize);
 const SurveyQuestions = SurveysQuestions(sequelize);
 const SurveyQuestionOptions = SurveysQuestionsOptions(sequelize);
 const Users = UsersModel(sequelize);
+const PasswordResetTokens = passwordResetTokensModel(sequelize);
 const Verifications = VerificationsModel(sequelize);
 const RefreshTokens = refreshTokensModel(sequelize);
 const UsersSurveysTransactions = usersSurveysTransactions(sequelize);
@@ -44,6 +46,7 @@ const models = {
   Config,
   SpinPrize,
   SpinTransaction,
+  PasswordResetTokens,
 };
 
 // Call associate functions
@@ -67,6 +70,7 @@ const db = {
   CONFIG: Config,
   SPIN_PRIZE: SpinPrize,
   SPIN_TRANSACTION: SpinTransaction,
+  PASSWORD_RESET_TOKEN: PasswordResetTokens
 };
 
 export default db;

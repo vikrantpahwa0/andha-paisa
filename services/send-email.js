@@ -70,4 +70,31 @@ async function sendOTPEmail(to, otp, expiryMinutes = 10) {
     }
 }
 
-export { sendEmail, sendOTPEmail };
+async function sendPasswordResetEmail(to, resetLink, expiryHours = 1) {
+    try {
+        const templatePath = path.join(ROOT_DIR, 'email-templates', 'reset-password.html');
+        let template = fs.readFileSync(templatePath, 'utf8');
+        
+        template = template.replace(/{{resetLink}}/g, resetLink);
+        template = template.replace(/{{email}}/g, to);
+        template = template.replace(/{{expiryHours}}/g, expiryHours);
+        template = template.replace(/{{year}}/g, new Date().getFullYear());
+        template = template.replace(/{{companyName}}/g, process.env.COMPANY_NAME || 'YourApp');
+        // Remove any leftover placeholders
+        template = template.replace(/{{[^{}]+}}/g, '');
+        
+        const textContent = `Reset your password: ${resetLink}\n\nThis link expires in ${expiryHours} hour(s).\n\nIf you didn't request this, ignore this email.`;
+        
+        return await sendEmail(
+            to,
+            'Reset Your Password',
+            textContent,
+            template
+        );
+    } catch (error) {
+        console.error('Reset password template error:', error.message);
+        throw new Error('Failed to send reset password email');
+    }
+}
+
+export { sendEmail, sendOTPEmail, sendPasswordResetEmail };
