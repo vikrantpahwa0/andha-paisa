@@ -41,9 +41,11 @@ export default function AppLayout({ children }) {
   <img 
     src="/icons/icon.png" 
     alt="Cash Cash Logo" 
-    className="w-5 h-5 object-contain"
+    className="w-12 h-12 object-contain scale-125"
   />
-  <h1 className="text-lg font-semibold text-green-600">
+
+  <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+    CashCash
   </h1>
 </div>
           <UserMenu />

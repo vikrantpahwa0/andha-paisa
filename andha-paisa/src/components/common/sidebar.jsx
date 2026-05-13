@@ -14,13 +14,15 @@ export default function Sidebar() {
   return (
     <div className="h-full bg-white shadow-md flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b flex items-center gap-2">
+      <div className="p-6 border-b flex items-center gap-1.5">
   <img 
-  src="/icons/icon.png" 
-  alt="cash Cash Logo" 
-  className="w-12 h-12 object-contain"
-/>
-  <h1 className="text-xl font-bold text-green-600 tracking-tight">
+    src="/icons/icon.png" 
+    alt="Cash Cash Logo" 
+    className="w-20 h-20 object-contain scale-110 -ml-1"
+  />
+
+  <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+    CashCash
   </h1>
 </div>
 

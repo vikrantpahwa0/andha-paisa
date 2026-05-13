@@ -36,18 +36,21 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-slate-100 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <Link 
+        <div className="flex justify-between items-center py-2">
+<Link 
   to="/" 
-  className="flex items-center group flex-shrink-0" 
+  className="flex items-center gap-1 group flex-shrink-0"
   onClick={closeMenu}
 >
   <img
     src="/icons/web-app-manifest-192x192.png"
     alt="CashCash"
-    className="h-16 md:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+    className="w-16 h-16 md:w-20 md:h-20 object-contain scale-110 -ml-1 transition-transform duration-200 group-hover:scale-[1.15]"
   />
+
+  <span className="text-xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent whitespace-nowrap">
+    CashCash
+  </span>
 </Link>
 
           {/* Desktop Navigation */}

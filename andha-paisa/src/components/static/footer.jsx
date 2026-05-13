@@ -8,15 +8,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Column - CashCash */}
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              {/* Yaha image daali hai Coins icon ki jagah */}
-              <img 
-                src="/icons/web-app-manifest-192x192.png" 
-                alt="CashCash Logo" 
-                className="w-8 h-8 rounded-xl"
-              />
-              <span className="text-lg font-bold text-slate-800">CashCash</span>
-            </div>
+            <div className="flex items-center gap-1.5 mb-4">
+  <img 
+    src="/icons/web-app-manifest-192x192.png" 
+    alt="CashCash Logo" 
+    className="w-16 h-16 object-contain scale-110 -ml-1"
+  />
+
+  <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+    CashCash
+  </span>
+</div>
             <p className="text-slate-500 text-sm mb-4 max-w-md">
               Earn real cash rewards by completing surveys, trying offers, and playing games.
               Turn your free time into valuable payouts with CashCash.
