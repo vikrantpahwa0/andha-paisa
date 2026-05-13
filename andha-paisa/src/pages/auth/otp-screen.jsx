@@ -143,8 +143,8 @@ function Verification() {
   };
 
   const handleForgotPassword = () => {
-    console.log("Forgot password for:", identifier);
-  };
+  navigate("/forgot-password", { state: { email: identifier } });
+};
 
   const handleBack = () => {
     navigate(-1);

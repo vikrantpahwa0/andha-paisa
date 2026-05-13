@@ -179,6 +179,48 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Forgot Password
+export const forgotPassword = createAsyncThunk(
+  'auth/forgotPassword',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${BE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        return rejectWithValue(data.message || 'Failed to send reset link');
+      }
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Network error');
+    }
+  }
+);
+
+// Reset Password
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, email, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${BE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, email, newPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        return rejectWithValue(data.message || 'Failed to reset password');
+      }
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Network error');
+    }
+  }
+);
+
 // Check if token is expired
 const isTokenExpired = (token) => {
   if (!token) return true;
@@ -310,15 +352,40 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshAccessToken.rejected, (state, action) => {
-  state.isLoading = false;
-  state.error = action.payload;
-  // Refresh token is invalid/expired – force logout
-  state.isAuthenticated = false;
-  state.accessToken = null;
-  state.refreshToken = null;
-  clearTokens();
-  
-})
+        state.isLoading = false;
+        state.error = action.payload;
+        // Refresh token is invalid/expired – force logout
+        state.isAuthenticated = false;
+        state.accessToken = null;
+        state.refreshToken = null;
+        clearTokens();
+      })
+      
+      // Forgot Password
+      .addCase(forgotPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // Reset Password
+      .addCase(resetPassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      });
   },
 });
 
