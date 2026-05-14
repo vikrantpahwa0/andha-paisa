@@ -31,7 +31,7 @@ export default function UserProfileLoader({ children }) {
 
   // Redirect to login only when no refresh token (truly logged out)
   useEffect(() => {
-    const publicPaths = ['/', '/register', '/verify','/login','/privacy-policy','/forgot-password','/reset-password','/terms-and-conditions'];
+    const publicPaths = ['/', '/register', '/verify','/login','/privacy-policy','/forgot-password','/reset-password','/terms-and-conditions','/about-us'];
     const isPublicPage = publicPaths.includes(location.pathname);
     if (!isAuthenticated && !isPublicPage) {
       navigate('/', { replace: true });

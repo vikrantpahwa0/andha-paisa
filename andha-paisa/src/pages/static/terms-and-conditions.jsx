@@ -232,7 +232,7 @@ export default function TermsConditions() {
                 <ul className="space-y-3 pl-4">
                   <li className="text-slate-600 flex items-start gap-2">
                     <span className="text-emerald-500 mt-1">•</span>
-                    <span><strong>Governing Law:</strong> These terms are governed by the laws of [Your Country/State].</span>
+                    <span><strong>Governing Law:</strong> These terms are governed by the laws of India.</span>
                   </li>
                   <li className="text-slate-600 flex items-start gap-2">
                     <span className="text-emerald-500 mt-1">•</span>
