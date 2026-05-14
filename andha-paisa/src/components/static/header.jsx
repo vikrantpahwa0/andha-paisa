@@ -28,7 +28,7 @@ export default function Header() {
   const navLinks = [
     { name: "How it works", action: () => scrollToSection("how-it-works") },
     { name: "FAQ", action: () => scrollToSection("faq") },
-    { name: "Maximise your earnings", path: "#" },
+    { name: "Maximise your earnings", path: "/maximise-your-earnings" },
     { name: "About", path: "/about-us" },
   ];
 

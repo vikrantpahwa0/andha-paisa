@@ -38,13 +38,8 @@ export default function Footer() {
             <h3 className="font-semibold text-slate-800 mb-3">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  Blogs
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
-                  Campaigns
+                <Link to="/maximise-your-earnings" className="text-slate-500 hover:text-green-600 text-sm transition">
+                  Maximise Your Earnings
                 </Link>
               </li>
             </ul>
