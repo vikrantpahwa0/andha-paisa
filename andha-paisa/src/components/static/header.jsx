@@ -29,8 +29,7 @@ export default function Header() {
     { name: "How it works", action: () => scrollToSection("how-it-works") },
     { name: "FAQ", action: () => scrollToSection("faq") },
     { name: "Maximise your earnings", path: "#" },
-    { name: "Blogs", path: "#" },
-    { name: "Campaigns", path: "#" },
+    { name: "About", path: "/about-us" },
   ];
 
   return (
@@ -55,6 +54,12 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
+            <Link
+              to={navLinks[3].path}
+              className="text-slate-600 hover:text-green-600 font-medium transition"
+            >
+              About
+            </Link>
             <button
               onClick={navLinks[0].action}
               className="text-slate-600 hover:text-green-600 font-medium transition cursor-pointer"
@@ -72,18 +77,6 @@ export default function Header() {
               className="text-slate-600 hover:text-green-600 font-medium transition"
             >
               Maximise your earnings
-            </Link>
-            <Link
-              to={navLinks[3].path}
-              className="text-slate-600 hover:text-green-600 font-medium transition"
-            >
-              Blogs
-            </Link>
-            <Link
-              to={navLinks[4].path}
-              className="text-slate-600 hover:text-green-600 font-medium transition"
-            >
-              Campaigns
             </Link>
           </div>
 
@@ -109,6 +102,13 @@ export default function Header() {
             </button>
           </div>
           <nav className="flex flex-col gap-4 px-6">
+            <Link
+              to={navLinks[3].path}
+              onClick={closeMenu}
+              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
+            >
+              About
+            </Link>
             <button
               onClick={navLinks[0].action}
               className="text-left text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
@@ -127,20 +127,6 @@ export default function Header() {
               className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
             >
               Maximise your earnings
-            </Link>
-            <Link
-              to={navLinks[3].path}
-              onClick={closeMenu}
-              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
-            >
-              Blogs
-            </Link>
-            <Link
-              to={navLinks[4].path}
-              onClick={closeMenu}
-              className="text-slate-700 hover:text-green-600 font-medium text-lg py-2 border-b border-slate-100"
-            >
-              Campaigns
             </Link>
           </nav>
         </div>
