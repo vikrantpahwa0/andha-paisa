@@ -70,7 +70,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-slate-500 hover:text-green-600 text-sm transition">
+                <Link to="/contact-us" className="text-slate-500 hover:text-green-600 text-sm transition">
                   Contact Us
                 </Link>
               </li>

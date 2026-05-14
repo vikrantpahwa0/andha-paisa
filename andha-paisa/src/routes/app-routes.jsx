@@ -15,6 +15,7 @@ import HomePage from "../pages/static/home-page";
 import PrivacyPolicy from "../pages/static/privacy-policy";
 import TermsConditions from "../pages/static/terms-and-conditions";
 import AboutUs from "../pages/static/about-us";
+import ContactUs from "../pages/static/contact-us";
 
 export default function AppRoutes() {
   return (
@@ -41,6 +42,7 @@ export default function AppRoutes() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<TermsConditions />} />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/contact-us" element={<ContactUs />} />  
       </Routes>
   );
 }
