@@ -11,8 +11,16 @@ const offers = [
   {
     id: 5,
     title: "Explore Offers",
-    reward: "₹80",
+    reward: "Explore various offers to earn points",
     link: "/offerwall",
+    isExternal: false, // Internal route
+  },
+  {
+    id: 6,
+    title: "Visit the Following site",
+    reward: "10 Points",
+    link: "https://www.effectivecpmnetwork.com/ugck7xs7?key=085476cd98c57bb7c5945ecc54421d3a",
+    isExternal: true, // External URL
   },
 ];
 
@@ -59,7 +67,14 @@ export default function Dashboard() {
   }, [activeTab, surveys, adLoaded]);
 
   const handleStart = (item) => {
-    if (item.link) {
+    if (!item.link) return;
+    
+    // Check if it's an external link or internal route
+    if (item.isExternal || item.link.startsWith('http')) {
+      // Open external URL in new tab
+      window.open(item.link, '_blank', 'noopener,noreferrer');
+    } else {
+      // Internal navigation
       navigate(item.link);
     }
   };
@@ -157,16 +172,6 @@ export default function Dashboard() {
               Start
             </button>
           </div>
-          
-          {/* Native Banner Ad - after first offer */}
-          {index === 0 && (
-            <div className="my-4">
-              <div 
-                id="native-banner-container-offers"
-                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
-              />
-            </div>
-          )}
         </div>
       ))}
     </div>
