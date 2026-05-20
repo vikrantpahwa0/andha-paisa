@@ -24,11 +24,23 @@ export default function HomePage() {
     }
   }, [location]);
 
-  // Load ad
+  // Load ad - NO CLEANUP to ensure impression counts
   useEffect(() => {
-    // Top banner ad 468x60
-    const topBannerConfig = document.createElement("script");
-    topBannerConfig.text = `
+    // Check if ad already loaded to prevent duplicates
+    if (document.getElementById("top-banner-ad-script")) {
+      return;
+    }
+
+    // Create container for ad scripts
+    const adContainer = document.getElementById("top-banner-ad");
+    if (!adContainer) return;
+
+    // Clear any existing content to ensure fresh load
+    adContainer.innerHTML = '';
+
+    // Add configuration script
+    const configScript = document.createElement("script");
+    configScript.text = `
       atOptions = {
         'key' : '96753a2eaab5594c1851078716789a9e',
         'format' : 'iframe',
@@ -38,21 +50,20 @@ export default function HomePage() {
       };
     `;
     
-    const topBannerInvoke = document.createElement("script");
-    topBannerInvoke.src = "https://www.highperformanceformat.com/96753a2eaab5594c1851078716789a9e/invoke.js";
+    // Add invoke script with ID to prevent duplicate
+    const invokeScript = document.createElement("script");
+    invokeScript.id = "top-banner-ad-script";
+    invokeScript.src = "https://www.highperformanceformat.com/96753a2eaab5594c1851078716789a9e/invoke.js";
+    invokeScript.async = true;
     
-    const adContainer = document.getElementById("top-banner-ad");
-    if (adContainer) {
-      adContainer.appendChild(topBannerConfig);
-      adContainer.appendChild(topBannerInvoke);
-    }
-
-    return () => {
-      if (adContainer) {
-        adContainer.innerHTML = "";
-      }
-    };
-  }, []);
+    // Add both scripts to container
+    adContainer.appendChild(configScript);
+    adContainer.appendChild(invokeScript);
+    
+    // IMPORTANT: No cleanup function!
+    // Removing the ad on unmount would prevent impression counting
+    // The browser will handle cleanup naturally
+  }, []); // Empty dependency array - runs once on mount
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -111,11 +122,20 @@ export default function HomePage() {
       <Header />
       
       <main>
-        {/* Top Banner Ad 468x60 */}
+        {/* Top Banner Ad 468x60 - Loads immediately on page visit */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <div className="flex justify-center">
-            <div id="top-banner-ad" style={{ minWidth: '468px', minHeight: '60px' }}>
-              {/* 468x60 banner ad will load here */}
+            <div 
+              id="top-banner-ad" 
+              style={{ 
+                minWidth: '468px', 
+                minHeight: '60px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              {/* Ad loads immediately when user hits the page */}
             </div>
           </div>
         </div>
