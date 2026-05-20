@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, Coins } from "lucide-react";
+import { Menu } from "lucide-react";
 import Sidebar from "./sidebar";
 import PWAPrompt from "./PWAPrompt";
 import UserMenu from "./user-menu";
@@ -11,15 +11,16 @@ export default function AppLayout({ children }) {
     <div className="min-h-screen bg-slate-50 flex">
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-64">
-        <Sidebar />
+        <Sidebar isMobile={false} />
       </div>
 
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div className="w-64 bg-white">
-            <Sidebar />
+            <Sidebar isMobile={true} />
           </div>
+
           <div
             className="flex-1 bg-black/30"
             onClick={() => setSidebarOpen(false)}
@@ -37,21 +38,23 @@ export default function AppLayout({ children }) {
           >
             <Menu className="w-5 h-5 text-slate-700" />
           </button>
-          <div className="flex items-center gap-1.5">
-  <img 
-    src="/icons/icon.png" 
-    alt="Cash Cash Logo" 
-    className="w-12 h-12 object-contain scale-125"
-  />
 
-  <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
-    CashCash
-  </h1>
-</div>
+          <div className="flex items-center gap-1.5">
+            <img
+              src="/icons/icon.png"
+              alt="Cash Cash Logo"
+              className="w-12 h-12 object-contain scale-125"
+            />
+
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
+              CashCash
+            </h1>
+          </div>
+
           <UserMenu />
         </div>
 
-        {/* Desktop Topbar - User Menu */}
+        {/* Desktop Topbar */}
         <div className="hidden md:flex justify-end mb-6">
           <UserMenu />
         </div>
@@ -59,7 +62,7 @@ export default function AppLayout({ children }) {
         {children}
       </div>
 
-      {/* PWA Install Prompt */}
+      {/* PWA Prompt */}
       <PWAPrompt />
     </div>
   );

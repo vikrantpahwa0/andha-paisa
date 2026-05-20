@@ -5,12 +5,7 @@ import { FileText, Flame, Gamepad2 } from "lucide-react";
 import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
 import EarningsSidebar from "../components/dashboard/earnings-display";
-import GamesSection from "../components/games-section/games-section";  
-
-const games = [
-  { id: 3, title: "Spin & Win - ₹50", reward: "₹50" },
-  { id: 4, title: "Play Game & Earn ₹30", reward: "₹30" },
-];
+import GamesSection from "../components/games-section/games-section"; 
 
 const offers = [
   {
@@ -26,10 +21,42 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const { surveys, isLoading } = useSelector((state) => state.userSurvey);
   const [activeTab, setActiveTab] = useState("surveys");
+  const [adLoaded, setAdLoaded] = useState(false);
 
   useEffect(() => {
     dispatch(getUserSurveys());
   }, [dispatch]);
+
+  // Load Native Banner Ad
+  useEffect(() => {
+    if (adLoaded) return;
+    
+    const loadNativeAd = () => {
+      const adContainer = document.getElementById("native-banner-container");
+      if (!adContainer) return;
+      
+      // Clear existing content
+      adContainer.innerHTML = '';
+      
+      // Create container div for the ad
+      const containerDiv = document.createElement("div");
+      containerDiv.id = "container-b09ff8e53728d3a4d2b00f91d28bedf3";
+      
+      // Create invoke script
+      const invokeScript = document.createElement("script");
+      invokeScript.src = "https://pl29456048.effectivecpmnetwork.com/b09ff8e53728d3a4d2b00f91d28bedf3/invoke.js";
+      invokeScript.async = true;
+      invokeScript.setAttribute("data-cfasync", "false");
+      
+      adContainer.appendChild(containerDiv);
+      adContainer.appendChild(invokeScript);
+      setAdLoaded(true);
+    };
+    
+    // Load ad after surveys are rendered
+    const timer = setTimeout(loadNativeAd, 100);
+    return () => clearTimeout(timer);
+  }, [activeTab, surveys, adLoaded]);
 
   const handleStart = (item) => {
     if (item.link) {
@@ -43,65 +70,67 @@ export default function Dashboard() {
     }
   };
 
-  const renderCards = (data) => (
-    <div className="grid gap-4">
-      {data.map((item) => (
-        <div
-          key={item.id}
-          className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-        >
-          <div>
-            <h3 className="text-lg font-medium text-slate-800">{item.title}</h3>
-            {item.reward && <p className="text-emerald-600 font-semibold mt-1">{item.reward}</p>}
-          </div>
-
-          <button
-            onClick={() => handleStart(item)}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 font-semibold hover:from-green-300 hover:to-green-500 transition active:scale-95 shadow-sm"
-          >
-            Start
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+  // Get random position for ad (between surveys)
+  const getRandomAdPosition = (totalSurveys) => {
+    if (totalSurveys <= 1) return 0;
+    if (totalSurveys === 2) return 1;
+    return Math.floor(Math.random() * (totalSurveys - 1)) + 1;
+  };
 
   const renderSurveyCards = () => {
     if (isLoading) return <p className="text-center py-8">Loading surveys...</p>;
     
+    if (surveys.length === 0) {
+      return <p className="text-center py-8 text-slate-500">No surveys available at the moment.</p>;
+    }
+    
+    const adPosition = getRandomAdPosition(surveys.length);
+    
     return (
       <div className="grid gap-4">
-        {surveys.map((survey) => {
+        {surveys.map((survey, index) => {
           const isDisabled = survey.status !== "STR";
           
           return (
-            <div
-              key={survey.id}
-              className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center ${
-                isDisabled ? "opacity-75" : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-              }`}
-            >
-              <div>
-                <h3 className="text-lg font-medium text-slate-800">{survey.name}</h3>
-                <p className="text-emerald-600 font-semibold mt-1">
-                  +{survey.rewardPoints} Points 
-                </p>
-                {survey.status === "LCK" && <p className="text-xs text-yellow-600 mt-1">Locked - Complete previous survey first</p>}
-                {survey.status === "ALS" && <p className="text-xs text-green-600 mt-1">Completed</p>}
-                {survey.status === "STR" && <p className="text-xs text-blue-600 mt-1">Ready to start</p>}
-              </div>
-
-              <button
-                onClick={() => handleStartSurvey(survey)}
-                disabled={isDisabled}
-                className={`px-5 py-2 rounded-xl font-semibold transition active:scale-95 shadow-sm ${
-                  isDisabled
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
+            <div key={survey.id}>
+              {/* Survey Card */}
+              <div
+                className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center ${
+                  isDisabled ? "opacity-75" : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
                 }`}
               >
-                {survey.status === "ALS" ? "Completed" : survey.status === "LCK" ? "Locked" : "Start"}
-              </button>
+                <div>
+                  <h3 className="text-lg font-medium text-slate-800">{survey.name}</h3>
+                  <p className="text-emerald-600 font-semibold mt-1">
+                    +{survey.rewardPoints} Points 
+                  </p>
+                  {survey.status === "LCK" && <p className="text-xs text-yellow-600 mt-1">Locked - Complete previous survey first</p>}
+                  {survey.status === "ALS" && <p className="text-xs text-green-600 mt-1">Completed</p>}
+                  {survey.status === "STR" && <p className="text-xs text-blue-600 mt-1">Ready to start</p>}
+                </div>
+
+                <button
+                  onClick={() => handleStartSurvey(survey)}
+                  disabled={isDisabled}
+                  className={`px-5 py-2 rounded-xl font-semibold transition active:scale-95 shadow-sm ${
+                    isDisabled
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
+                  }`}
+                >
+                  {survey.status === "ALS" ? "Completed" : survey.status === "LCK" ? "Locked" : "Start"}
+                </button>
+              </div>
+              
+              {/* Native Banner Ad - between surveys at random position */}
+              {index === adPosition && (
+                <div className="my-4">
+                  <div 
+                    id="native-banner-container"
+                    className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                  />
+                </div>
+              )}
             </div>
           );
         })}
@@ -109,11 +138,39 @@ export default function Dashboard() {
     );
   };
 
-  const getActiveData = () => {
-    if (activeTab === "offers") return offers;
-    if (activeTab === "games") return games;
-    return [];
-  };
+  const renderCards = (data) => (
+    <div className="grid gap-4">
+      {data.map((item, index) => (
+        <div key={item.id}>
+          <div
+            className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+          >
+            <div>
+              <h3 className="text-lg font-medium text-slate-800">{item.title}</h3>
+              {item.reward && <p className="text-emerald-600 font-semibold mt-1">{item.reward}</p>}
+            </div>
+
+            <button
+              onClick={() => handleStart(item)}
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 font-semibold hover:from-green-300 hover:to-green-500 transition active:scale-95 shadow-sm"
+            >
+              Start
+            </button>
+          </div>
+          
+          {/* Native Banner Ad - after first offer */}
+          {index === 0 && (
+            <div className="my-4">
+              <div 
+                id="native-banner-container-offers"
+                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <AppLayout>
