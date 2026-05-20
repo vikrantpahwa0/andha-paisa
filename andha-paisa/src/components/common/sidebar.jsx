@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Gamepad2, ClipboardList, Gift, User, Coins } from "lucide-react";
+import { Home, ClipboardList, User } from "lucide-react";
 
-export default function Sidebar() {
+export default function Sidebar({ isMobile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,45 +12,65 @@ export default function Sidebar() {
     { name: "Account", path: "/profile", icon: User },
   ];
 
-  // Load 300x250 banner ad
   useEffect(() => {
-    const adContainer = document.getElementById("sidebar-banner-300x250");
+  const timer = setTimeout(() => {
+    const adContainer = document.getElementById(
+      isMobile ? "sidebar-mobile-ad" : "sidebar-desktop-ad"
+    );
+
     if (!adContainer) return;
 
-    // Clear any existing content
-    adContainer.innerHTML = '';
+    adContainer.innerHTML = "";
 
-    // Create config script - TRY SMALLER SIZE
     const configScript = document.createElement("script");
-    configScript.text = `
-      atOptions = {
-        'key' : '502893a28b3badbe90ace6ff83709314',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    `;
-    
-    // Create invoke script
+
+    if (isMobile) {
+      configScript.innerHTML = `
+        atOptions = {
+          'key' : '666294eb6c5aa819b9902f1956c425cc',
+          'format' : 'iframe',
+          'height' : 50,
+          'width' : 320,
+          'params' : {}
+        };
+      `;
+    } else {
+      configScript.innerHTML = `
+        atOptions = {
+          'key' : '502893a28b3badbe90ace6ff83709314',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      `;
+    }
+
     const invokeScript = document.createElement("script");
-    invokeScript.src = "https://www.highperformanceformat.com/502893a28b3badbe90ace6ff83709314/invoke.js";
-    
+
+    invokeScript.src = isMobile
+      ? "https://www.highperformanceformat.com/666294eb6c5aa819b9902f1956c425cc/invoke.js"
+      : "https://www.highperformanceformat.com/502893a28b3badbe90ace6ff83709314/invoke.js";
+
+    invokeScript.async = true;
+
     adContainer.appendChild(configScript);
     adContainer.appendChild(invokeScript);
+  }, 300);
 
-    // No cleanup to keep impression counted
-  }, []);
+  return () => clearTimeout(timer);
+}, [isMobile]);
 
   return (
     <div className="h-full bg-white shadow-md flex flex-col">
       {/* Logo */}
       <div className="p-6 border-b flex items-center gap-1.5">
-        <img 
-          src="/icons/icon.png" 
-          alt="Cash Cash Logo" 
+        <img
+          src="/icons/icon.png"
+          alt="Cash Cash Logo"
           className="w-20 h-20 object-contain scale-110 -ml-1"
         />
+
         <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">
           CashCash
         </h1>
@@ -80,21 +100,26 @@ export default function Sidebar() {
         })}
       </div>
 
-      {/* 300x250 Banner Ad - Scaled down */}
+      {/* Ad Section */}
       <div className="mt-auto p-4 border-t border-slate-100">
         <div className="flex justify-center overflow-hidden">
-          <div 
-            id="sidebar-banner-300x250" 
-            style={{ 
-              width: '250px', 
-              minHeight: '208px',  // Proportionally scaled (250/300 * 250 = 208)
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              transform: 'scale(0.83)',  // Scale down to 83% of original
-              transformOrigin: 'center center'
-            }}
-          />
+          {isMobile ? (
+            <div
+              id="sidebar-mobile-ad"
+              style={{
+                width: "320px",
+                minHeight: "50px",
+              }}
+            />
+          ) : (
+            <div
+              id="sidebar-desktop-ad"
+              style={{
+                width: "300px",
+                minHeight: "250px",
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
