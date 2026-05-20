@@ -24,6 +24,36 @@ export default function HomePage() {
     }
   }, [location]);
 
+  // Load ad
+  useEffect(() => {
+    // Top banner ad 468x60
+    const topBannerConfig = document.createElement("script");
+    topBannerConfig.text = `
+      atOptions = {
+        'key' : '96753a2eaab5594c1851078716789a9e',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    `;
+    
+    const topBannerInvoke = document.createElement("script");
+    topBannerInvoke.src = "https://www.highperformanceformat.com/96753a2eaab5594c1851078716789a9e/invoke.js";
+    
+    const adContainer = document.getElementById("top-banner-ad");
+    if (adContainer) {
+      adContainer.appendChild(topBannerConfig);
+      adContainer.appendChild(topBannerInvoke);
+    }
+
+    return () => {
+      if (adContainer) {
+        adContainer.innerHTML = "";
+      }
+    };
+  }, []);
+
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
   };
@@ -81,6 +111,15 @@ export default function HomePage() {
       <Header />
       
       <main>
+        {/* Top Banner Ad 468x60 */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="flex justify-center">
+            <div id="top-banner-ad" style={{ minWidth: '468px', minHeight: '60px' }}>
+              {/* 468x60 banner ad will load here */}
+            </div>
+          </div>
+        </div>
+
         {/* Hero Section */}
         <section className="relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
