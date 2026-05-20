@@ -13,14 +13,14 @@ const offers = [
     title: "Explore Offers",
     reward: "Explore various offers to earn points",
     link: "/offerwall",
-    isExternal: false, // Internal route
+    isExternal: false,
   },
   {
     id: 6,
     title: "Visit the Following site",
     reward: "10 Points",
     link: "https://www.effectivecpmnetwork.com/ugck7xs7?key=085476cd98c57bb7c5945ecc54421d3a",
-    isExternal: true, // External URL
+    isExternal: true,
   },
 ];
 
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const { surveys, isLoading } = useSelector((state) => state.userSurvey);
   const [activeTab, setActiveTab] = useState("surveys");
   const [adLoaded, setAdLoaded] = useState(false);
+  const [popunderTriggered, setPopunderTriggered] = useState(false);
 
   useEffect(() => {
     dispatch(getUserSurveys());
@@ -43,14 +44,11 @@ export default function Dashboard() {
       const adContainer = document.getElementById("native-banner-container");
       if (!adContainer) return;
       
-      // Clear existing content
       adContainer.innerHTML = '';
       
-      // Create container div for the ad
       const containerDiv = document.createElement("div");
       containerDiv.id = "container-b09ff8e53728d3a4d2b00f91d28bedf3";
       
-      // Create invoke script
       const invokeScript = document.createElement("script");
       invokeScript.src = "https://pl29456048.effectivecpmnetwork.com/b09ff8e53728d3a4d2b00f91d28bedf3/invoke.js";
       invokeScript.async = true;
@@ -61,27 +59,42 @@ export default function Dashboard() {
       setAdLoaded(true);
     };
     
-    // Load ad after surveys are rendered
     const timer = setTimeout(loadNativeAd, 100);
     return () => clearTimeout(timer);
   }, [activeTab, surveys, adLoaded]);
 
+  // Function to trigger popunder ad (only on survey start)
+  const triggerPopunder = () => {
+    if (popunderTriggered) return; // Only trigger once per session
+    
+    const script = document.createElement("script");
+    script.src = "https://pl29456047.effectivecpmnetwork.com/d6/c5/b2/d6c5b25a3b9f0f74a3bcef9e0e334551.js";
+    script.async = true;
+    script.setAttribute("data-cfasync", "false");
+    document.body.appendChild(script);
+    setPopunderTriggered(true);
+    
+    console.log("Popunder triggered on survey start");
+  };
+
   const handleStart = (item) => {
     if (!item.link) return;
     
-    // Check if it's an external link or internal route
     if (item.isExternal || item.link.startsWith('http')) {
-      // Open external URL in new tab
       window.open(item.link, '_blank', 'noopener,noreferrer');
     } else {
-      // Internal navigation
       navigate(item.link);
     }
   };
 
   const handleStartSurvey = (survey) => {
     if (survey.status === "STR") {
-      navigate(`/survey/${survey.id}`);
+      // Trigger popunder ad before navigating to survey
+      triggerPopunder();
+      // Small delay to ensure popunder script executes
+      setTimeout(() => {
+        navigate(`/survey/${survey.id}`);
+      }, 100);
     }
   };
 
