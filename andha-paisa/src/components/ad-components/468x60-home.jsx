@@ -1,57 +1,65 @@
-// src/components/ad-components/HomeTopBanner.jsx
+// src/components/ad-components/HeaderBanner.jsx
 import { useEffect, useRef } from "react";
 
-export default function HomeTopBanner() {
+export default function HeaderBanner() {
   const bannerRef = useRef(null);
-  const initialized = useRef(false);
+  const loaded = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    if (!bannerRef.current) return;
-    
-    // Clear any existing content
-    bannerRef.current.innerHTML = '';
-    
-    console.log("Loading homepage top banner...");
-    
-    // Add configuration script
-    const configScript = document.createElement("script");
-    configScript.text = `
-      atOptions = {
-        'key' : '96753a2eaab5594c1851078716789a9e',
-        'format' : 'iframe',
-        'height' : 60,
-        'width' : 468,
-        'params' : {}
+    // Add a delay to ensure DOM is ready in production
+    const timer = setTimeout(() => {
+      if (loaded.current) return;
+      if (!bannerRef.current) return;
+
+      // Clear any existing content
+      bannerRef.current.innerHTML = '';
+
+      const containerId = `header-banner-${Date.now()}`;
+      bannerRef.current.id = containerId;
+
+      const atAsyncOptions = {
+        key: '96753a2eaab5594c1851078716789a9e',
+        format: 'js',
+        async: true,
+        container: containerId,
+        height: 60,
+        width: 468,
+        params: {}
       };
-    `;
-    
-    // Add invoke script
-    const invokeScript = document.createElement("script");
-    invokeScript.src = "https://www.highperformanceformat.com/96753a2eaab5594c1851078716789a9e/invoke.js";
-    invokeScript.async = true;
-    
-    // Add both scripts to container
-    bannerRef.current.appendChild(configScript);
-    bannerRef.current.appendChild(invokeScript);
-    
-    initialized.current = true;
+
+      const configScript = document.createElement('script');
+      configScript.innerHTML = `
+        if (typeof atAsyncOptions !== 'object') var atAsyncOptions = [];
+        atAsyncOptions.push(${JSON.stringify(atAsyncOptions)});
+      `;
+
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = `//www.highperformanceformat.com/${atAsyncOptions.key}/invoke.js`;
+      invokeScript.async = true;
+
+      bannerRef.current.appendChild(configScript);
+      bannerRef.current.appendChild(invokeScript);
+      loaded.current = true;
+
+      console.log("HeaderBanner loaded (468x60)");
+    }, 500); // Increased delay for production
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-      <div className="flex justify-center">
-        <div 
-          ref={bannerRef}
-          style={{ 
-            minWidth: '468px', 
-            minHeight: '60px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        />
-      </div>
+    <div className="w-full bg-white py-2 flex justify-center border-b border-slate-200">
+      <div 
+        ref={bannerRef}
+        style={{ 
+          minWidth: '468px', 
+          minHeight: '60px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      />
     </div>
   );
 }
