@@ -82,8 +82,6 @@ export default function HomePage() {
       <Header />
       
       <main>
-        {/* Top Banner Ad 468x60 - Homepage specific component */}
-        <HomeTopBanner />
 
         {/* Hero Section */}
         <section className="relative overflow-hidden">
