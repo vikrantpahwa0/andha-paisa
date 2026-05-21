@@ -1,16 +1,16 @@
 // src/components/games-section/games-section.jsx
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { Gamepad2, Trophy } from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import CSSCustomWheel from "../mini-games/spin-wheel";
 import Toast from "../common/toast";
 import { fetchUserEarnings } from "../../store/slices/user-earnings";
+import GamesPopunder from "../ad-components/games-popunder";
 
 const games = [
   { id: 3, title: "Spin & Win", reward: "₹50", icon: Gamepad2 },
 ];
 
-// Removed Bonus spin prize
 const wheelPrizes = [
   { name: "10 points", probability: 0.1, value: 10, color: "#86efac" },
   { name: "20 points", probability: 0.1, value: 20, color: "#4ade80" },
@@ -24,38 +24,22 @@ const GamesSection = () => {
   const [showWheelModal, setShowWheelModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [toast, setToast] = useState(null);
-  const [popunderTriggered, setPopunderTriggered] = useState(false);
+  const [triggerPopunder, setTriggerPopunder] = useState(false);
 
   const showToast = (message, type) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Function to trigger popunder ad
-  const triggerPopunder = () => {
-    if (popunderTriggered) return; // Only trigger once per session
-    
-    const script = document.createElement("script");
-    script.src = "https://pl29456047.effectivecpmnetwork.com/d6/c5/b2/d6c5b25a3b9f0f74a3bcef9e0e334551.js";
-    script.async = true;
-    script.setAttribute("data-cfasync", "false");
-    document.body.appendChild(script);
-    setPopunderTriggered(true);
-    
-    console.log("Popunder triggered on game start");
-  };
-
   const handleStart = (game) => {
     setSelectedGame(game);
     setShowWheelModal(true);
-    // Trigger popunder when game starts
-    triggerPopunder();
+    setTriggerPopunder(true); // Trigger popunder on game start
   };
 
   const handleSpinEnd = async (prize) => {
     if (prize.value > 0) {
       showToast(`You won ${prize.value} points! `, "success");
-      // Refresh earnings to update points in sidebar
       await dispatch(fetchUserEarnings());
     } else if (prize.error) {
       showToast(prize.message || "Something went wrong!", "error");
@@ -66,6 +50,9 @@ const GamesSection = () => {
 
   return (
     <>
+      {/* Popunder Ad - Triggers when game starts */}
+      {triggerPopunder && <GamesPopunder onTriggered={() => setTriggerPopunder(false)} />}
+
       <div className="grid gap-4">
         {games.map((game) => {
           const Icon = game.icon;

@@ -6,7 +6,8 @@ import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
 import EarningsSidebar from "../components/dashboard/earnings-display";
 import GamesSection from "../components/games-section/games-section";
-import NativeBanner from "../components/ad-components/native-banner"; // Import the new component
+import NativeBanner from "../components/ad-components/native-banner";
+import SurveyPopunder from "../components/ad-components/survey-popunder";
 
 const offers = [
   {
@@ -30,25 +31,11 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const { surveys, isLoading } = useSelector((state) => state.userSurvey);
   const [activeTab, setActiveTab] = useState("surveys");
-  const [popunderTriggered, setPopunderTriggered] = useState(false);
+  const [triggerPopunder, setTriggerPopunder] = useState(false);
 
   useEffect(() => {
     dispatch(getUserSurveys());
   }, [dispatch]);
-
-  // Function to trigger popunder ad (only on survey start)
-  const triggerPopunder = () => {
-    if (popunderTriggered) return;
-    
-    const script = document.createElement("script");
-    script.src = "https://pl29456047.effectivecpmnetwork.com/d6/c5/b2/d6c5b25a3b9f0f74a3bcef9e0e334551.js";
-    script.async = true;
-    script.setAttribute("data-cfasync", "false");
-    document.body.appendChild(script);
-    setPopunderTriggered(true);
-    
-    console.log("Popunder triggered on survey start");
-  };
 
   const handleStart = (item) => {
     if (!item.link) return;
@@ -62,7 +49,7 @@ export default function Dashboard() {
 
   const handleStartSurvey = (survey) => {
     if (survey.status === "STR") {
-      triggerPopunder();
+      setTriggerPopunder(true);
       setTimeout(() => {
         navigate(`/survey/${survey.id}`);
       }, 100);
@@ -160,6 +147,9 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
+      {/* Popunder Ad - Triggers when survey starts */}
+      {triggerPopunder && <SurveyPopunder onTriggered={() => setTriggerPopunder(false)} />}
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-800">Earn Rewards</h1>
