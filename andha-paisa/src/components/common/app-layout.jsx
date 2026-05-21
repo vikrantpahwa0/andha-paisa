@@ -5,6 +5,7 @@ import Sidebar from "./sidebar";
 import PWAPrompt from "./PWAPrompt";
 import UserMenu from "./user-menu";
 import TopBanner from "../ad-components/468x60";
+import SocialBar from "../ad-components/social-bar";
 
 export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -72,6 +73,9 @@ export default function AppLayout({ children }) {
 
       {/* PWA Prompt */}
       <PWAPrompt />
+
+      {/* Social Bar - loads globally */}
+      <SocialBar />
     </div>
   );
 }
