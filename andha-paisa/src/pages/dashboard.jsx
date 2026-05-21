@@ -5,7 +5,8 @@ import { FileText, Flame, Gamepad2 } from "lucide-react";
 import { getUserSurveys } from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
 import EarningsSidebar from "../components/dashboard/earnings-display";
-import GamesSection from "../components/games-section/games-section"; 
+import GamesSection from "../components/games-section/games-section";
+import NativeBanner from "../components/ad-components/native-banner"; // Import the new component
 
 const offers = [
   {
@@ -29,43 +30,15 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const { surveys, isLoading } = useSelector((state) => state.userSurvey);
   const [activeTab, setActiveTab] = useState("surveys");
-  const [adLoaded, setAdLoaded] = useState(false);
   const [popunderTriggered, setPopunderTriggered] = useState(false);
 
   useEffect(() => {
     dispatch(getUserSurveys());
   }, [dispatch]);
 
-  // Load Native Banner Ad
-  useEffect(() => {
-    if (adLoaded) return;
-    
-    const loadNativeAd = () => {
-      const adContainer = document.getElementById("native-banner-container");
-      if (!adContainer) return;
-      
-      adContainer.innerHTML = '';
-      
-      const containerDiv = document.createElement("div");
-      containerDiv.id = "container-b09ff8e53728d3a4d2b00f91d28bedf3";
-      
-      const invokeScript = document.createElement("script");
-      invokeScript.src = "https://pl29456048.effectivecpmnetwork.com/b09ff8e53728d3a4d2b00f91d28bedf3/invoke.js";
-      invokeScript.async = true;
-      invokeScript.setAttribute("data-cfasync", "false");
-      
-      adContainer.appendChild(containerDiv);
-      adContainer.appendChild(invokeScript);
-      setAdLoaded(true);
-    };
-    
-    const timer = setTimeout(loadNativeAd, 100);
-    return () => clearTimeout(timer);
-  }, [activeTab, surveys, adLoaded]);
-
   // Function to trigger popunder ad (only on survey start)
   const triggerPopunder = () => {
-    if (popunderTriggered) return; // Only trigger once per session
+    if (popunderTriggered) return;
     
     const script = document.createElement("script");
     script.src = "https://pl29456047.effectivecpmnetwork.com/d6/c5/b2/d6c5b25a3b9f0f74a3bcef9e0e334551.js";
@@ -89,9 +62,7 @@ export default function Dashboard() {
 
   const handleStartSurvey = (survey) => {
     if (survey.status === "STR") {
-      // Trigger popunder ad before navigating to survey
       triggerPopunder();
-      // Small delay to ensure popunder script executes
       setTimeout(() => {
         navigate(`/survey/${survey.id}`);
       }, 100);
@@ -153,10 +124,7 @@ export default function Dashboard() {
               {/* Native Banner Ad - between surveys at random position */}
               {index === adPosition && (
                 <div className="my-4">
-                  <div 
-                    id="native-banner-container"
-                    className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
-                  />
+                  <NativeBanner />
                 </div>
               )}
             </div>
@@ -168,7 +136,7 @@ export default function Dashboard() {
 
   const renderCards = (data) => (
     <div className="grid gap-4">
-      {data.map((item, index) => (
+      {data.map((item) => (
         <div key={item.id}>
           <div
             className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
