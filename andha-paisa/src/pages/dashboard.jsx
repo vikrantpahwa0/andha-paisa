@@ -56,13 +56,6 @@ export default function Dashboard() {
     }
   };
 
-  // Get random position for ad (between surveys)
-  const getRandomAdPosition = (totalSurveys) => {
-    if (totalSurveys <= 1) return 0;
-    if (totalSurveys === 2) return 1;
-    return Math.floor(Math.random() * (totalSurveys - 1)) + 1;
-  };
-
   const renderSurveyCards = () => {
     if (isLoading) return <p className="text-center py-8">Loading surveys...</p>;
     
@@ -70,11 +63,9 @@ export default function Dashboard() {
       return <p className="text-center py-8 text-slate-500">No surveys available at the moment.</p>;
     }
     
-    const adPosition = getRandomAdPosition(surveys.length);
-    
     return (
       <div className="grid gap-4">
-        {surveys.map((survey, index) => {
+        {surveys.map((survey) => {
           const isDisabled = survey.status !== "STR";
           
           return (
@@ -107,13 +98,6 @@ export default function Dashboard() {
                   {survey.status === "ALS" ? "Completed" : survey.status === "LCK" ? "Locked" : "Start"}
                 </button>
               </div>
-              
-              {/* Native Banner Ad - between surveys at random position */}
-              {index === adPosition && (
-                <div className="my-4">
-                  <NativeBanner />
-                </div>
-              )}
             </div>
           );
         })}
@@ -206,9 +190,17 @@ export default function Dashboard() {
 
         {/* MAIN CONTENT */}
         <div className="lg:col-span-8 order-2 lg:order-1">
+          {/* Tab Content */}
           {activeTab === "surveys" && renderSurveyCards()}
           {activeTab === "offers" && renderCards(offers)}
           {activeTab === "games" && <GamesSection />}
+          
+          {/* Native Banner - EK BAAR LOAD, SAB TABS KE NEE CHE */}
+          <div className="mt-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+              <NativeBanner />
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>
