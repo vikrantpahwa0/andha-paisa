@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+// Sidebar.jsx
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, ClipboardList, User } from "lucide-react";
+import SidebarDesktopAd from "../ad-components/300x250";
+import SidebarMobileAd from "../ad-components/320x50";
 
 export default function Sidebar({ isMobile }) {
   const navigate = useNavigate();
@@ -11,55 +13,6 @@ export default function Sidebar({ isMobile }) {
     { name: "Activity", path: "/activity", icon: ClipboardList },
     { name: "Account", path: "/profile", icon: User },
   ];
-
-  useEffect(() => {
-  const timer = setTimeout(() => {
-    const adContainer = document.getElementById(
-      isMobile ? "sidebar-mobile-ad" : "sidebar-desktop-ad"
-    );
-
-    if (!adContainer) return;
-
-    adContainer.innerHTML = "";
-
-    const configScript = document.createElement("script");
-
-    if (isMobile) {
-      configScript.innerHTML = `
-        atOptions = {
-          'key' : '666294eb6c5aa819b9902f1956c425cc',
-          'format' : 'iframe',
-          'height' : 50,
-          'width' : 320,
-          'params' : {}
-        };
-      `;
-    } else {
-      configScript.innerHTML = `
-        atOptions = {
-          'key' : '502893a28b3badbe90ace6ff83709314',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      `;
-    }
-
-    const invokeScript = document.createElement("script");
-
-    invokeScript.src = isMobile
-      ? "https://www.highperformanceformat.com/666294eb6c5aa819b9902f1956c425cc/invoke.js"
-      : "https://www.highperformanceformat.com/502893a28b3badbe90ace6ff83709314/invoke.js";
-
-    invokeScript.async = true;
-
-    adContainer.appendChild(configScript);
-    adContainer.appendChild(invokeScript);
-  }, 300);
-
-  return () => clearTimeout(timer);
-}, [isMobile]);
 
   return (
     <div className="h-full bg-white shadow-md flex flex-col">
@@ -103,23 +56,7 @@ export default function Sidebar({ isMobile }) {
       {/* Ad Section */}
       <div className="mt-auto p-4 border-t border-slate-100">
         <div className="flex justify-center overflow-hidden">
-          {isMobile ? (
-            <div
-              id="sidebar-mobile-ad"
-              style={{
-                width: "320px",
-                minHeight: "50px",
-              }}
-            />
-          ) : (
-            <div
-              id="sidebar-desktop-ad"
-              style={{
-                width: "300px",
-                minHeight: "250px",
-              }}
-            />
-          )}
+          {isMobile ? <SidebarMobileAd /> : <SidebarDesktopAd />}
         </div>
       </div>
     </div>
