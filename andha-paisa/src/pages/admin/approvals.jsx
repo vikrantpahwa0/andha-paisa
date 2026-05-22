@@ -2,88 +2,85 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AdminLayout from "../../components/common/admin-app-layout";
 import { Check, X, Eye } from "lucide-react";
+import {
+  getWithdrawableTransactions,
+  clearError,
+  clearSuccessMessage,
+} from "../../store/slices/approvals";
 
 export default function AdminApprovals() {
   const dispatch = useDispatch();
-  const [activeTab, setActiveTab] = useState("withdrawable");
+  const { withdrawableTransactions, isLoading, error, successMessage } = useSelector(
+    (state) => state.approvals
+  );
+  
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  
-  // Mock data structure - will be replaced by API
-  const [tableData, setTableData] = useState({
-    withdrawable: [],
-    withdraw: [],
-    gifts: []
-  });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const tabs = [
-    { id: "withdrawable", label: "Withdrawable Points" },
-    { id: "withdraw", label: "Withdraw Requests" },
-    { id: "gifts", label: "Gift Requests" },
-  ];
-
-  // Fetch data based on active tab
+  // Fetch withdrawable transactions on component mount
   useEffect(() => {
-    // Replace with actual API call
-    // dispatch(getApprovalsData(activeTab));
-    
-    // Mock data example - API will return array of objects with any keys
-    const mockData = {
-      withdrawable: [
-        { id: 1, name: "John Doe", email: "john@example.com", points: 2500, eligible: true, lastUpdated: "2024-01-15" },
-        { id: 2, name: "Jane Smith", email: "jane@example.com", points: 1800, eligible: true, lastUpdated: "2024-01-14" },
-      ],
-      withdraw: [
-        { id: 1, name: "John Doe", email: "john@example.com", amount: 500, points: 500, bankAccount: "XXXX1234", requestDate: "2024-01-20" },
-        { id: 2, name: "Jane Smith", email: "jane@example.com", amount: 1000, points: 1000, bankAccount: "XXXX5678", requestDate: "2024-01-19" },
-      ],
-      gifts: [
-        { id: 1, name: "Mike Johnson", email: "mike@example.com", gift: "Amazon Card", value: 500, points: 500, requestDate: "2024-01-18" },
-        { id: 2, name: "John Doe", email: "john@example.com", gift: "Flipkart Voucher", value: 1000, points: 1000, requestDate: "2024-01-17" },
-      ]
-    };
-    
-    setTableData(mockData);
-  }, [activeTab]);
+    dispatch(getWithdrawableTransactions());
+  }, [dispatch]);
 
-  const handleApprove = async (item) => {
-    if (window.confirm(`Are you sure you want to approve this ${activeTab} item?`)) {
+  // Clear messages after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        dispatch(clearSuccessMessage());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch(clearError());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, error, dispatch]);
+
+  const getFilteredTransactions = () => {
+    let filtered = [...withdrawableTransactions];
+
+    // Apply search
+    if (searchTerm) {
+      filtered = filtered.filter(t => 
+        t.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.transactionSurvey?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  const handleApprove = async (transaction) => {
+    if (window.confirm(`Approve transaction for ${transaction.user?.name}? This will mark the survey as completed and add points to their wallet.`)) {
       try {
-        // Replace with actual API call
-        // await dispatch(approveItem({ tab: activeTab, id: item.id }));
-        console.log("Approving:", item);
-        alert("Approved successfully!");
-        
-        // Remove from list or update status
-        setTableData(prev => ({
-          ...prev,
-          [activeTab]: prev[activeTab].filter(i => i.id !== item.id)
-        }));
+        // TODO: Implement approve API when available
+        console.log("Approving:", transaction);
+        alert("Approve API will be implemented soon!");
+        // await dispatch(approveWithdrawableTransaction(transaction.id));
+        // await dispatch(getWithdrawableTransactions());
       } catch (error) {
         console.error("Error approving:", error);
-        alert("Failed to approve. Please try again.");
+        alert(error || "Failed to approve. Please try again.");
       }
     }
   };
 
-  const handleReject = async (item) => {
+  const handleReject = async (transaction) => {
     const reason = prompt("Please provide a reason for rejection:");
     if (reason) {
-      if (window.confirm(`Are you sure you want to reject this ${activeTab} item?`)) {
+      if (window.confirm(`Reject transaction for ${transaction.user?.name}?`)) {
         try {
-          // Replace with actual API call including reason
-          // await dispatch(rejectItem({ tab: activeTab, id: item.id, reason }));
-          console.log("Rejecting:", item, "Reason:", reason);
-          alert("Rejected successfully!");
-          
-          // Remove from list
-          setTableData(prev => ({
-            ...prev,
-            [activeTab]: prev[activeTab].filter(i => i.id !== item.id)
-          }));
+          // TODO: Implement reject API when available
+          console.log("Rejecting:", transaction, "Reason:", reason);
+          alert("Reject API will be implemented soon!");
+          // await dispatch(rejectWithdrawableTransaction({ id: transaction.id, reason }));
+          // await dispatch(getWithdrawableTransactions());
         } catch (error) {
           console.error("Error rejecting:", error);
-          alert("Failed to reject. Please try again.");
+          alert(error || "Failed to reject. Please try again.");
         }
       }
     }
@@ -94,103 +91,144 @@ export default function AdminApprovals() {
     setIsDetailModalOpen(true);
   };
 
-  const currentData = tableData[activeTab] || [];
-
-  // Get column headers from the first object's keys (excluding 'id')
-  const getColumns = () => {
-    if (currentData.length === 0) return [];
-    const firstItem = currentData[0];
-    return Object.keys(firstItem).filter(key => key !== 'id');
-  };
-
-  const columns = getColumns();
+  const filteredTransactions = getFilteredTransactions();
 
   return (
     <AdminLayout>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-800">
-          Approvals Management
+          Withdrawable Transactions
         </h1>
         <p className="text-sm text-gray-500">
-          Manage user points, withdrawal requests, and gift redemptions
+          Review and approve user survey completions to make them eligible for withdrawals
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="flex gap-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-200 relative
-                ${activeTab === tab.id
-                  ? "text-emerald-600 border-b-2 border-emerald-600"
-                  : "text-gray-500 hover:text-gray-700"
-                }`}
-            >
-              {tab.label}
-              {currentData.length > 0 && activeTab === tab.id && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-emerald-100 text-emerald-700 rounded-full">
-                  {currentData.length}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+          {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by user name or survey name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+        />
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-4">
+          <p className="text-sm text-gray-500">Total Transactions</p>
+          <p className="text-2xl font-bold text-slate-700">{withdrawableTransactions.length}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <p className="text-sm text-gray-500">Total Reward Amount</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            ₹{withdrawableTransactions.reduce((sum, t) => sum + (parseInt(t.transactionSurvey?.reward) || 0), 0)}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <p className="text-sm text-gray-500">Unique Users</p>
+          <p className="text-2xl font-bold text-slate-700">
+            {new Set(withdrawableTransactions.map(t => t.user?.name)).size}
+          </p>
+        </div>
       </div>
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
-        {currentData.length === 0 ? (
+        {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No items to display</p>
+            <p className="text-gray-500">Loading transactions...</p>
+          </div>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No withdrawable transactions found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  {columns.map((column) => (
-                    <th
-                      key={column}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {column.replace(/([A-Z])/g, ' $1').trim()}
-                    </th>
-                  ))}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Transaction ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Survey
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Reward (₹)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Completed At
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentData.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    {columns.map((column) => (
-                      <td key={column} className="px-6 py-4 text-sm text-gray-900">
-                        {String(item[column])}
-                      </td>
-                    ))}
+                {filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        #{transaction.id}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {transaction.user?.name || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {transaction.transactionSurvey?.name || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-semibold text-emerald-600">
+                        ₹{transaction.transactionSurvey?.reward || 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {transaction.completed_at 
+                        ? new Date(transaction.completed_at).toLocaleDateString()
+                        : "Pending"}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => viewDetails(item)}
+                          onClick={() => viewDetails(transaction)}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                           title="View Details"
                         >
                           <Eye size={18} />
                         </button>
                         <button
-                          onClick={() => handleApprove(item)}
+                          onClick={() => handleApprove(transaction)}
                           className="p-1 text-green-600 hover:bg-green-50 rounded"
                           title="Approve"
                         >
                           <Check size={18} />
                         </button>
                         <button
-                          onClick={() => handleReject(item)}
+                          onClick={() => handleReject(transaction)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded"
                           title="Reject"
                         >
@@ -212,7 +250,7 @@ export default function AdminApprovals() {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-slate-800">Item Details</h3>
+                <h3 className="text-xl font-semibold text-slate-800">Transaction Details</h3>
                 <button
                   onClick={() => setIsDetailModalOpen(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -221,19 +259,29 @@ export default function AdminApprovals() {
                 </button>
               </div>
               
-              <div className="space-y-3">
-                {Object.entries(selectedItem).map(([key, value]) => (
-                  key !== "id" && (
-                    <div key={key} className="border-b pb-2">
-                      <div className="text-xs font-medium text-gray-500 uppercase mb-1">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </div>
-                      <div className="text-sm text-gray-900">
-                        {typeof value === "object" ? JSON.stringify(value) : String(value)}
-                      </div>
-                    </div>
-                  )
-                ))}
+              <div className="space-y-4">
+                <div className="border-b pb-3">
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Transaction Information</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p><span className="text-gray-500">Transaction ID:</span> {selectedItem.id}</p>
+                    <p><span className="text-gray-500">Completed At:</span> {selectedItem.completed_at ? new Date(selectedItem.completed_at).toLocaleString() : "Not completed"}</p>
+                  </div>
+                </div>
+
+                <div className="border-b pb-3">
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">User Information</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p><span className="text-gray-500">Name:</span> {selectedItem.user?.name || "N/A"}</p>
+                  </div>
+                </div>
+
+                <div className="border-b pb-3">
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Survey Information</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p><span className="text-gray-500">Survey Name:</span> {selectedItem.transactionSurvey?.name || "N/A"}</p>
+                    <p><span className="text-gray-500">Reward:</span> ₹{selectedItem.transactionSurvey?.reward || 0}</p>
+                  </div>
+                </div>
               </div>
               
               <div className="mt-6 flex justify-end gap-3">
