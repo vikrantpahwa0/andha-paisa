@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AppLayout from "../components/common/app-layout";
-import { Trophy, RotateCw, Calendar, Coins, CheckCircle, Clock } from "lucide-react";
+import {
+  Trophy,
+  RotateCw,
+  Calendar,
+  Coins,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from "lucide-react";
 import { fetchTransactions } from "../store/slices/activity-slice";
 
 export default function Activity() {
   const dispatch = useDispatch();
-  const { surveyTransactions, miniGamesTransactions, isLoading, error } = useSelector(
-    (state) => state.activity
-  );
+  const { surveyTransactions, miniGamesTransactions, isLoading, error } =
+    useSelector((state) => state.activity);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -52,7 +59,11 @@ export default function Activity() {
     if (date.toDateString() === yesterday.toDateString()) {
       return `Yesterday, ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
     }
-    return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const getSurveyStyles = (status) => {
@@ -64,7 +75,15 @@ export default function Activity() {
         statusText: "Completed",
       };
     }
-    // ATTEMPTED – treat as "In review"
+    if (status === "REJECTED") {
+      return {
+        bg: "bg-red-100",
+        icon: <XCircle className="w-5 h-5 text-red-600" />,
+        textColor: "text-red-600",
+        statusText: "Rejected",
+      };
+    }
+    // ATTEMPTED/ASSIGNED – treat as "In review"
     return {
       bg: "bg-amber-100",
       icon: <Clock className="w-5 h-5 text-amber-600" />,
@@ -99,7 +118,9 @@ export default function Activity() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-800">Your Activity</h1>
-          <p className="text-slate-500 text-sm mt-1">All your spins and survey earnings</p>
+          <p className="text-slate-500 text-sm mt-1">
+            All your spins and survey earnings
+          </p>
         </div>
 
         {/* Filter Tabs */}
@@ -159,9 +180,7 @@ export default function Activity() {
                     {/* Icon with dynamic background */}
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        isSurvey
-                          ? surveyStyle.bg
-                          : "bg-emerald-100"
+                        isSurvey ? surveyStyle.bg : "bg-emerald-100"
                       }`}
                     >
                       {isSurvey ? (
@@ -176,7 +195,9 @@ export default function Activity() {
                         <Calendar className="w-3 h-3" />
                         <span>{formatDate(tx.created_at)}</span>
                         {isSurvey && (
-                          <span className={`ml-1 text-xs font-medium ${surveyStyle.textColor}`}>
+                          <span
+                            className={`ml-1 text-xs font-medium ${surveyStyle.textColor}`}
+                          >
                             • {surveyStyle.statusText}
                           </span>
                         )}
@@ -185,11 +206,15 @@ export default function Activity() {
                   </div>
                   <div className="text-right">
                     {tx.points > 0 ? (
-                      <p className="font-bold text-green-600">+{tx.points} pts</p>
+                      <p className="font-bold text-green-600">
+                        +{tx.points} pts
+                      </p>
                     ) : (
                       <p className="text-sm text-slate-400">No points</p>
                     )}
-                    <p className="text-xs text-slate-400 capitalize mt-1">{tx.type}</p>
+                    <p className="text-xs text-slate-400 capitalize mt-1">
+                      {tx.type}
+                    </p>
                   </div>
                 </div>
               );
