@@ -9,6 +9,7 @@ import db from "./database/index.js";
 import surveyRoutes from "./routes/surveys.routes.js";
 import userRoutes from "./routes/users.routes.js";
 import miniGamesRoutes from "./routes/games/spin-wheel.js";
+import approvalRoutes from "./routes/approvals.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ if (!fs.existsSync(uploadDir)) {
 app.use("/surveys", surveyRoutes);
 app.use("/auth", userRoutes);
 app.use("/mini-games", miniGamesRoutes);
+app.use("/admin/approvals", approvalRoutes);
 
 const PORT = process.env.PORT || 3000;
 

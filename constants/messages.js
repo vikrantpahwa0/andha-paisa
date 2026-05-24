@@ -17,7 +17,8 @@ export const successMessages = {
   SPIN_COMPLETED: "Spin Completed",
   
   RESET_LINK_SENT : 'Reset Link sent to your email',
-  PASSWORD_RESET_SUCCESSFUL:"Password reset successfully. Please login."
+  PASSWORD_RESET_SUCCESSFUL:"Password reset successfully. Please login.",
+  TRANSACTIONS_FETCHED: "Withdrawable transactions fetched successfully",
 };
 
 export const failureMessages = {
