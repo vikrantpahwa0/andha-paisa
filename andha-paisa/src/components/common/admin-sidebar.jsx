@@ -11,8 +11,13 @@ export default function AdminSidebar() {
     { name: "Surveys", path: "/admin/dashboard", icon: ClipboardList },
     { 
       name: "Approvals", 
-      path: "/admin/approvals", 
-      icon: CheckCircle
+      path: null, 
+      icon: CheckCircle,
+      subItems: [
+        { name: "Survey Transactions", path: "/admin/approvals", icon: Wallet },
+        // { name: "Gift Transactions", path: "/admin/approvals/gifts", icon: Gift },
+        // { name: "Withdraw Requests", path: "/admin/approvals/withdraw-requests", icon: History },
+      ]
     },
   ];
 
