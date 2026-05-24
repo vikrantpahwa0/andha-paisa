@@ -10,20 +10,57 @@ export const getWithdrawableTransactions = createAsyncThunk(
       const response = await fetchWithAuth(
         "/admin/approvals/fetch-withdrawable-transactions",
         { method: "GET" },
-        { rejectWithValue, dispatch, getState }
+        { rejectWithValue, dispatch, getState },
       );
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        return rejectWithValue(data.message || "Failed to fetch withdrawable transactions");
+        return rejectWithValue(
+          data.message || "Failed to fetch withdrawable transactions",
+        );
       }
 
       return data;
     } catch (error) {
       return rejectWithValue(error.message || "Network error");
     }
-  }
+  },
+);
+
+// Approve or Reject Transaction
+export const approveRejectTransaction = createAsyncThunk(
+  "approvals/approveRejectTransaction",
+  async (
+    { surveyTransactionId, status },
+    { rejectWithValue, dispatch, getState },
+  ) => {
+    try {
+      const response = await fetchWithAuth(
+        "/admin/approvals/approve-reject",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ surveyTransactionId, status }),
+        },
+        { rejectWithValue, dispatch, getState },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return rejectWithValue(
+          data.message || "Failed to update transaction status",
+        );
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Network error");
+    }
+  },
 );
 
 const initialState = {
@@ -56,6 +93,20 @@ const approvalsSlice = createSlice({
         state.withdrawableTransactions = action.payload.data || [];
       })
       .addCase(getWithdrawableTransactions.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Approve/Reject Transaction
+      .addCase(approveRejectTransaction.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(approveRejectTransaction.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage =
+          action.payload.message || "Transaction updated successfully";
+      })
+      .addCase(approveRejectTransaction.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

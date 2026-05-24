@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AdminLayout from "../../components/common/admin-app-layout";
-import { Check, X, Eye } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   getWithdrawableTransactions,
+  approveRejectTransaction,
   clearError,
   clearSuccessMessage,
 } from "../../store/slices/approvals";
 
 export default function AdminApprovals() {
   const dispatch = useDispatch();
-  const { withdrawableTransactions, isLoading, error, successMessage } = useSelector(
-    (state) => state.approvals
-  );
-  
+  const { withdrawableTransactions, isLoading, error, successMessage } =
+    useSelector((state) => state.approvals);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,9 +44,12 @@ export default function AdminApprovals() {
 
     // Apply search
     if (searchTerm) {
-      filtered = filtered.filter(t => 
-        t.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.transactionSurvey?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (t) =>
+          t.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.transactionSurvey?.name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -54,13 +57,19 @@ export default function AdminApprovals() {
   };
 
   const handleApprove = async (transaction) => {
-    if (window.confirm(`Approve transaction for ${transaction.user?.name}? This will mark the survey as completed and add points to their wallet.`)) {
+    if (
+      window.confirm(
+        `Approve transaction for ${transaction.user?.name}? This will mark the survey as completed and add points to their wallet.`,
+      )
+    ) {
       try {
-        // TODO: Implement approve API when available
-        console.log("Approving:", transaction);
-        alert("Approve API will be implemented soon!");
-        // await dispatch(approveWithdrawableTransaction(transaction.id));
-        // await dispatch(getWithdrawableTransactions());
+        await dispatch(
+          approveRejectTransaction({
+            surveyTransactionId: transaction.id,
+            status: "COMPLETED",
+          }),
+        ).unwrap();
+        await dispatch(getWithdrawableTransactions());
       } catch (error) {
         console.error("Error approving:", error);
         alert(error || "Failed to approve. Please try again.");
@@ -73,22 +82,19 @@ export default function AdminApprovals() {
     if (reason) {
       if (window.confirm(`Reject transaction for ${transaction.user?.name}?`)) {
         try {
-          // TODO: Implement reject API when available
-          console.log("Rejecting:", transaction, "Reason:", reason);
-          alert("Reject API will be implemented soon!");
-          // await dispatch(rejectWithdrawableTransaction({ id: transaction.id, reason }));
-          // await dispatch(getWithdrawableTransactions());
+          await dispatch(
+            approveRejectTransaction({
+              surveyTransactionId: transaction.id,
+              status: "REJECTED",
+            }),
+          ).unwrap();
+          await dispatch(getWithdrawableTransactions());
         } catch (error) {
           console.error("Error rejecting:", error);
           alert(error || "Failed to reject. Please try again.");
         }
       }
     }
-  };
-
-  const viewDetails = (item) => {
-    setSelectedItem(item);
-    setIsDetailModalOpen(true);
   };
 
   const filteredTransactions = getFilteredTransactions();
@@ -101,7 +107,8 @@ export default function AdminApprovals() {
           Withdrawable Transactions
         </h1>
         <p className="text-sm text-gray-500">
-          Review and approve user survey completions to make them eligible for withdrawals
+          Review and approve user survey completions to make them eligible for
+          withdrawals
         </p>
       </div>
 
@@ -132,18 +139,24 @@ export default function AdminApprovals() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">Total Transactions</p>
-          <p className="text-2xl font-bold text-slate-700">{withdrawableTransactions.length}</p>
+          <p className="text-2xl font-bold text-slate-700">
+            {withdrawableTransactions.length}
+          </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">Total Reward Amount</p>
           <p className="text-2xl font-bold text-emerald-600">
-            ₹{withdrawableTransactions.reduce((sum, t) => sum + (parseInt(t.transactionSurvey?.reward) || 0), 0)}
+            ₹
+            {withdrawableTransactions.reduce(
+              (sum, t) => sum + (parseInt(t.transactionSurvey?.reward) || 0),
+              0,
+            )}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">Unique Users</p>
           <p className="text-2xl font-bold text-slate-700">
-            {new Set(withdrawableTransactions.map(t => t.user?.name)).size}
+            {new Set(withdrawableTransactions.map((t) => t.user?.name)).size}
           </p>
         </div>
       </div>
@@ -207,19 +220,14 @@ export default function AdminApprovals() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {transaction.completed_at 
-                        ? new Date(transaction.completed_at).toLocaleDateString()
+                      {transaction.completed_at
+                        ? new Date(
+                            transaction.completed_at,
+                          ).toLocaleDateString()
                         : "Pending"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => viewDetails(transaction)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          title="View Details"
-                        >
-                          <Eye size={18} />
-                        </button>
                         <button
                           onClick={() => handleApprove(transaction)}
                           className="p-1 text-green-600 hover:bg-green-50 rounded"
@@ -250,7 +258,9 @@ export default function AdminApprovals() {
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-slate-800">Transaction Details</h3>
+                <h3 className="text-xl font-semibold text-slate-800">
+                  Transaction Details
+                </h3>
                 <button
                   onClick={() => setIsDetailModalOpen(false)}
                   className="text-gray-400 hover:text-gray-600"
@@ -258,32 +268,55 @@ export default function AdminApprovals() {
                   <X size={24} />
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="border-b pb-3">
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Transaction Information</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                    Transaction Information
+                  </h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><span className="text-gray-500">Transaction ID:</span> {selectedItem.id}</p>
-                    <p><span className="text-gray-500">Completed At:</span> {selectedItem.completed_at ? new Date(selectedItem.completed_at).toLocaleString() : "Not completed"}</p>
+                    <p>
+                      <span className="text-gray-500">Transaction ID:</span>{" "}
+                      {selectedItem.id}
+                    </p>
+                    <p>
+                      <span className="text-gray-500">Completed At:</span>{" "}
+                      {selectedItem.completed_at
+                        ? new Date(selectedItem.completed_at).toLocaleString()
+                        : "Not completed"}
+                    </p>
                   </div>
                 </div>
 
                 <div className="border-b pb-3">
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">User Information</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                    User Information
+                  </h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><span className="text-gray-500">Name:</span> {selectedItem.user?.name || "N/A"}</p>
+                    <p>
+                      <span className="text-gray-500">Name:</span>{" "}
+                      {selectedItem.user?.name || "N/A"}
+                    </p>
                   </div>
                 </div>
 
                 <div className="border-b pb-3">
-                  <h4 className="text-sm font-semibold text-gray-600 mb-2">Survey Information</h4>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                    Survey Information
+                  </h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><span className="text-gray-500">Survey Name:</span> {selectedItem.transactionSurvey?.name || "N/A"}</p>
-                    <p><span className="text-gray-500">Reward:</span> ₹{selectedItem.transactionSurvey?.reward || 0}</p>
+                    <p>
+                      <span className="text-gray-500">Survey Name:</span>{" "}
+                      {selectedItem.transactionSurvey?.name || "N/A"}
+                    </p>
+                    <p>
+                      <span className="text-gray-500">Reward:</span> ₹
+                      {selectedItem.transactionSurvey?.reward || 0}
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => {
