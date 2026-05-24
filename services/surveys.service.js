@@ -5,7 +5,13 @@ import {
   validationMessages,
 } from "../constants/messages.js";
 
-const { SURVEY, SURVEY_QUESTIONS, SURVEYS_QUESTIONS_OPTIONS, USER_SURVEY_TRANSACTIONS, USER_SURVEY_ANSWERS } = db;
+const {
+  SURVEY,
+  SURVEY_QUESTIONS,
+  SURVEYS_QUESTIONS_OPTIONS,
+  USER_SURVEY_TRANSACTIONS,
+  USER_SURVEY_ANSWERS,
+} = db;
 
 /**
  * Create or update survey basic info
@@ -143,32 +149,32 @@ const processSurveysForUser = async (surveys, userId) => {
   const lastCompletedSurvey = await USER_SURVEY_TRANSACTIONS.findOne({
     where: {
       user_id: userId,
-      status: ["ATTEMPTED", "COMPLETED"]
+      status: ["ATTEMPTED", "COMPLETED", "REJECTED"],
     },
     order: [["survey_id", "DESC"]],
-    attributes: ["survey_id"]
+    attributes: ["survey_id"],
   });
 
   // Convert to plain objects
   const processedSurveys = [];
 
   let nextSurveyFound = false;
-  
+
   for (let i = 0; i < surveys.length; i++) {
     const survey = surveys[i];
     const surveyObj = survey.toJSON(); // Convert Sequelize instance to plain object
-    
+
     // Remove questions key
     delete surveyObj.questions;
-    
+
     // Add reward points
-    surveyObj.rewardPoints = parseInt(survey.reward) * parseInt(process.env.SURVEY_REWARD_POINTS);
-    
+    surveyObj.rewardPoints =
+      parseInt(survey.reward) * parseInt(process.env.SURVEY_REWARD_POINTS);
+
     // Add status
     if (lastCompletedSurvey && surveyObj.id <= lastCompletedSurvey.survey_id) {
       surveyObj.status = "ALS"; // Already Submitted
-    } 
-    else if (!nextSurveyFound) {
+    } else if (!nextSurveyFound) {
       // This is the next survey after the last completed one
       surveyObj.status = "STR"; // Start
       nextSurveyFound = true;
@@ -177,28 +183,27 @@ const processSurveysForUser = async (surveys, userId) => {
       const existingTransaction = await USER_SURVEY_TRANSACTIONS.findOne({
         where: {
           user_id: userId,
-          survey_id: surveyObj.id
-        }
+          survey_id: surveyObj.id,
+        },
       });
 
       if (!existingTransaction) {
         await USER_SURVEY_TRANSACTIONS.create({
           user_id: userId,
           survey_id: surveyObj.id,
-          status: "ASSIGNED"
+          status: "ASSIGNED",
         });
       }
-    }
-    else {
+    } else {
       surveyObj.status = "LCK"; // Locked
     }
-    
+
     processedSurveys.push(surveyObj);
   }
-  
+
   return processedSurveys;
 };
-  
+
 export const listSurveys = async (data) => {
   let allSurveys = await SURVEY.findAll({
     where: { is_active: true },
@@ -226,8 +231,8 @@ export const listSurveys = async (data) => {
 
   if (data?.forUsers) {
     if (data.forUsers && data.userId) {
-    allSurveys = await processSurveysForUser(allSurveys, data.userId);
-  }
+      allSurveys = await processSurveysForUser(allSurveys, data.userId);
+    }
   }
 
   return allSurveys;
@@ -238,13 +243,13 @@ export const listSurveys = async (data) => {
  */
 export const getSurveyById = async (data) => {
   const { surveyId, userId } = data;
-  
+
   const transaction = await USER_SURVEY_TRANSACTIONS.findOne({
     where: {
       user_id: userId,
       survey_id: surveyId,
-      status: "ASSIGNED"
-    }
+      status: "ASSIGNED",
+    },
   });
 
   if (!transaction) {
@@ -270,9 +275,7 @@ export const getSurveyById = async (data) => {
         ],
       },
     ],
-    order: [
-      [{ model: SURVEY_QUESTIONS, as: "questions" }, "id", "ASC"],
-    ],
+    order: [[{ model: SURVEY_QUESTIONS, as: "questions" }, "id", "ASC"]],
   });
 
   if (!survey) {
@@ -282,11 +285,13 @@ export const getSurveyById = async (data) => {
   return survey;
 };
 
-export const  submitUserSurvey = async (data) => {
+export const submitUserSurvey = async (data) => {
   const { userId, surveyId, answers } = data;
 
   if (!userId || !surveyId || !answers || !Array.isArray(answers)) {
-    throw new Error(validationMessages.SURVEY_MODULE_MESSAGES.INVALID_SUBMISSION_DATA);
+    throw new Error(
+      validationMessages.SURVEY_MODULE_MESSAGES.INVALID_SUBMISSION_DATA,
+    );
   }
 
   // Start a database transaction
@@ -346,13 +351,15 @@ export const  submitUserSurvey = async (data) => {
       const { questionId, optionChosenId, textAnswer } = ans;
 
       if (!questionId) {
-        throw new Error(validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_ID_REQUIRED);
+        throw new Error(
+          validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_ID_REQUIRED,
+        );
       }
 
       const question = questionMap.get(questionId);
       if (!question) {
         throw new Error(
-          `${validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_NOT_FOUND}: ${questionId}`
+          `${validationMessages.SURVEY_MODULE_MESSAGES.QUESTION_NOT_FOUND}: ${questionId}`,
         );
       }
 
@@ -360,23 +367,23 @@ export const  submitUserSurvey = async (data) => {
       if (question.question_type === "with_options") {
         if (!optionChosenId) {
           throw new Error(
-            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_REQUIRED} for question ${questionId}`
+            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_REQUIRED} for question ${questionId}`,
           );
         }
         // Verify the option belongs to this question and is active
         const validOption = question.options.some(
-          (opt) => opt.id === optionChosenId
+          (opt) => opt.id === optionChosenId,
         );
         if (!validOption) {
           throw new Error(
-            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_NOT_FOUND}: ${optionChosenId}`
+            `${validationMessages.SURVEY_MODULE_MESSAGES.OPTION_NOT_FOUND}: ${optionChosenId}`,
           );
         }
       } else {
         // For other question types (text, numeric, etc.), textAnswer is required
         if (!textAnswer || textAnswer.trim() === "") {
           throw new Error(
-            `${validationMessages.SURVEY_MODULE_MESSAGES.TEXT_ANSWER_REQUIRED} for question ${questionId}`
+            `${validationMessages.SURVEY_MODULE_MESSAGES.TEXT_ANSWER_REQUIRED} for question ${questionId}`,
           );
         }
       }
@@ -394,13 +401,13 @@ export const  submitUserSurvey = async (data) => {
     const allQuestionIds = survey.questions.map((q) => q.id);
     const answeredQuestionIds = answerRecords.map((rec) => rec.question_id);
     const missingQuestions = allQuestionIds.filter(
-      (id) => !answeredQuestionIds.includes(id)
+      (id) => !answeredQuestionIds.includes(id),
     );
     if (missingQuestions.length > 0) {
       throw new Error(
         `${validationMessages.SURVEY_MODULE_MESSAGES.MISSING_ANSWERS}: ${missingQuestions.join(
-          ", "
-        )}`
+          ", ",
+        )}`,
       );
     }
 
@@ -412,7 +419,6 @@ export const  submitUserSurvey = async (data) => {
 
     // Commit transaction
     await transaction.commit();
-
   } catch (error) {
     // Rollback transaction on any error
     await transaction.rollback();

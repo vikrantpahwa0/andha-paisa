@@ -18,11 +18,11 @@ const {
   REFRESH_TOKENS,
   USER_BANK_DETAIL,
   USER_SURVEY_TRANSACTIONS,
-  PASSWORD_RESET_TOKEN
+  PASSWORD_RESET_TOKEN,
 } = db; // Add REFRESH_TOKENS model
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "./send-email.js";
-import { Op } from 'sequelize';
+import { Op } from "sequelize";
 
 // Helper function to generate tokens
 const generateTokens = async (userId, role) => {
@@ -378,7 +378,10 @@ export const updateUser = async (data) => {
       userDetails.profilePicture.startsWith("data:image")
     ) {
       try {
-        const imageUrl = await saveBase64Image(userDetails.profilePicture, userId);
+        const imageUrl = await saveBase64Image(
+          userDetails.profilePicture,
+          userId,
+        );
         userDetails.profilePicture = imageUrl; // Replace base64 with URL
       } catch (error) {
         console.error("Failed to save profile picture:", error);
@@ -444,7 +447,7 @@ export const fetchTransactions = async (userId) => {
   ]);
 
   const surveyTransactions = await sequelize.query(
-    `SELECT S.name,S.reward,(CAST(S.reward AS INTEGER) * ${configVariables.SURVEY_REWARD_POINTS}) AS total_points,UST.status,UST.created_at FROM users_surveys_transactions UST LEFT JOIN surveys S ON UST.survey_id = S.id WHERE UST.user_id = :userId AND UST.status IN ('ATTEMPTED','COMPLETED') ORDER BY UST.created_at DESC`,
+    `SELECT S.name,S.reward,(CAST(S.reward AS INTEGER) * ${configVariables.SURVEY_REWARD_POINTS}) AS total_points,UST.status,UST.created_at FROM users_surveys_transactions UST LEFT JOIN surveys S ON UST.survey_id = S.id WHERE UST.user_id = :userId AND UST.status IN ('ATTEMPTED','COMPLETED','REJECTED') ORDER BY UST.created_at DESC`,
     {
       replacements: { userId },
       type: sequelize.QueryTypes.SELECT,
@@ -459,7 +462,7 @@ export const fetchTransactions = async (userId) => {
     },
   );
 
-  return {surveyTransactions,miniGamesTransactions};
+  return { surveyTransactions, miniGamesTransactions };
 };
 
 export const forgotPassword = async (data) => {
@@ -469,7 +472,7 @@ export const forgotPassword = async (data) => {
   const user = await USERS.findOne({ where: { email: email.toLowerCase() } });
   // Always return same response for security (don't reveal if email exists)
   if (!user) {
-    throw new Error(failureMessages.SOMETHING_WENT_WRONG)
+    throw new Error(failureMessages.SOMETHING_WENT_WRONG);
   }
 
   // Generate token
@@ -504,7 +507,7 @@ export const resetPassword = async (data) => {
 
   const user = await USERS.findOne({ where: { email: email.toLowerCase() } });
   if (!user) {
-    throw new Error(failureMessages.SOMETHING_WENT_WRONG)
+    throw new Error(failureMessages.SOMETHING_WENT_WRONG);
   }
 
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
@@ -529,7 +532,10 @@ export const resetPassword = async (data) => {
   await resetToken.update({ used: true });
 
   // Optionally invalidate all refresh tokens for user (security)
-  await REFRESH_TOKENS.update({ is_active: false }, { where: { user_id: user.id } });
+  await REFRESH_TOKENS.update(
+    { is_active: false },
+    { where: { user_id: user.id } },
+  );
 
   return { message: successMessages.PASSWORD_RESET_SUCCESSFUL };
 };

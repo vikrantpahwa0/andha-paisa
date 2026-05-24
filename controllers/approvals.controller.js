@@ -20,3 +20,16 @@ export const fetchWithdrawableTransactions = async (req, res) => {
   }
 };
 
+export const approveReject = async (req, res) => {
+  try {
+    const transactions = await approvalsService.approveReject(req.body);
+    return successResponse(
+      res,
+      transactions,
+      successMessages.STATUS_UPDATED,
+      httpCodes.OK,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};

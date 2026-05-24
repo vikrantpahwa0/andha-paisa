@@ -15,14 +15,14 @@ export const successMessages = {
   USER_UPDATED: "User updated successfully",
   ACCESS_TOKEN_REFRESHED: "Access token refreshed successfully",
   SPIN_COMPLETED: "Spin Completed",
-  
-  RESET_LINK_SENT : 'Reset Link sent to your email',
-  PASSWORD_RESET_SUCCESSFUL:"Password reset successfully. Please login.",
+
+  RESET_LINK_SENT: "Reset Link sent to your email",
+  PASSWORD_RESET_SUCCESSFUL: "Password reset successfully. Please login.",
   TRANSACTIONS_FETCHED: "Withdrawable transactions fetched successfully",
+  STATUS_UPDATED: "Status Updated",
 };
 
 export const failureMessages = {
-
   SOMETHING_WENT_WRONG: "Something went wrong",
   REGISTRATION_FAILED: "Registration failed",
   LOGIN_FAILED: "Login failed",
@@ -55,8 +55,9 @@ export const failureMessages = {
   CONFIG_MESSAGES: {
     NOT_FOUND: "Configuration key not found",
   },
-  SPIN_LIMIT_REACHED:'You have reached the maximum number of spins allowed for today. Please try again tomorrow.',
-  NO_ACTIVE_PRIZES: "No active prizes configured"
+  SPIN_LIMIT_REACHED:
+    "You have reached the maximum number of spins allowed for today. Please try again tomorrow.",
+  NO_ACTIVE_PRIZES: "No active prizes configured",
 };
 
 export const httpCodes = {
@@ -69,9 +70,9 @@ export const httpCodes = {
 };
 
 export const validationMessages = {
-  TOKEN_EMAIL_REQUIRED:'Required Fields Missing',
+  TOKEN_EMAIL_REQUIRED: "Required Fields Missing",
   EMAIL_MOBILE_REQUIRED: "Either email or mobile number is required",
-  EMAIL : 'Email is Required',
+  EMAIL: "Email is Required",
   COUNTRY_CODE_REQUIRED: "Country Code is Required",
   OTP_REQUIRED: "OTP is required",
   SURVEY_MESSAGES: {
