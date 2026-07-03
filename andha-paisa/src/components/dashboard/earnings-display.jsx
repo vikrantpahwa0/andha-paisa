@@ -28,7 +28,7 @@ export default function EarningsSidebar() {
     dispatch(fetchUserEarnings());
   }, [dispatch]);
 
-  const canWithdraw = confirmedPoints >= withdrawLimit;
+  const canWithdraw = completedAmount >= withdrawLimit;
   const progressPercent = Math.min(
     100,
     (completedAmount / withdrawLimit) * 100,
@@ -36,7 +36,7 @@ export default function EarningsSidebar() {
 
   const handleWithdrawClick = () => {
     if (canWithdraw) {
-      navigate("/profile");
+      navigate("/withdrawals");
     } else {
       setShowTooltip(true);
       setTimeout(() => setShowTooltip(false), 2000);
@@ -60,6 +60,11 @@ export default function EarningsSidebar() {
             <CheckCircle className="w-5 h-5 text-slate-700" />
             <h4 className="text-sm text-slate-700 font-medium">Confirmed</h4>
           </div>
+          {canWithdraw && (
+            <span className="text-xs bg-green-600/20 text-green-800 px-2 py-0.5 rounded-full font-medium">
+              Ready to Withdraw
+            </span>
+          )}
         </div>
         <p className="text-3xl font-bold mt-2 text-slate-900">
           {confirmedPoints} Points
@@ -72,7 +77,9 @@ export default function EarningsSidebar() {
         <div className="relative mt-4">
           <button
             onClick={handleWithdrawClick}
-            className="relative w-full rounded-xl transition active:scale-95 focus:outline-none bg-white border-[12px] border-white shadow-sm overflow-hidden"
+            className={`relative w-full rounded-xl transition active:scale-95 focus:outline-none bg-white border-[12px] border-white shadow-sm overflow-hidden ${
+              canWithdraw ? "cursor-pointer" : "cursor-default"
+            }`}
           >
             <div className="relative w-full rounded-lg overflow-hidden bg-white/90">
               <div
@@ -94,7 +101,7 @@ export default function EarningsSidebar() {
           {showTooltip && (
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 flex items-center gap-1.5 whitespace-nowrap z-20 shadow-lg">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>Amount is withdrawable at ₹{withdrawLimit}</span>
+              <span>Minimum withdrawal amount is ₹{withdrawLimit}</span>
               <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
             </div>
           )}

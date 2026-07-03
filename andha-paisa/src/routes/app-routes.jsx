@@ -18,6 +18,7 @@ import AboutUs from "../pages/static/about-us";
 import ContactUs from "../pages/static/contact-us";
 import MaximiseEarnings from "../pages/static/maximise-your-earnings";
 import AdminApprovals from "../pages/admin/approvals";
+import Withdrawlas from "../pages/user/withdrawals";
 
 export default function AppRoutes() {
   return (
@@ -47,6 +48,7 @@ export default function AppRoutes() {
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />  
         <Route path="/maximise-your-earnings" element={<MaximiseEarnings />} />  
+        <Route path="/withdrawals" element={< Withdrawlas/>} /> 
       </Routes>
   );
 }

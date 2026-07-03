@@ -24,9 +24,10 @@ export const fetchUserEarnings = createAsyncThunk(
 const earningsSlice = createSlice({
   name: "earnings",
   initialState: {
-    confirmedAmount: 0,    // total points (₹) from completed surveys
-    reviewAmount: 0,       // currently 0 (API doesn't provide in‑review amount)
-    withdrawLimit: 500,
+    confirmedPoints: 0,
+    reviewAmount: 0,
+    withdrawLimit: 0, // 0 means no limit
+    completedAmount: 0,
     isLoading: false,
     error: null,
   },
@@ -40,10 +41,9 @@ const earningsSlice = createSlice({
       .addCase(fetchUserEarnings.fulfilled, (state, action) => {
         state.isLoading = false;
         state.confirmedPoints = action.payload.points || 0;
-        state.withdrawLimit = action.payload.withdrawLimit || 500;
+        state.withdrawLimit = action.payload.withdrawLimit || 0;
         state.completedAmount = action.payload.completed || 0;
-        // If API later adds 'reviewAmount', map it here; for now set 0
-        state.reviewAmount = action.payload.attempted;
+        state.reviewAmount = action.payload.attempted || 0;
       })
       .addCase(fetchUserEarnings.rejected, (state, action) => {
         state.isLoading = false;
