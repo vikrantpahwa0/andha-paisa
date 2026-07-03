@@ -19,6 +19,7 @@ const {
   USER_BANK_DETAIL,
   USER_SURVEY_TRANSACTIONS,
   PASSWORD_RESET_TOKEN,
+  WITHDRAWAL_REQUESTS
 } = db; // Add REFRESH_TOKENS model
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "./send-email.js";
@@ -418,6 +419,15 @@ export const fetchEarnings = async (userId, fetchBankDetails = false) => {
     },
   );
 
+  const totalWithdrawalAmount = await WITHDRAWAL_REQUESTS.sum('amount', {
+  where: {
+    user_id: userId,
+    status: {
+      [Op.in]: ['PENDING', 'CONFIRMED']
+    }
+  }
+});
+
   const spinAndWinPoints = (await getUserPoints(userId)).points;
 
   const configVariables = await getMultipleConfigs([
@@ -432,9 +442,10 @@ export const fetchEarnings = async (userId, fetchBankDetails = false) => {
 
   return {
     attempted: Number(attempted) * Number(configVariables.SURVEY_REWARD_POINTS),
-    completed: Number(completed),
+    completed: Number(completed) - totalWithdrawalAmount,
     points:
-      Number(completed) * Number(configVariables.SURVEY_REWARD_POINTS) +
+      Number(completed) * Number(configVariables.SURVEY_REWARD_POINTS)
+      - totalWithdrawalAmount * Number(configVariables.SURVEY_REWARD_POINTS) +
       Number(spinAndWinPoints),
     withdrawLimit: Number(configVariables.WITHDRAW_LIMIT),
   };

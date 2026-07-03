@@ -31,7 +31,6 @@ export const fetchWithdrawableTransactions = async () => {
 };
 
 export const approveReject = async (body) => {
-  console.log("Right API called");
   const { surveyTransactionId, status } = body;
 
   return await USER_SURVEY_TRANSACTIONS.update(
