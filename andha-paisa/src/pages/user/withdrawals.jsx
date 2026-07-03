@@ -15,52 +15,44 @@ import {
 } from "lucide-react";
 import AppLayout from "../../components/common/app-layout";
 import { fetchUserEarnings } from "../../store/slices/user-earnings";
+import { 
+  createWithdrawal, 
+  fetchWithdrawalHistory,
+  clearWithdrawalError 
+} from "../../store/slices/withdrawal-slice";
 
-// Mock data - replace with actual API calls
-const mockWithdrawalRequests = [
-  {
-    id: 1,
-    amount: 400,
-    status: "completed", // completed, pending, failed
-    date: "2026-06-28T10:30:00Z",
-    transactionId: "TXN123456",
-  },
-  {
-    id: 2,
-    amount: 200,
-    status: "pending",
-    date: "2026-06-30T14:20:00Z",
-    transactionId: null,
-  },
-  {
-    id: 3,
-    amount: 800,
-    status: "failed",
-    date: "2026-06-25T09:15:00Z",
-    transactionId: null,
-  },
-];
-
-const AMOUNT_OPTIONS = [200, 400, 800, 1600];
+const AMOUNT_OPTIONS = [1, 200, 400, 800, 1600];
 
 export default function Withdraw() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { confirmedPoints, withdrawLimit, isLoading, completedAmount } = useSelector(
+  
+  // Get data from Redux
+  const { withdrawLimit, completedAmount, isLoading: isLoadingEarnings } = useSelector(
     (state) => state.earnings
   );
+  const { 
+    requests: withdrawalRequests,
+    isLoading: isSubmitting,
+    error: withdrawalError 
+  } = useSelector((state) => state.withdrawals);
   
   const [selectedAmount, setSelectedAmount] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [withdrawalRequests, setWithdrawalRequests] = useState(mockWithdrawalRequests);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     dispatch(fetchUserEarnings());
-    // Fetch withdrawal history from API
-    // fetchWithdrawalHistory();
+    dispatch(fetchWithdrawalHistory());
   }, [dispatch]);
+
+  // Handle errors from Redux
+  useEffect(() => {
+    if (withdrawalError) {
+      setErrorMessage(withdrawalError);
+      dispatch(clearWithdrawalError());
+    }
+  }, [withdrawalError, dispatch]);
 
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
@@ -72,41 +64,27 @@ export default function Withdraw() {
   };
 
   const handleSubmit = async () => {
-
     const amount = getDisplayAmount();
-    setIsSubmitting(true);
+
     setErrorMessage("");
     setSuccessMessage("");
 
     try {
-      // Replace with actual API call
-      // await api.withdraw({ amount });
+      const result = await dispatch(createWithdrawal(amount));
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (createWithdrawal.fulfilled.match(result)) {
+        setSuccessMessage(`Withdrawal request of ₹${amount} submitted successfully!`);
+        setSelectedAmount(null);
+        dispatch(fetchUserEarnings());
+        dispatch(fetchWithdrawalHistory());
       
-      // Add new withdrawal request to list
-      const newRequest = {
-        id: Date.now(),
-        amount: amount,
-        status: "pending",
-        date: new Date().toISOString(),
-        transactionId: null,
-      };
-      
-      setWithdrawalRequests([newRequest, ...withdrawalRequests]);
-      setSuccessMessage(`Withdrawal request of ₹${amount} submitted successfully!`);
-      setSelectedAmount(null);
-      
-      // Refresh earnings
-      dispatch(fetchUserEarnings());
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => setSuccessMessage(""), 5000);
+        setTimeout(() => setSuccessMessage(""), 5000);
+      } else if (createWithdrawal.rejected.match(result)) {
+        console.error("Withdrawal failed:", result.payload);
+      }
     } catch (error) {
-      setErrorMessage("Failed to submit withdrawal request. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+      console.error("Unexpected error:", error);
     }
   };
 
@@ -175,7 +153,7 @@ export default function Withdraw() {
               </span>
               <span className="text-slate-300">|</span>
               <span className="text-slate-600">
-                Limit: <span className="font-semibold text-slate-800">₹{withdrawLimit}</span>
+                Minimum Withdrawal: <span className="font-semibold text-slate-800">₹{withdrawLimit}</span>
               </span>
             </div>
           </div>
@@ -184,7 +162,8 @@ export default function Withdraw() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             {AMOUNT_OPTIONS.map((amount) => {
               const isSelected = selectedAmount === amount;
-              const isDisabled = amount > completedAmount;
+              // ✅ Disable while loading OR if amount is less than withdrawLimit
+              const isDisabled = isLoadingEarnings || amount < withdrawLimit || amount > completedAmount;
               
               return (
                 <button
@@ -206,8 +185,11 @@ export default function Withdraw() {
                     <Banknote className="w-4 h-4" />
                     ₹{amount}
                   </div>
-                  {isDisabled && (
+                  {isDisabled && !isLoadingEarnings && (
                     <p className="text-xs mt-1">Insufficient</p>
+                  )}
+                  {isDisabled && isLoadingEarnings && (
+                    <p className="text-xs mt-1">Loading...</p>
                   )}
                 </button>
               );
@@ -232,7 +214,7 @@ export default function Withdraw() {
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || getDisplayAmount() === 0}
+            disabled={isSubmitting || getDisplayAmount() === 0 || isLoadingEarnings}
             className="w-full py-3.5 rounded-xl font-semibold text-slate-900 transition-all duration-200
               bg-gradient-to-r from-green-200 via-green-300 to-green-400
               hover:from-green-300 hover:to-green-500
@@ -294,7 +276,7 @@ export default function Withdraw() {
                             </span>
                           </div>
                           <p className="text-xs text-slate-500 mt-0.5">
-                            {formatDate(request.date)}
+                            {formatDate(request.created_at)}
                           </p>
                         </div>
                       </div>

@@ -7,6 +7,7 @@ import earningsReducer from "./slices/user-earnings";
 import spinReducer from "./slices/spin-slice";
 import activityReducer from "./slices/activity-slice";
 import approvalsReducer from "./slices/approvals";
+import withdrawalReducer from "./slices/withdrawal-slice";
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     earnings: earningsReducer,
     spin: spinReducer,
     activity: activityReducer,
-    approvals: approvalsReducer
+    approvals: approvalsReducer,
+    withdrawals : withdrawalReducer
   },
 });
