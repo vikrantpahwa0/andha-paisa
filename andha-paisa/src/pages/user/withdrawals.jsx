@@ -90,19 +90,19 @@ export default function Withdraw() {
 
   const getStatusConfig = (status) => {
     const configs = {
-      pending: {
+      PENDING: {
         icon: Clock,
         label: "Pending",
         className: "text-yellow-600 bg-yellow-50 border-yellow-200",
         iconClassName: "text-yellow-600",
       },
-      completed: {
+      CONFIRMED: {
         icon: CheckCircle,
         label: "Completed",
         className: "text-green-600 bg-green-50 border-green-200",
         iconClassName: "text-green-600",
       },
-      failed: {
+      REJECTED: {
         icon: XCircle,
         label: "Failed",
         className: "text-red-600 bg-red-50 border-red-200",
