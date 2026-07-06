@@ -70,6 +70,7 @@ export const httpCodes = {
 };
 
 export const validationMessages = {
+  WITHDRAWAL_ID_REQUIRED : "Withdrawal Id Required",
   TOKEN_EMAIL_REQUIRED: "Required Fields Missing",
   EMAIL_MOBILE_REQUIRED: "Either email or mobile number is required",
   EMAIL: "Email is Required",
