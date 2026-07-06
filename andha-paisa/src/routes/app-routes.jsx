@@ -18,6 +18,8 @@ import AboutUs from "../pages/static/about-us";
 import ContactUs from "../pages/static/contact-us";
 import MaximiseEarnings from "../pages/static/maximise-your-earnings";
 import AdminApprovals from "../pages/admin/approvals";
+import WithdrawalsApprovals from "../pages/admin/withdrawal-approvals";
+
 import Withdrawlas from "../pages/user/withdrawals";
 
 export default function AppRoutes() {
@@ -37,6 +39,7 @@ export default function AppRoutes() {
         <Route path="/offerwall" element={<Offerwall />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/approvals" element={<AdminApprovals />} />
+        <Route path="/admin/withdrawals" element={<WithdrawalsApprovals />} />
         <Route path="/survey/:id" element={<Survey />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/activity" element={<Activity />} />

@@ -15,6 +15,7 @@ export default function AdminSidebar() {
       icon: CheckCircle,
       subItems: [
         { name: "Survey Transactions", path: "/admin/approvals", icon: Wallet },
+        { name: "Withdrawals", path: "/admin/withdrawals", icon: History },
         // { name: "Gift Transactions", path: "/admin/approvals/gifts", icon: Gift },
         // { name: "Withdraw Requests", path: "/admin/approvals/withdraw-requests", icon: History },
       ]
