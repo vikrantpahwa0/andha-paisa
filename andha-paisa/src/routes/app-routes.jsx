@@ -19,6 +19,9 @@ import ContactUs from "../pages/static/contact-us";
 import MaximiseEarnings from "../pages/static/maximise-your-earnings";
 import AdminApprovals from "../pages/admin/approvals";
 import WithdrawalsApprovals from "../pages/admin/withdrawal-approvals";
+import RedeemPoints from "../pages/user/redeem-points";
+
+
 
 import Withdrawlas from "../pages/user/withdrawals";
 
@@ -52,6 +55,7 @@ export default function AppRoutes() {
         <Route path="/contact-us" element={<ContactUs />} />  
         <Route path="/maximise-your-earnings" element={<MaximiseEarnings />} />  
         <Route path="/withdrawals" element={< Withdrawlas/>} /> 
+        <Route path="/use-points" element={<RedeemPoints />} />
       </Routes>
   );
 }
