@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
         "Right to Deletion: Request permanent deletion of your account and data.",
         "Right to Restrict Processing: Limit how we use your data.",
         "Right to Data Portability: Receive your data in a machine-readable format.",
-        "To exercise these rights, contact us at privacy@cashcash.com"
+        "To exercise these rights, contact us at cashcashsupport@gmail.com"
       ]
     }
   ];
@@ -228,7 +228,7 @@ export default function PrivacyPolicy() {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <div className="flex items-center justify-center gap-2 text-slate-600">
                   <Mail className="w-5 h-5 text-emerald-600" />
-                  <span>privacy@cashcash.com</span>
+                  <span>cashcashsupport@gmail.com</span>
                 </div>
               </div>
             </div>

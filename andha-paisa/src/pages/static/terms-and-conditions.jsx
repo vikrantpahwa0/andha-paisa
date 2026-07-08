@@ -236,7 +236,7 @@ export default function TermsConditions() {
                   </li>
                   <li className="text-slate-600 flex items-start gap-2">
                     <span className="text-emerald-500 mt-1">•</span>
-                    <span><strong>Informal Resolution:</strong> Contact support@cashcash.com to resolve disputes informally.</span>
+                    <span><strong>Informal Resolution:</strong> Contact cashcashsupport@gmail.com to resolve disputes informally.</span>
                   </li>
                   <li className="text-slate-600 flex items-start gap-2">
                     <span className="text-emerald-500 mt-1">•</span>
@@ -280,11 +280,11 @@ export default function TermsConditions() {
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <div className="flex items-center justify-center gap-2 text-slate-600">
                     <Mail className="w-5 h-5 text-emerald-600" />
-                    <span>legal@cashcash.com</span>
+                    <span>cashcashsupport@gmail.com</span>
                   </div>
                   <div className="flex items-center justify-center gap-2 text-slate-600">
                     <Shield className="w-5 h-5 text-emerald-600" />
-                    <span>support@cashcash.com</span>
+                    <span>cashcashsupport@gmail.com</span>
                   </div>
                 </div>
               </div>

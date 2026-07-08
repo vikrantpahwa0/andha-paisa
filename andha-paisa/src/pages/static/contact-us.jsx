@@ -8,7 +8,7 @@ export default function ContactUs() {
   const [copied, setCopied] = useState(false);
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText("support@cashcash.com");
+    navigator.clipboard.writeText("cashcashsupport@gmail.com");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -58,7 +58,7 @@ export default function ContactUs() {
 
               <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-lg font-medium text-slate-800">support@cashcash.com</span>
+                  <span className="text-lg font-medium text-slate-800">cashcashsupport@gmail.com</span>
                   <button
                     onClick={handleCopyEmail}
                     className="flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-green-50 hover:border-green-200 hover:text-green-600 transition"
@@ -79,7 +79,7 @@ export default function ContactUs() {
               </div>
 
               <a
-                href="mailto:support@cashcash.com"
+                href="mailto:cashcashsupport@gmail.com"
                 className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition"
               >
                 <Mail className="w-4 h-4" />
