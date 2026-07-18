@@ -11,6 +11,7 @@ import userRoutes from "./routes/users.routes.js";
 import miniGamesRoutes from "./routes/games/spin-wheel.js";
 import approvalRoutes from "./routes/approvals.js";
 import withdrawalsRoutes from "./routes/withdrawals/withdrawals.js";
+import productRoutes from "./routes/products.routes.js";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/auth", userRoutes);
 app.use("/mini-games", miniGamesRoutes);
 app.use("/admin/approvals", approvalRoutes);
 app.use("/withdrawals", withdrawalsRoutes);
+app.use("/products", productRoutes);
 
 const PORT = process.env.PORT || 3000;
 
