@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { ClipboardList, CheckCircle, Wallet, Gift, History } from "lucide-react";
+import { ClipboardList, CheckCircle, Wallet, Gift, History, Package, PlusCircle, List, Edit } from "lucide-react";
 import { useState } from "react";
 
 export default function AdminSidebar() {
@@ -19,6 +19,11 @@ export default function AdminSidebar() {
         // { name: "Gift Transactions", path: "/admin/approvals/gifts", icon: Gift },
         // { name: "Withdraw Requests", path: "/admin/approvals/withdraw-requests", icon: History },
       ]
+    },
+    { 
+      name: "Products", 
+      path: "/admin/products", 
+      icon: Package,
     },
   ];
 

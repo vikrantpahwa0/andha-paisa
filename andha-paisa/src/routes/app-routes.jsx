@@ -20,6 +20,7 @@ import MaximiseEarnings from "../pages/static/maximise-your-earnings";
 import AdminApprovals from "../pages/admin/approvals";
 import WithdrawalsApprovals from "../pages/admin/withdrawal-approvals";
 import RedeemPoints from "../pages/user/redeem-points";
+import AdminProducts from "../pages/admin/products/products";
 
 
 
@@ -43,6 +44,7 @@ export default function AppRoutes() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/approvals" element={<AdminApprovals />} />
         <Route path="/admin/withdrawals" element={<WithdrawalsApprovals />} />
+        <Route path="/admin/products" element={<AdminProducts />} /> 
         <Route path="/survey/:id" element={<Survey />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/activity" element={<Activity />} />

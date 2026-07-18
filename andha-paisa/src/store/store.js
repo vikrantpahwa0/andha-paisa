@@ -9,6 +9,8 @@ import activityReducer from "./slices/activity-slice";
 import approvalsReducer from "./slices/approvals";
 import withdrawalReducer from "./slices/withdrawal-slice";
 import adminWithdrawals from "./slices/admin/withdrawals";
+import adminProducts from "./slices/admin/products";
+
 
 
 export const store = configureStore({
@@ -22,6 +24,7 @@ export const store = configureStore({
     activity: activityReducer,
     approvals: approvalsReducer,
     withdrawals : withdrawalReducer,
-    adminWithdrawals
+    adminWithdrawals,
+    adminProducts
   },
 });
