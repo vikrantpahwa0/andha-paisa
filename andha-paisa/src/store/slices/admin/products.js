@@ -1,130 +1,176 @@
-// src/store/slices/product-slice.js
+// src/store/slices/admin/products.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-// Mock data - will be replaced with API calls
-let mockProducts = [
-  {
-    id: 1,
-    name: "Amazon Gift Card",
-    category: "Gift Cards",
-    description: "₹500 Amazon Gift Card - Shop for anything on Amazon",
-    pointsRequired: 500,
-    stock: 25,
-    expiryDate: "2026-12-31",
-    tags: ["Popular", "Digital"],
-    images: [
-      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=400&h=300&fit=crop",
-    ],
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 2,
-    name: "Premium Headphones",
-    category: "Electronics",
-    description: "Wireless Bluetooth Headphones with Noise Cancellation",
-    pointsRequired: 2000,
-    stock: 8,
-    expiryDate: null,
-    tags: ["Electronics", "Premium"],
-    images: [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=300&fit=crop",
-    ],
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-];
+import { logout } from "../auth-slice";
+import { fetchWithAuth } from "../../../utils/retry-api-calls";
 
 // Fetch all products
 export const getProductsList = createAsyncThunk(
-  "product/getList",
-  async (_, { rejectWithValue }) => {
+  "adminProducts/getProductsList",
+  async (_, { rejectWithValue, dispatch, getState }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Filter out inactive products
-      const activeProducts = mockProducts.filter(p => p.is_active !== false);
-      return activeProducts;
+      const response = await fetchWithAuth(
+        "/products/list",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+        { rejectWithValue, dispatch, getState },
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        return rejectWithValue(errorMessage);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        return rejectWithValue("Invalid response from server");
+      }
+
+      if (!data.success) {
+        return rejectWithValue(data.message || "Failed to fetch products");
+      }
+
+      return data.data || data.products || [];
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || "Network error occurred");
     }
-  }
+  },
+);
+
+// Fetch categories
+export const getCategoriesList = createAsyncThunk(
+  "adminProducts/getCategoriesList",
+  async (_, { rejectWithValue, dispatch, getState }) => {
+    try {
+      const response = await fetchWithAuth(
+        "/products/categories/list",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+        { rejectWithValue, dispatch, getState },
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        return rejectWithValue(errorMessage);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        return rejectWithValue("Invalid response from server");
+      }
+
+      if (!data.success) {
+        return rejectWithValue(data.message || "Failed to fetch categories");
+      }
+
+      return data.data || [];
+    } catch (error) {
+      return rejectWithValue(error.message || "Network error occurred");
+    }
+  },
 );
 
 // Create or update product
 export const createUpdateProduct = createAsyncThunk(
-  "product/createUpdate",
-  async (productData, { rejectWithValue }) => {
+  "adminProducts/createUpdateProduct",
+  async (productData, { rejectWithValue, dispatch, getState }) => {
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await fetchWithAuth(
+        "/products/create-update",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productData),
+        },
+        { rejectWithValue, dispatch, getState },
+      );
 
-      if (productData.id) {
-        // Update existing product
-        const index = mockProducts.findIndex(p => p.id === productData.id);
-        if (index === -1) {
-          return rejectWithValue("Product not found");
+      if (!response.ok) {
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          errorMessage = response.statusText || errorMessage;
         }
-
-        // If is_active is false, soft delete
-        if (productData.is_active === false) {
-          mockProducts[index] = { ...mockProducts[index], is_active: false };
-          return { 
-            success: true, 
-            message: "Product deleted successfully",
-            data: { productId: productData.id }
-          };
-        }
-
-        // Update product
-        mockProducts[index] = {
-          ...mockProducts[index],
-          ...productData,
-          updated_at: new Date().toISOString(),
-        };
-        return { 
-          success: true, 
-          message: "Product updated successfully",
-          data: { productId: productData.id }
-        };
-      } else {
-        // Create new product
-        const newProduct = {
-          ...productData,
-          id: Date.now(),
-          is_active: true,
-          created_at: new Date().toISOString(),
-        };
-        mockProducts.push(newProduct);
-        return { 
-          success: true, 
-          message: "Product created successfully",
-          data: { productId: newProduct.id }
-        };
+        return rejectWithValue(errorMessage);
       }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        return rejectWithValue("Invalid response from server");
+      }
+
+      if (!data.success) {
+        return rejectWithValue(data.message || "Failed to save product");
+      }
+
+      return {
+        success: true,
+        message:
+          data.message ||
+          (productData.id
+            ? "Product updated successfully"
+            : "Product created successfully"),
+        data: data.data || data.product,
+      };
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || "Network error occurred");
     }
-  }
+  },
 );
 
-const productSlice = createSlice({
-  name: "product",
-  initialState: {
-    products: [],
-    isLoading: false,
-    error: null,
-    successMessage: null,
-  },
+const initialState = {
+  products: [],
+  categories: [],
+  isLoading: false,
+  error: null,
+  successMessage: null,
+  selectedProduct: null,
+};
+
+const adminProductsSlice = createSlice({
+  name: "adminProducts",
+  initialState,
   reducers: {
     clearError: (state) => {
       state.error = null;
     },
     clearSuccessMessage: (state) => {
       state.successMessage = null;
+    },
+    setSelectedProduct: (state, action) => {
+      state.selectedProduct = action.payload;
+    },
+    clearSelectedProduct: (state) => {
+      state.selectedProduct = null;
     },
   },
   extraReducers: (builder) => {
@@ -142,6 +188,21 @@ const productSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+
+      // Get Categories List
+      .addCase(getCategoriesList.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getCategoriesList.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.categories = action.payload;
+      })
+      .addCase(getCategoriesList.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+
       // Create/Update Product
       .addCase(createUpdateProduct.pending, (state) => {
         state.isLoading = true;
@@ -150,14 +211,43 @@ const productSlice = createSlice({
       })
       .addCase(createUpdateProduct.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.successMessage = action.payload.message || "Product saved successfully";
+        state.successMessage = action.payload.message;
+
+        if (action.payload.data) {
+          const productData = action.payload.data;
+          if (productData.id) {
+            const index = state.products.findIndex(
+              (p) => p.id === productData.id,
+            );
+            if (index !== -1) {
+              state.products[index] = productData;
+            } else {
+              state.products.push(productData);
+            }
+          }
+        }
       })
       .addCase(createUpdateProduct.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+
+      .addCase(logout, (state) => {
+        state.products = [];
+        state.categories = [];
+        state.isLoading = false;
+        state.error = null;
+        state.successMessage = null;
+        state.selectedProduct = null;
       });
   },
 });
 
-export const { clearError, clearSuccessMessage } = productSlice.actions;
-export default productSlice.reducer;
+export const {
+  clearError,
+  clearSuccessMessage,
+  setSelectedProduct,
+  clearSelectedProduct,
+} = adminProductsSlice.actions;
+
+export default adminProductsSlice.reducer;

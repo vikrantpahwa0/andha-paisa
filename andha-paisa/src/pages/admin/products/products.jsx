@@ -1,40 +1,41 @@
 // src/pages/admin/AdminProducts.jsx
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import AdminLayout from "../../../components/common/admin-app-layout"; // Fixed import path
-import {
-  Plus,
-  X,
-  Image as ImageIcon,
-  Tag,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import AdminLayout from "../../../components/common/admin-app-layout";
+import { Plus, X, Image as ImageIcon, Tag, Edit } from "lucide-react";
 import {
   createUpdateProduct,
   getProductsList,
+  getCategoriesList,
   clearError,
   clearSuccessMessage,
 } from "../../../store/slices/admin/products";
 
-const CATEGORIES = ["Gift Cards", "Cash", "Electronics", "Merchandise", "Food", "Fashion", "Other"];
-
 export default function AdminProducts() {
   const dispatch = useDispatch();
-  const { products, isLoading, error, successMessage } = useSelector(
-    (state) => state.adminProducts || { products: [], isLoading: false, error: null, successMessage: null }
-  );
+  const { products, categories, isLoading, error, successMessage } =
+    useSelector(
+      (state) =>
+        state.adminProducts || {
+          products: [],
+          categories: [],
+          isLoading: false,
+          error: null,
+          successMessage: null,
+        },
+    );
 
   const [form, setForm] = useState({
     name: "",
-    category: "",
+    category_id: "", // Changed from category to category_id
     description: "",
-    pointsRequired: "",
+    points_required: "",
     stock: "",
-    expiryDate: "",
+    expiry_date: "",
   });
-  const [images, setImages] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState("");
   const [editingProduct, setEditingProduct] = useState(null);
@@ -42,12 +43,11 @@ export default function AdminProducts() {
   const [openProductId, setOpenProductId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // Fetch products on component mount
   useEffect(() => {
     dispatch(getProductsList());
+    dispatch(getCategoriesList()); // Fetch categories on mount
   }, [dispatch]);
 
-  // Clear messages after 3 seconds
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -67,44 +67,83 @@ export default function AdminProducts() {
     setOpenProductId(openProductId === productId ? null : productId);
   };
 
+  // Helper function to format date for input
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+      return date.toISOString().split("T")[0];
+    } catch (error) {
+      return "";
+    }
+  };
+
   const handleEditProduct = (product) => {
     setEditingProduct(product);
     setForm({
       name: product.name || "",
-      category: product.category || "",
+      category_id: product.category_id || "", // Changed from category to category_id
       description: product.description || "",
-      pointsRequired: product.pointsRequired || "",
+      points_required: product.points_required || "",
       stock: product.stock || "",
-      expiryDate: product.expiryDate || "",
+      expiry_date: formatDateForInput(product.expiry_date),
     });
-    setImageUrls(product.images || []);
-    setImages([]);
-    setTags(product.tags || []);
-    setIsEditMode(true);
-    document.getElementById("product-form")?.scrollIntoView({ behavior: "smooth" });
-  };
 
-  const handleDeleteProduct = async (productId, productName) => {
-    if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
-      try {
-        await dispatch(createUpdateProduct({
-          id: productId,
-          is_active: false,
-        })).unwrap();
-        await dispatch(getProductsList());
-        alert(`Product "${productName}" deleted successfully!`);
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert(error || "Failed to delete product");
-      }
+    // Handle images from productImages array - create a copy before sorting
+    if (product.productImages && Array.isArray(product.productImages)) {
+      const images = product.productImages.map((pi) => ({
+        id: pi.image.id,
+        path: pi.image.path,
+        display_order: pi.display_order,
+      }));
+      const sortedImages = [...images].sort(
+        (a, b) => a.display_order - b.display_order,
+      );
+      setExistingImages(sortedImages);
+    } else {
+      setExistingImages([]);
     }
+
+    setImageFiles([]);
+    setImagePreviews([]);
+
+    // Handle tags - split comma-separated string into array for UI
+    if (product.tags) {
+      if (typeof product.tags === "string") {
+        setTags(
+          product.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag),
+        );
+      } else if (Array.isArray(product.tags)) {
+        setTags(product.tags);
+      } else {
+        setTags([]);
+      }
+    } else {
+      setTags([]);
+    }
+    setIsEditMode(true);
+    document
+      .getElementById("product-form")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   const cancelEdit = () => {
     setEditingProduct(null);
-    setForm({ name: "", category: "", description: "", pointsRequired: "", stock: "", expiryDate: "" });
-    setImages([]);
-    setImageUrls([]);
+    setForm({
+      name: "",
+      category_id: "",
+      description: "",
+      points_required: "",
+      stock: "",
+      expiry_date: "",
+    });
+    setImageFiles([]);
+    setImagePreviews([]);
+    setExistingImages([]);
     setTags([]);
     setCurrentTag("");
     setIsEditMode(false);
@@ -114,21 +153,26 @@ export default function AdminProducts() {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    const validFiles = files.filter(file => file.type.startsWith('image/'));
+    const validFiles = files.filter((file) => file.type.startsWith("image/"));
     if (validFiles.length !== files.length) {
       alert("Please upload only image files");
       return;
     }
 
-    const newImageUrls = validFiles.map(file => URL.createObjectURL(file));
-    setImageUrls([...imageUrls, ...newImageUrls]);
-    setImages([...images, ...validFiles]);
+    const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviews([...imagePreviews, ...newPreviews]);
+    setImageFiles([...imageFiles, ...validFiles]);
     e.target.value = "";
   };
 
-  const removeImage = (index) => {
-    setImageUrls(imageUrls.filter((_, i) => i !== index));
-    setImages(images.filter((_, i) => i !== index));
+  const removeNewImage = (index) => {
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+    setImageFiles(imageFiles.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
   };
 
   const addTag = () => {
@@ -139,14 +183,23 @@ export default function AdminProducts() {
   };
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addTag();
     }
+  };
+
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -156,11 +209,11 @@ export default function AdminProducts() {
       alert("Please enter product name");
       return;
     }
-    if (!form.category) {
+    if (!form.category_id) {
       alert("Please select a category");
       return;
     }
-    if (!form.pointsRequired || parseFloat(form.pointsRequired) <= 0) {
+    if (!form.points_required || parseFloat(form.points_required) <= 0) {
       alert("Please enter valid points required");
       return;
     }
@@ -168,20 +221,38 @@ export default function AdminProducts() {
       alert("Please enter valid stock quantity");
       return;
     }
-    if (imageUrls.length === 0 && !isEditMode) {
+
+    const totalImages = existingImages.length + imageFiles.length;
+    if (totalImages === 0 && !isEditMode) {
       alert("Please upload at least one image");
       return;
     }
 
+    const imagesData = [];
+
+    existingImages.forEach((img) => {
+      if (img.id) {
+        imagesData.push({ id: img.id });
+      }
+    });
+
+    for (const file of imageFiles) {
+      const base64 = await convertFileToBase64(file);
+      imagesData.push({ base64String: base64 });
+    }
+
+    // Convert tags array to comma-separated string
+    const tagsString = tags.length > 0 ? tags.join(",") : "";
+
     const productData = {
       name: form.name.trim(),
-      category: form.category,
+      category_id: parseInt(form.category_id), // Send category_id as integer
       description: form.description.trim(),
-      pointsRequired: parseFloat(form.pointsRequired),
+      points_required: parseFloat(form.points_required),
       stock: parseInt(form.stock),
-      expiryDate: form.expiryDate || null,
-      tags: tags,
-      images: imageUrls,
+      expiry_date: form.expiry_date || null,
+      tags: tagsString,
+      images: imagesData,
       is_active: true,
     };
 
@@ -195,11 +266,11 @@ export default function AdminProducts() {
         await dispatch(getProductsList());
         alert(
           result.message ||
-          (isEditMode ? "Product updated successfully!" : "Product created successfully!")
+            (isEditMode
+              ? "Product updated successfully!"
+              : "Product created successfully!"),
         );
         cancelEdit();
-      } else {
-        alert("Failed to save product");
       }
     } catch (error) {
       console.error("Error saving product:", error);
@@ -207,11 +278,37 @@ export default function AdminProducts() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
+
+  // Helper function to get all image URLs for display
+  const getAllImageUrls = () => {
+    const urls = [];
+    existingImages.forEach((img) => {
+      if (img.path) urls.push(img.path);
+    });
+    imagePreviews.forEach((url) => urls.push(url));
+    return urls;
+  };
+
+  // Helper function to get category name by id
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category ? category.name : categoryId;
+  };
+
   return (
     <AdminLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-800">Manage Products</h1>
-        <p className="text-sm text-gray-500">Create and manage products for users to redeem with points</p>
+        <h1 className="text-2xl font-semibold text-slate-800">
+          Manage Products
+        </h1>
+        <p className="text-sm text-gray-500">
+          Create and manage products for users to redeem with points
+        </p>
       </div>
 
       {successMessage && (
@@ -226,14 +323,17 @@ export default function AdminProducts() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* CREATE/EDIT FORM */}
         <div className="lg:col-span-5">
           <div className="bg-white rounded-xl shadow p-5 sticky top-4">
             <h3 className="text-lg font-semibold mb-4 text-slate-700">
               {isEditMode ? "Edit Product" : "Create New Product"}
             </h3>
 
-            <form id="product-form" onSubmit={handleSubmit} className="space-y-4">
+            <form
+              id="product-form"
+              onSubmit={handleSubmit}
+              className="space-y-4"
+            >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Product Name *
@@ -253,14 +353,18 @@ export default function AdminProducts() {
                   Category *
                 </label>
                 <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  value={form.category_id}
+                  onChange={(e) =>
+                    setForm({ ...form, category_id: e.target.value })
+                  }
                   className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                 >
                   <option value="">Select Category</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -272,7 +376,9 @@ export default function AdminProducts() {
                 <textarea
                   placeholder="Enter product description"
                   value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
                   rows="3"
                   className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
                   required
@@ -287,8 +393,10 @@ export default function AdminProducts() {
                   <input
                     type="number"
                     placeholder="e.g., 500"
-                    value={form.pointsRequired}
-                    onChange={(e) => setForm({ ...form, pointsRequired: e.target.value })}
+                    value={form.points_required}
+                    onChange={(e) =>
+                      setForm({ ...form, points_required: e.target.value })
+                    }
                     className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                     min="1"
@@ -302,7 +410,9 @@ export default function AdminProducts() {
                     type="number"
                     placeholder="e.g., 10"
                     value={form.stock}
-                    onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, stock: e.target.value })
+                    }
                     className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     required
                     min="0"
@@ -316,16 +426,19 @@ export default function AdminProducts() {
                 </label>
                 <input
                   type="date"
-                  value={form.expiryDate}
-                  onChange={(e) => setForm({ ...form, expiryDate: e.target.value })}
+                  value={form.expiry_date}
+                  onChange={(e) =>
+                    setForm({ ...form, expiry_date: e.target.value })
+                  }
                   className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Images * {isEditMode && "(Add more images)"}
+                  Images *
                 </label>
+
                 <div className="flex items-center gap-2">
                   <input
                     type="file"
@@ -340,32 +453,70 @@ export default function AdminProducts() {
                     className="flex-1 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-emerald-500 transition-colors"
                   >
                     <ImageIcon className="w-5 h-5 mx-auto text-gray-400" />
-                    <span className="text-sm text-gray-500">Click to upload images</span>
+                    <span className="text-sm text-gray-500">
+                      Click to upload images
+                    </span>
                   </label>
                 </div>
 
-                {imageUrls.length > 0 && (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {imageUrls.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`Product ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-lg border border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
+                {existingImages.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">
+                      Existing Images:
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {existingImages.map((img, index) => (
+                        <div
+                          key={`existing-${index}`}
+                          className="relative group"
                         >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                          <img
+                            src={img.path}
+                            alt={`Existing ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeExistingImage(index)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">New Images:</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {imagePreviews.map((url, index) => (
+                        <div key={`new-${index}`} className="relative group">
+                          <img
+                            src={url}
+                            alt={`New ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeNewImage(index)}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-xs text-gray-400 mt-1">
-                  {imageUrls.length} image{imageUrls.length !== 1 ? 's' : ''} uploaded
+                  {getAllImageUrls().length} image
+                  {getAllImageUrls().length !== 1 ? "s" : ""}
+                  {isEditMode &&
+                    ` (${existingImages.length} existing, ${imageFiles.length} new)`}
                 </p>
               </div>
 
@@ -419,7 +570,11 @@ export default function AdminProducts() {
                   disabled={isLoading}
                   className="flex-1 bg-emerald-500 text-white py-2 rounded-lg hover:bg-emerald-600 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Saving..." : isEditMode ? "Update Product" : "Create Product"}
+                  {isLoading
+                    ? "Saving..."
+                    : isEditMode
+                      ? "Update Product"
+                      : "Create Product"}
                 </button>
 
                 {isEditMode && (
@@ -436,7 +591,6 @@ export default function AdminProducts() {
           </div>
         </div>
 
-        {/* LIST - Existing Products */}
         <div className="lg:col-span-7">
           <div className="bg-white rounded-xl shadow p-5">
             <h3 className="text-lg font-semibold mb-4 text-slate-700">
@@ -456,141 +610,178 @@ export default function AdminProducts() {
                 </p>
               )}
 
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow duration-200"
-                >
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => toggleProduct(product.id)}
-                        className="flex-1 text-left group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img
-                              src={product.images && product.images[0] || "https://via.placeholder.com/100/4ade80/1a1a1a?text=P"}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.target.src = "https://via.placeholder.com/100/4ade80/1a1a1a?text=P";
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-slate-800 text-lg">
-                              {product.name}
-                            </h4>
-                            <div className="flex items-center gap-3 mt-1 flex-wrap">
-                              <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
-                                {product.category}
-                              </span>
-                              <span className="text-sm text-emerald-600 font-medium">
-                                ₹{product.pointsRequired}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                Stock: {product.stock}
-                              </span>
-                              {product.tags && product.tags.length > 0 && (
-                                <span className="text-xs text-gray-400">
-                                  {product.tags.length} tags
+              {products.map((product) => {
+                // Get sorted images for this product
+                const sortedImages =
+                  product.productImages && Array.isArray(product.productImages)
+                    ? [...product.productImages].sort(
+                        (a, b) => a.display_order - b.display_order,
+                      )
+                    : [];
+
+                return (
+                  <div
+                    key={product.id}
+                    className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow duration-200"
+                  >
+                    <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => toggleProduct(product.id)}
+                          className="flex-1 text-left group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={
+                                  sortedImages.length > 0
+                                    ? sortedImages[0].image.path
+                                    : "https://via.placeholder.com/100/4ade80/1a1a1a?text=P"
+                                }
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://via.placeholder.com/100/4ade80/1a1a1a?text=P";
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-slate-800 text-lg">
+                                {product.name}
+                              </h4>
+                              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                                  {getCategoryName(product.category_id)}
                                 </span>
-                              )}
-                              {product.images && product.images.length > 0 && (
-                                <span className="text-xs text-gray-400">
-                                  {product.images.length} images
+                                <span className="text-sm text-emerald-600 font-medium">
+                                  ₹{product.points_required}
                                 </span>
-                              )}
+                                <span className="text-xs text-gray-400">
+                                  Stock: {product.stock}
+                                </span>
+                                {product.tags && (
+                                  <span className="text-xs text-gray-400">
+                                    {typeof product.tags === "string"
+                                      ? product.tags.split(",").length
+                                      : product.tags.length}{" "}
+                                    tags
+                                  </span>
+                                )}
+                                {product.productImages &&
+                                  product.productImages.length > 0 && (
+                                    <span className="text-xs text-gray-400">
+                                      {product.productImages.length} images
+                                    </span>
+                                  )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </button>
+                        </button>
 
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => handleEditProduct(product)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-                          title="Edit Product"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id, product.name)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-                          title="Delete Product"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleEditProduct(product)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                            title="Edit Product"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div
-                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      openProductId === product.id ? "max-h-[500px]" : "max-h-0"
-                    }`}
-                  >
-                    <div className="p-4 border-t bg-gray-50">
-                      <div className="space-y-3">
-                        <div>
-                          <h5 className="text-sm font-medium text-slate-600">Description:</h5>
-                          <p className="text-sm text-slate-700 mt-1">{product.description}</p>
-                        </div>
-
-                        {product.images && product.images.length > 0 && (
+                    <div
+                      className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                        openProductId === product.id
+                          ? "max-h-[500px]"
+                          : "max-h-0"
+                      }`}
+                    >
+                      <div className="p-4 border-t bg-gray-50">
+                        <div className="space-y-3">
                           <div>
-                            <h5 className="text-sm font-medium text-slate-600 mb-2">Images:</h5>
-                            <div className="grid grid-cols-4 gap-2">
-                              {product.images.map((img, idx) => (
-                                <div key={idx} className="relative group">
-                                  <img
-                                    src={img}
-                                    alt={`${product.name} ${idx + 1}`}
-                                    className="w-full h-20 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition"
-                                    onClick={() => setPreviewImage(img)}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {product.tags && product.tags.length > 0 && (
-                          <div>
-                            <h5 className="text-sm font-medium text-slate-600 mb-1">Tags:</h5>
-                            <div className="flex flex-wrap gap-2">
-                              {product.tags.map((tag, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs"
-                                >
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {product.expiryDate && (
-                          <div>
-                            <h5 className="text-sm font-medium text-slate-600">Expiry Date:</h5>
+                            <h5 className="text-sm font-medium text-slate-600">
+                              Description:
+                            </h5>
                             <p className="text-sm text-slate-700 mt-1">
-                              {new Date(product.expiryDate).toLocaleDateString()}
+                              {product.description}
                             </p>
                           </div>
-                        )}
+
+                          {sortedImages.length > 0 && (
+                            <div>
+                              <h5 className="text-sm font-medium text-slate-600 mb-2">
+                                Images:
+                              </h5>
+                              <div className="grid grid-cols-4 gap-2">
+                                {sortedImages.map((pi, idx) => (
+                                  <div key={idx} className="relative group">
+                                    <img
+                                      src={pi.image.path}
+                                      alt={`${product.name} ${idx + 1}`}
+                                      className="w-full h-20 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition"
+                                      onClick={() =>
+                                        setPreviewImage(pi.image.path)
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {product.tags && (
+                            <div>
+                              <h5 className="text-sm font-medium text-slate-600 mb-1">
+                                Tags:
+                              </h5>
+                              <div className="flex flex-wrap gap-2">
+                                {typeof product.tags === "string"
+                                  ? product.tags.split(",").map((tag, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs"
+                                      >
+                                        {tag.trim()}
+                                      </span>
+                                    ))
+                                  : Array.isArray(product.tags) &&
+                                    product.tags.map((tag, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs"
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {product.expiry_date && (
+                            <div>
+                              <h5 className="text-sm font-medium text-slate-600">
+                                Expiry Date:
+                              </h5>
+                              <p className="text-sm text-slate-700 mt-1">
+                                {new Date(
+                                  product.expiry_date,
+                                ).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Image Preview Modal */}
       {previewImage && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
