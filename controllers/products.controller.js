@@ -6,9 +6,9 @@ import {
   successMessages,
 } from "../constants/messages.js";
 
-export const createUpdateSurveys = async (req, res) => {
+export const createUpdateProducts = async (req, res) => {
   try {
-    const survey = await productService.createUpdateSurveys(req.body);
+    const survey = await productService.createUpdateProducts(req.body);
     return successResponse(
       res,
       survey,
@@ -20,9 +20,23 @@ export const createUpdateSurveys = async (req, res) => {
   }
 };
 
-export const listSurveys = async (req, res) => {
+export const listProducts = async (req, res) => {
   try {
-    const surveys = await productService.listSurveys();
+    const surveys = await productService.listProducts();
+    return successResponse(
+      res,
+      surveys,
+      successMessages.SURVEY_MODULE_MESSAGES.SURVEYS_FETCHED_SUCCESSFULLY,
+      httpCodes.SUCCESS,
+    );
+  } catch (err) {
+    return errorResponse(res, err.message, httpCodes.BAD_REQUEST, err);
+  }
+};
+
+export const listCategories = async (req, res) => {
+  try {
+    const surveys = await productService.listCategories();
     return successResponse(
       res,
       surveys,

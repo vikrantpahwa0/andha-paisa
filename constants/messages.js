@@ -44,6 +44,7 @@ export const failureMessages = {
   },
   SURVEY_ACCESS_DENIED: "You don't have access to this survey",
   SURVEY_NOT_FOUND: "Survey not found",
+  PRODUCT_NOT_FOUND: "Product Not Found",
   USER_NOT_FOUND: "User not found",
   INVALID_TOKEN: "Invalid token",
   TOKEN_EXPIRED: "Token has expired",
@@ -70,7 +71,7 @@ export const httpCodes = {
 };
 
 export const validationMessages = {
-  WITHDRAWAL_ID_REQUIRED : "Withdrawal Id Required",
+  WITHDRAWAL_ID_REQUIRED: "Withdrawal Id Required",
   TOKEN_EMAIL_REQUIRED: "Required Fields Missing",
   EMAIL_MOBILE_REQUIRED: "Either email or mobile number is required",
   EMAIL: "Email is Required",

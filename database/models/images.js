@@ -13,12 +13,12 @@ export default (sequelize) => {
 
       code: {
         type: DataTypes.ENUM(
-          "PROD",     // Product images
-          "USER",     // User profile images
-          "SURVEY",   // Survey images
-          "BANNER",   // Banner images
-          "OFFER",    // Offer images
-          "OTHER"     // Other images
+          "PROD", // Product images
+          "USER", // User profile images
+          "SURVEY", // Survey images
+          "BANNER", // Banner images
+          "OFFER", // Offer images
+          "OTHER", // Other images
         ),
         allowNull: false,
         defaultValue: "OTHER",
@@ -70,17 +70,10 @@ export default (sequelize) => {
           name: "idx_images_created_at",
         },
       ],
-    }
+    },
   );
 
   Image.associate = (models) => {
-    Image.belongsToMany(models.Product, {
-      through: models.ProductImage,
-      foreignKey: "image_id",
-      otherKey: "product_id",
-      as: "products",
-    });
-
     Image.hasMany(models.ProductImage, {
       foreignKey: "image_id",
       as: "productImages",

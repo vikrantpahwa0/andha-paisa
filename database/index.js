@@ -10,7 +10,11 @@ import usersSurveyAnswers from "./models/surveys/users-surveys-answers.js";
 import UserBankDetailModel from "./models/user-bank-details.js";
 import configsModel from "./models/configs.js";
 import passwordResetTokensModel from "./models/password-reset-tokens.js";
-import WithdrawalRequests from "./models/withdrawals/withdrawal_requests.js"
+import WithdrawalRequests from "./models/withdrawals/withdrawal_requests.js";
+import Images from "./models/images.js";
+import ProductCategory from "./models/products/products-category.js";
+import Products from "./models/products/products.js";
+import ProductsImage from "./models/products/products-image.js";
 
 // Import spin models
 import SpinPrizeModel from "./models/spin-the-wheel/spin-prize.js";
@@ -28,7 +32,11 @@ const UsersSurveysTransactions = usersSurveysTransactions(sequelize);
 const UsersSurveyAnswers = usersSurveyAnswers(sequelize);
 const UserBankDetail = UserBankDetailModel(sequelize);
 const Config = configsModel(sequelize);
-const withdrwalRequests = WithdrawalRequests(sequelize)
+const withdrwalRequests = WithdrawalRequests(sequelize);
+const Image = Images(sequelize);
+const Category = ProductCategory(sequelize);
+const Product = Products(sequelize);
+const ProductImage = ProductsImage(sequelize);
 
 // Initialize spin models
 const SpinPrize = SpinPrizeModel(sequelize);
@@ -49,7 +57,11 @@ const models = {
   SpinPrize,
   SpinTransaction,
   PasswordResetTokens,
-  withdrwalRequests
+  withdrwalRequests,
+  Image,
+  Category,
+  Product,
+  ProductImage,
 };
 
 // Call associate functions
@@ -74,7 +86,11 @@ const db = {
   SPIN_PRIZE: SpinPrize,
   SPIN_TRANSACTION: SpinTransaction,
   PASSWORD_RESET_TOKEN: PasswordResetTokens,
-  WITHDRAWAL_REQUESTS: withdrwalRequests
+  WITHDRAWAL_REQUESTS: withdrwalRequests,
+  IMAGES: Image,
+  PRODUCTS: Product,
+  PRODUCT_CATEGORY: Category,
+  PRODUCT_IMAGE: ProductImage,
 };
 
 export default db;
