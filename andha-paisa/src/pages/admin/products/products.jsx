@@ -655,7 +655,7 @@ export default function AdminProducts() {
                                   {getCategoryName(product.category_id)}
                                 </span>
                                 <span className="text-sm text-emerald-600 font-medium">
-                                  ₹{product.points_required}
+                                  {product.points_required}
                                 </span>
                                 <span className="text-xs text-gray-400">
                                   Stock: {product.stock}

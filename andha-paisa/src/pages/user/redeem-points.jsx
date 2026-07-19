@@ -24,141 +24,26 @@ import {
 } from "lucide-react";
 import AppLayout from "../../components/common/app-layout";
 import { fetchUserEarnings } from "../../store/slices/user-earnings";
-
-// Mock product data with multiple images
-const mockProducts = [
-  {
-    id: 1,
-    name: "Amazon Gift Card",
-    description: "₹500 Amazon Gift Card - Shop for anything on Amazon",
-    pointsRequired: 500,
-    images: [
-      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop",
-    ],
-    category: "Gift Cards",
-    stock: 25,
-    expiryDate: "2026-12-31",
-    isPopular: true,
-  },
-  {
-    id: 2,
-    name: "Flipkart Voucher",
-    description: "₹1000 Flipkart Gift Voucher - Electronics, Fashion & More",
-    pointsRequired: 1000,
-    images: [
-      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop",
-    ],
-    category: "Gift Cards",
-    stock: 15,
-    expiryDate: "2026-12-31",
-    isPopular: true,
-  },
-  {
-    id: 3,
-    name: "Paytm Cash",
-    description: "₹200 Paytm Wallet Cash - Use for bills, recharges & more",
-    pointsRequired: 200,
-    images: [
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=400&h=300&fit=crop",
-    ],
-    category: "Cash",
-    stock: 50,
-    expiryDate: "2026-12-31",
-    isPopular: false,
-  },
-  {
-    id: 4,
-    name: "Premium Headphones",
-    description: "Wireless Bluetooth Headphones with Noise Cancellation",
-    pointsRequired: 2000,
-    images: [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1590658048440-550597525c0a?w=400&h=300&fit=crop",
-    ],
-    category: "Electronics",
-    stock: 8,
-    expiryDate: null,
-    isPopular: true,
-  },
-  {
-    id: 5,
-    name: "Smart Watch",
-    description: "Fitness Tracker Smart Watch with Heart Rate Monitor",
-    pointsRequired: 3500,
-    images: [
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&h=300&fit=crop",
-    ],
-    category: "Electronics",
-    stock: 5,
-    expiryDate: null,
-    isPopular: false,
-  },
-  {
-    id: 6,
-    name: "Starbucks Coffee Voucher",
-    description: "₹500 Starbucks Gift Card - Enjoy your favorite coffee",
-    pointsRequired: 500,
-    images: [
-      "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&h=300&fit=crop",
-    ],
-    category: "Gift Cards",
-    stock: 20,
-    expiryDate: "2026-12-31",
-    isPopular: false,
-  },
-  {
-    id: 7,
-    name: "Zomato Voucher",
-    description: "₹300 Zomato Food Voucher - Order from top restaurants",
-    pointsRequired: 300,
-    images: [
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop",
-    ],
-    category: "Gift Cards",
-    stock: 30,
-    expiryDate: "2026-12-31",
-    isPopular: false,
-  },
-  {
-    id: 8,
-    name: "Power Bank",
-    description: "20000mAh Power Bank with Fast Charging",
-    pointsRequired: 1500,
-    images: [
-      "https://images.unsplash.com/photo-1609592420820-2b0a2f591632?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1585792180666-f7347c490ee2?w=400&h=300&fit=crop",
-      "https://images.unsplash.com/photo-1609592420820-2b0a2f591632?w=400&h=300&fit=crop",
-    ],
-    category: "Electronics",
-    stock: 12,
-    expiryDate: null,
-    isPopular: false,
-  },
-];
-
-const categories = ["All", "Gift Cards", "Cash", "Electronics", "Merchandise"];
+import {
+  getProductsList,
+  getCategoriesList,
+} from "../../store/slices/admin/products";
 
 export default function UsePoints() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { confirmedPoints, isLoading: earningsLoading } = useSelector(
-    (state) => state.earnings
+    (state) => state.earnings,
   );
-  
-  const [products, setProducts] = useState(mockProducts);
+  const {
+    products,
+    categories,
+    isLoading: productsLoading,
+  } = useSelector(
+    (state) =>
+      state.adminProducts || { products: [], categories: [], isLoading: false },
+  );
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -171,49 +56,94 @@ export default function UsePoints() {
   const [isPaused, setIsPaused] = useState(false);
   const [cardImageIndexes, setCardImageIndexes] = useState({});
 
+  // Fetch products and categories on mount
   useEffect(() => {
+    dispatch(getProductsList());
+    dispatch(getCategoriesList());
     dispatch(fetchUserEarnings());
-    // Fetch products from API
-    // fetchProducts();
   }, [dispatch]);
 
   // Auto-slide for each product card
   useEffect(() => {
     const intervals = {};
-    
-    products.forEach(product => {
-      if (product.images && product.images.length > 1) {
+
+    products.forEach((product) => {
+      const images = getProductImages(product);
+      if (images && images.length > 1) {
         intervals[product.id] = setInterval(() => {
-          setCardImageIndexes(prev => ({
+          setCardImageIndexes((prev) => ({
             ...prev,
-            [product.id]: prev[product.id] === undefined 
-              ? 1 
-              : (prev[product.id] + 1) % product.images.length
+            [product.id]:
+              prev[product.id] === undefined
+                ? 1
+                : (prev[product.id] + 1) % images.length,
           }));
         }, 3000);
       }
     });
 
     return () => {
-      Object.values(intervals).forEach(interval => clearInterval(interval));
+      Object.values(intervals).forEach((interval) => clearInterval(interval));
     };
   }, [products]);
 
   // Auto-slide for modal images
   useEffect(() => {
-    if (isModalOpen && selectedProduct && selectedProduct.images.length > 1 && !isPaused) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex((prev) => 
-          prev === selectedProduct.images.length - 1 ? 0 : prev + 1
-        );
-      }, 3000);
-      return () => clearInterval(interval);
+    if (isModalOpen && selectedProduct && !isPaused) {
+      const images = getProductImages(selectedProduct);
+      if (images && images.length > 1) {
+        const interval = setInterval(() => {
+          setCurrentImageIndex((prev) =>
+            prev === images.length - 1 ? 0 : prev + 1,
+          );
+        }, 3000);
+        return () => clearInterval(interval);
+      }
     }
   }, [isModalOpen, selectedProduct, isPaused]);
 
-  const filteredProducts = selectedCategory === "All"
-    ? products
-    : products.filter(p => p.category === selectedCategory);
+  // Helper function to extract images from product
+  const getProductImages = (product) => {
+    if (!product) return [];
+    if (product.productImages && Array.isArray(product.productImages)) {
+      // Sort by display_order and extract image paths
+      const sortedImages = [...product.productImages]
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((pi) => pi.image?.path)
+        .filter((path) => path);
+      return sortedImages.length > 0 ? sortedImages : [];
+    }
+    // Fallback for backward compatibility
+    if (product.images && Array.isArray(product.images)) {
+      return product.images;
+    }
+    return [];
+  };
+
+  // Helper function to get category name by id
+  const getCategoryName = (categoryId) => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category ? category.name : categoryId;
+  };
+
+  // Filter products based on selected category
+  const filteredProducts =
+    selectedCategory === "All"
+      ? products
+      : products.filter((p) => {
+          const categoryName = getCategoryName(p.category_id);
+          return categoryName === selectedCategory;
+        });
+
+  // Get unique categories from products
+  const getUniqueCategories = () => {
+    const categoryNames = products
+      .map((p) => getCategoryName(p.category_id))
+      .filter((name) => name && name !== "");
+    return ["All", ...new Set(categoryNames)];
+  };
+
+  const productCategories = getUniqueCategories();
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -236,16 +166,14 @@ export default function UsePoints() {
 
   const handlePrevImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? selectedProduct.images.length - 1 : prev - 1
-    );
+    const images = getProductImages(selectedProduct);
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleNextImage = (e) => {
     e.stopPropagation();
-    setCurrentImageIndex((prev) => 
-      prev === selectedProduct.images.length - 1 ? 0 : prev + 1
-    );
+    const images = getProductImages(selectedProduct);
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
   const togglePause = (e) => {
@@ -256,8 +184,10 @@ export default function UsePoints() {
   const handleRedeem = async () => {
     if (!selectedProduct) return;
 
-    if (confirmedPoints < selectedProduct.pointsRequired) {
-      setErrorMessage(`You need ${selectedProduct.pointsRequired} points to redeem this. You have ${confirmedPoints} points.`);
+    if (confirmedPoints < selectedProduct.points_required) {
+      setErrorMessage(
+        `You need ${selectedProduct.points_required} points to redeem this. You have ${confirmedPoints} points.`,
+      );
       return;
     }
 
@@ -267,19 +197,15 @@ export default function UsePoints() {
     try {
       // Replace with actual API call
       // await api.redeemProduct({ productId: selectedProduct.id });
-      
+
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+
       setRedeemSuccess(true);
       // Refresh earnings after redemption
       dispatch(fetchUserEarnings());
-      
-      // Update product stock
-      setProducts(prev => prev.map(p => 
-        p.id === selectedProduct.id 
-          ? { ...p, stock: p.stock - 1 }
-          : p
-      ));
+
+      // Refresh products to update stock
+      dispatch(getProductsList());
 
       setTimeout(() => {
         setIsModalOpen(false);
@@ -307,20 +233,53 @@ export default function UsePoints() {
   };
 
   const getProductImage = (product, index = 0) => {
-    if (product.images && product.images.length > 0) {
-      const imgIndex = cardImageIndexes[product.id] !== undefined 
-        ? cardImageIndexes[product.id] 
-        : index;
-      return product.images[imgIndex % product.images.length];
+    const images = getProductImages(product);
+    if (images && images.length > 0) {
+      const imgIndex =
+        cardImageIndexes[product.id] !== undefined
+          ? cardImageIndexes[product.id]
+          : index;
+      return images[imgIndex % images.length];
     }
     return "https://via.placeholder.com/400x300/4ade80/1a1a1a?text=Product";
   };
 
   // Get thumbnail images (up to 3)
   const getThumbnails = (product) => {
-    if (!product.images || product.images.length === 0) return [];
-    return product.images.slice(0, 3);
+    const images = getProductImages(product);
+    if (!images || images.length === 0) return [];
+    return images.slice(0, 3);
   };
+
+  // Get total image count
+  const getImageCount = (product) => {
+    const images = getProductImages(product);
+    return images.length;
+  };
+
+  // Check if product is out of stock
+  const isOutOfStock = (product) => {
+    return product.stock === 0;
+  };
+
+  // Check if user can afford product
+  const canAfford = (product) => {
+    return confirmedPoints >= product.points_required;
+  };
+
+  // Loading state
+  if (productsLoading || earningsLoading) {
+    return (
+      <AppLayout>
+        <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-green-500 mx-auto mb-4" />
+            <p className="text-slate-600">Loading products...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -334,21 +293,27 @@ export default function UsePoints() {
             <ArrowLeft className="w-5 h-5" />
             <span>Back</span>
           </button>
-          
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-slate-800">Use Points</h1>
+              <h1 className="text-2xl font-semibold text-slate-800">
+                Use Points
+              </h1>
               <p className="text-gray-500 text-sm mt-1">
                 Redeem your points for exciting rewards and products
               </p>
             </div>
-            
+
             <div className="bg-gradient-to-br from-green-200 via-green-300 to-green-400 rounded-2xl px-6 py-3 shadow-md">
               <div className="flex items-center gap-3">
                 <Award className="w-5 h-5 text-slate-700" />
                 <div>
-                  <p className="text-xs text-slate-700 font-medium">Your Points</p>
-                  <p className="text-xl font-bold text-slate-900">₹{confirmedPoints}</p>
+                  <p className="text-xs text-slate-700 font-medium">
+                    Your Points
+                  </p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {confirmedPoints}
+                  </p>
                 </div>
               </div>
             </div>
@@ -366,9 +331,11 @@ export default function UsePoints() {
               <span className="text-sm font-medium">Filter</span>
             </button>
           </div>
-          
-          <div className={`${showFilter ? 'flex' : 'hidden'} sm:flex flex-wrap gap-2`}>
-            {categories.map((category) => (
+
+          <div
+            className={`${showFilter ? "flex" : "hidden"} sm:flex flex-wrap gap-2`}
+          >
+            {productCategories.map((category) => (
               <button
                 key={category}
                 onClick={() => {
@@ -393,7 +360,9 @@ export default function UsePoints() {
         {filteredProducts.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 text-center">
             <ShoppingBag className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700">No products found</h3>
+            <h3 className="text-lg font-semibold text-slate-700">
+              No products found
+            </h3>
             <p className="text-slate-500 text-sm mt-1">
               Try selecting a different category
             </p>
@@ -401,18 +370,19 @@ export default function UsePoints() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map((product) => {
-              const canAfford = confirmedPoints >= product.pointsRequired;
-              const isOutOfStock = product.stock === 0;
+              const canAffordProduct = canAfford(product);
+              const outOfStock = isOutOfStock(product);
               const thumbnails = getThumbnails(product);
               const currentImage = getProductImage(product);
-              
+              const imageCount = getImageCount(product);
+
               return (
                 <div
                   key={product.id}
-                  onClick={() => !isOutOfStock && handleProductClick(product)}
+                  onClick={() => !outOfStock && handleProductClick(product)}
                   className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-200
                     ${
-                      isOutOfStock
+                      outOfStock
                         ? "opacity-60 cursor-not-allowed"
                         : "hover:shadow-lg hover:-translate-y-1 cursor-pointer"
                     }
@@ -425,18 +395,19 @@ export default function UsePoints() {
                       alt={product.name}
                       className="w-full h-full object-cover transition-opacity duration-500"
                       onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/400x300/4ade80/1a1a1a?text=Product";
+                        e.target.src =
+                          "https://via.placeholder.com/400x300/4ade80/1a1a1a?text=Product";
                       }}
                     />
-                    
+
                     {product.isPopular && (
                       <span className="absolute top-2 left-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
                         <Sparkles className="w-3 h-3" />
                         Popular
                       </span>
                     )}
-                    
-                    {isOutOfStock && (
+
+                    {outOfStock && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="bg-red-500 text-white px-4 py-2 rounded-xl font-semibold text-sm">
                           Out of Stock
@@ -445,26 +416,28 @@ export default function UsePoints() {
                     )}
 
                     {/* Thumbnail strip at bottom of card */}
-                    {thumbnails.length > 1 && !isOutOfStock && (
+                    {thumbnails.length > 1 && !outOfStock && (
                       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1.5 rounded-lg">
                         {thumbnails.map((thumb, idx) => {
-                          const isActive = cardImageIndexes[product.id] === undefined 
-                            ? idx === 0 
-                            : cardImageIndexes[product.id] === idx;
-                          
+                          const currentIdx =
+                            cardImageIndexes[product.id] !== undefined
+                              ? cardImageIndexes[product.id]
+                              : 0;
+                          const isActive = idx === currentIdx;
+
                           return (
                             <div
                               key={idx}
                               className={`w-8 h-8 rounded-md overflow-hidden border-2 transition-all duration-200 ${
-                                isActive 
-                                  ? 'border-green-400 ring-1 ring-green-300' 
-                                  : 'border-white/40 hover:border-white'
+                                isActive
+                                  ? "border-green-400 ring-1 ring-green-300"
+                                  : "border-white/40 hover:border-white"
                               }`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setCardImageIndexes(prev => ({
+                                setCardImageIndexes((prev) => ({
                                   ...prev,
-                                  [product.id]: idx
+                                  [product.id]: idx,
                                 }));
                               }}
                             >
@@ -473,7 +446,8 @@ export default function UsePoints() {
                                 alt={`${product.name} ${idx + 1}`}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  e.target.src = "https://via.placeholder.com/32x32/4ade80/1a1a1a?text=P";
+                                  e.target.src =
+                                    "https://via.placeholder.com/32x32/4ade80/1a1a1a?text=P";
                                 }}
                               />
                             </div>
@@ -481,16 +455,16 @@ export default function UsePoints() {
                         })}
                       </div>
                     )}
-                    
+
                     {/* Image count badge */}
-                    {product.images && product.images.length > 1 && !isOutOfStock && (
+                    {imageCount > 1 && !outOfStock && (
                       <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                         <Eye className="w-3 h-3" />
-                        {product.images.length}
+                        {imageCount}
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="p-4">
                     <h3 className="font-semibold text-slate-800 text-sm line-clamp-1">
                       {product.name}
@@ -498,40 +472,50 @@ export default function UsePoints() {
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">
                       {product.description}
                     </p>
-                    
+
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-1">
                         <Gift className="w-4 h-4 text-green-600" />
                         <span className="text-sm font-bold text-slate-800">
-                          {product.pointsRequired}
+                          {product.points_required}
                         </span>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        canAfford && !isOutOfStock
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}>
-                        {isOutOfStock ? "Unavailable" : canAfford ? "Available" : "Need more"}
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          canAffordProduct && !outOfStock
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {outOfStock
+                          ? "Unavailable"
+                          : canAffordProduct
+                            ? "Available"
+                            : "Need more"}
                       </span>
                     </div>
-                    
+
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!isOutOfStock) handleProductClick(product);
+                        if (!outOfStock) handleProductClick(product);
                       }}
-                      disabled={isOutOfStock}
+                      disabled={outOfStock}
                       className={`w-full mt-3 py-2 rounded-xl font-medium transition-all duration-200 text-sm
                         ${
-                          isOutOfStock
+                          outOfStock
                             ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                            : canAfford
-                            ? "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500 active:scale-95"
-                            : "bg-gray-100 text-slate-500 hover:bg-gray-200"
+                            : canAffordProduct
+                              ? "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500 active:scale-95"
+                              : "bg-gray-100 text-slate-500 hover:bg-gray-200"
                         }
                       `}
                     >
-                      {isOutOfStock ? "Out of Stock" : canAfford ? "Redeem Now" : "Insufficient Points"}
+                      {outOfStock
+                        ? "Out of Stock"
+                        : canAffordProduct
+                          ? "Redeem Now"
+                          : "Insufficient Points"}
                     </button>
                   </div>
                 </div>
@@ -544,7 +528,7 @@ export default function UsePoints() {
       {/* Product Detail Modal */}
       {isModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slide-up"
             onClick={(e) => {
               if (isFullscreenImage) {
@@ -554,7 +538,9 @@ export default function UsePoints() {
             }}
           >
             <div className="sticky top-0 bg-white z-10 p-4 border-b border-slate-100 flex items-center justify-between rounded-t-2xl">
-              <h3 className="text-lg font-semibold text-slate-800">Redeem Product</h3>
+              <h3 className="text-lg font-semibold text-slate-800">
+                Redeem Product
+              </h3>
               <button
                 onClick={() => {
                   setIsModalOpen(false);
@@ -574,25 +560,36 @@ export default function UsePoints() {
             <div className="p-4">
               {/* Image Gallery */}
               <div className="relative">
-                <div 
+                <div
                   className={`aspect-video rounded-xl overflow-hidden mb-3 bg-gray-100 ${
-                    isFullscreenImage ? 'cursor-zoom-out' : 'cursor-zoom-in'
+                    isFullscreenImage ? "cursor-zoom-out" : "cursor-zoom-in"
                   }`}
                   onClick={handleImageClick}
                 >
-                  <img
-                    src={selectedProduct.images[currentImageIndex]}
-                    alt={selectedProduct.name}
-                    className={`w-full h-full object-cover transition-transform duration-300 ${
-                      isFullscreenImage ? 'scale-150' : 'scale-100'
-                    }`}
-                    onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/600x400/4ade80/1a1a1a?text=Product";
-                    }}
-                  />
-                  
+                  {(() => {
+                    const images = getProductImages(selectedProduct);
+                    const currentImage =
+                      images.length > 0 ? images[currentImageIndex] : null;
+                    return (
+                      <img
+                        src={
+                          currentImage ||
+                          "https://via.placeholder.com/600x400/4ade80/1a1a1a?text=Product"
+                        }
+                        alt={selectedProduct.name}
+                        className={`w-full h-full object-cover transition-transform duration-300 ${
+                          isFullscreenImage ? "scale-150" : "scale-100"
+                        }`}
+                        onError={(e) => {
+                          e.target.src =
+                            "https://via.placeholder.com/600x400/4ade80/1a1a1a?text=Product";
+                        }}
+                      />
+                    );
+                  })()}
+
                   {/* Image navigation arrows */}
-                  {selectedProduct.images.length > 1 && (
+                  {getProductImages(selectedProduct).length > 1 && (
                     <>
                       <button
                         onClick={handlePrevImage}
@@ -608,12 +605,13 @@ export default function UsePoints() {
                       </button>
                     </>
                   )}
-                  
+
                   {/* Image counter and pause button */}
-                  {selectedProduct.images.length > 1 && (
+                  {getProductImages(selectedProduct).length > 1 && (
                     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
                       <span>
-                        {currentImageIndex + 1} / {selectedProduct.images.length}
+                        {currentImageIndex + 1} /{" "}
+                        {getProductImages(selectedProduct).length}
                       </span>
                       <button
                         onClick={togglePause}
@@ -630,16 +628,16 @@ export default function UsePoints() {
                 </div>
 
                 {/* Thumbnails */}
-                {selectedProduct.images && selectedProduct.images.length > 1 && (
+                {getProductImages(selectedProduct).length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
-                    {selectedProduct.images.map((image, index) => (
+                    {getProductImages(selectedProduct).map((image, index) => (
                       <div
                         key={index}
                         onClick={() => handleThumbnailClick(index)}
                         className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 border-2 ${
                           currentImageIndex === index
-                            ? 'border-green-400 ring-2 ring-green-200'
-                            : 'border-transparent hover:border-gray-300'
+                            ? "border-green-400 ring-2 ring-green-200"
+                            : "border-transparent hover:border-gray-300"
                         }`}
                       >
                         <img
@@ -647,7 +645,8 @@ export default function UsePoints() {
                           alt={`${selectedProduct.name} ${index + 1}`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/64x64/4ade80/1a1a1a?text=P";
+                            e.target.src =
+                              "https://via.placeholder.com/64x64/4ade80/1a1a1a?text=P";
                           }}
                         />
                       </div>
@@ -667,7 +666,7 @@ export default function UsePoints() {
                 <div className="bg-gray-50 rounded-xl p-3">
                   <p className="text-xs text-slate-500">Points Required</p>
                   <p className="text-lg font-bold text-slate-800">
-                    {selectedProduct.pointsRequired}
+                    {selectedProduct.points_required}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3">
@@ -679,7 +678,7 @@ export default function UsePoints() {
                 <div className="bg-gray-50 rounded-xl p-3 col-span-2">
                   <p className="text-xs text-slate-500">Expiry Date</p>
                   <p className="text-sm font-medium text-slate-800">
-                    {formatDate(selectedProduct.expiryDate)}
+                    {formatDate(selectedProduct.expiry_date)}
                   </p>
                 </div>
               </div>
@@ -688,12 +687,13 @@ export default function UsePoints() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-700">Your Points</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{confirmedPoints}
+                    {confirmedPoints}
                   </span>
                 </div>
-                {confirmedPoints < selectedProduct.pointsRequired && (
+                {confirmedPoints < selectedProduct.points_required && (
                   <p className="text-xs text-red-700 mt-1">
-                    Need {selectedProduct.pointsRequired - confirmedPoints} more points
+                    Need {selectedProduct.points_required - confirmedPoints}{" "}
+                    more points
                   </p>
                 )}
               </div>
@@ -717,7 +717,7 @@ export default function UsePoints() {
                 disabled={
                   isRedeeming ||
                   redeemSuccess ||
-                  confirmedPoints < selectedProduct.pointsRequired ||
+                  confirmedPoints < selectedProduct.points_required ||
                   selectedProduct.stock === 0
                 }
                 className="w-full mt-4 py-3.5 rounded-xl font-semibold text-slate-900 transition-all duration-200
@@ -739,7 +739,7 @@ export default function UsePoints() {
                   </>
                 ) : selectedProduct.stock === 0 ? (
                   "Out of Stock"
-                ) : confirmedPoints < selectedProduct.pointsRequired ? (
+                ) : confirmedPoints < selectedProduct.points_required ? (
                   "Insufficient Points"
                 ) : (
                   <>
