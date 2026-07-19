@@ -15,7 +15,7 @@ router.post(
   authMiddleware(roles.ADMIN),
   createUpdateProducts,
 );
-router.get("/list", authMiddleware(roles.ADMIN), listProducts);
+router.get("/list", listProducts);
 router.get("/categories/list", listCategories);
 
 export default router;
