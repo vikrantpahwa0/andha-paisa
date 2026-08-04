@@ -3,6 +3,7 @@ import {
   createUpdateProducts,
   listProducts,
   listCategories,
+  myLeadPostback,
 } from "../controllers/products.controller.js";
 import { authMiddleware } from "../middlewares/permissions.js";
 import { roles } from "../constants/codes.js";
@@ -17,5 +18,6 @@ router.post(
 );
 router.get("/list", listProducts);
 router.get("/categories/list", listCategories);
+router.get("/mylead-postback", myLeadPostback);
 
 export default router;

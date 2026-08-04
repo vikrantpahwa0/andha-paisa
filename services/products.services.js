@@ -173,3 +173,7 @@ export const listProducts = async (data) => {
 export const listCategories = async (data) => {
   return await PRODUCT_CATEGORY.findAll();
 };
+
+export const myLeadPostback = async (data) => {
+  return true;
+};
