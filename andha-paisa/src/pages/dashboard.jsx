@@ -39,9 +39,9 @@ export default function Dashboard() {
 
   const handleStart = (item) => {
     if (!item.link) return;
-    
-    if (item.isExternal || item.link.startsWith('http')) {
-      window.open(item.link, '_blank', 'noopener,noreferrer');
+
+    if (item.isExternal || item.link.startsWith("http")) {
+      window.open(item.link, "_blank", "noopener,noreferrer");
     } else {
       navigate(item.link);
     }
@@ -57,33 +57,50 @@ export default function Dashboard() {
   };
 
   const renderSurveyCards = () => {
-    if (isLoading) return <p className="text-center py-8">Loading surveys...</p>;
-    
+    if (isLoading)
+      return <p className="text-center py-8">Loading surveys...</p>;
+
     if (surveys.length === 0) {
-      return <p className="text-center py-8 text-slate-500">No surveys available at the moment.</p>;
+      return (
+        <p className="text-center py-8 text-slate-500">
+          No surveys available at the moment.
+        </p>
+      );
     }
-    
+
     return (
       <div className="grid gap-4">
         {surveys.map((survey) => {
           const isDisabled = survey.status !== "STR";
-          
+
           return (
             <div key={survey.id}>
               {/* Survey Card */}
               <div
                 className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center ${
-                  isDisabled ? "opacity-75" : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
+                  isDisabled
+                    ? "opacity-75"
+                    : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
                 }`}
               >
                 <div>
-                  <h3 className="text-lg font-medium text-slate-800">{survey.name}</h3>
+                  <h3 className="text-lg font-medium text-slate-800">
+                    {survey.name}
+                  </h3>
                   <p className="text-emerald-600 font-semibold mt-1">
-                    +{survey.rewardPoints} Points 
+                    +{survey.rewardPoints} Points
                   </p>
-                  {survey.status === "LCK" && <p className="text-xs text-yellow-600 mt-1">Locked - Complete previous survey first</p>}
-                  {survey.status === "ALS" && <p className="text-xs text-green-600 mt-1">Completed</p>}
-                  {survey.status === "STR" && <p className="text-xs text-blue-600 mt-1">Ready to start</p>}
+                  {survey.status === "LCK" && (
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Locked - Complete previous survey first
+                    </p>
+                  )}
+                  {survey.status === "ALS" && (
+                    <p className="text-xs text-green-600 mt-1">Completed</p>
+                  )}
+                  {survey.status === "STR" && (
+                    <p className="text-xs text-blue-600 mt-1">Ready to start</p>
+                  )}
                 </div>
 
                 <button
@@ -95,7 +112,11 @@ export default function Dashboard() {
                       : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
                   }`}
                 >
-                  {survey.status === "ALS" ? "Completed" : survey.status === "LCK" ? "Locked" : "Start"}
+                  {survey.status === "ALS"
+                    ? "Completed"
+                    : survey.status === "LCK"
+                      ? "Locked"
+                      : "Start"}
                 </button>
               </div>
             </div>
@@ -109,12 +130,16 @@ export default function Dashboard() {
     <div className="grid gap-4">
       {data.map((item) => (
         <div key={item.id}>
-          <div
-            className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-          >
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center hover:shadow-md hover:-translate-y-1 transition-all duration-200">
             <div>
-              <h3 className="text-lg font-medium text-slate-800">{item.title}</h3>
-              {item.reward && <p className="text-emerald-600 font-semibold mt-1">{item.reward}</p>}
+              <h3 className="text-lg font-medium text-slate-800">
+                {item.title}
+              </h3>
+              {item.reward && (
+                <p className="text-emerald-600 font-semibold mt-1">
+                  {item.reward}
+                </p>
+              )}
             </div>
 
             <button
@@ -132,7 +157,9 @@ export default function Dashboard() {
   return (
     <AppLayout>
       {/* Popunder Ad - Triggers when survey starts */}
-      {triggerPopunder && <SurveyPopunder onTriggered={() => setTriggerPopunder(false)} />}
+      {triggerPopunder && (
+        <SurveyPopunder onTriggered={() => setTriggerPopunder(false)} />
+      )}
 
       {/* Header */}
       <div className="mb-6">
@@ -185,7 +212,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* RIGHT SECTION */}
         <div className="lg:col-span-4 order-1 lg:order-2">
-          <EarningsSidebar/>
+          <EarningsSidebar />
         </div>
 
         {/* MAIN CONTENT */}
@@ -194,7 +221,7 @@ export default function Dashboard() {
           {activeTab === "surveys" && renderSurveyCards()}
           {activeTab === "offers" && renderCards(offers)}
           {activeTab === "games" && <GamesSection />}
-          
+
           {/* Native Banner - EK BAAR LOAD, SAB TABS KE NEE CHE */}
           <div className="mt-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
