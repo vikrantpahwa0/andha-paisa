@@ -1,5 +1,5 @@
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { fileURLToPath } from "url";
+import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,42 +19,91 @@ const IMGBB_API_KEY = process.env.IMG_BB_API_KEY;
  * @returns {Promise<string>} Public URL of the image on ImgBB
  */
 export const saveBase64Image = async (base64Data, userId, expiration = 0) => {
-  // Extract the base64 content (remove the data:image/...;base64, prefix)
-  const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
+  const tag = `[ImgBB][user:${userId}]`;
+
+  // 0) Key check — fail fast with a clear message
+  if (!IMGBB_API_KEY) {
+    console.error(`${tag} ❌ IMGBB_API_KEY is not set in environment`);
+    throw new Error("IMG_BB_API_KEY missing");
+  }
+  console.log(`${tag} key present (len=${IMGBB_API_KEY.length})`);
+
+  // 1) Validate base64 format
+  console.log(`${tag} input length=${base64Data?.length ?? 0}`);
+  const matches = base64Data?.match(/^data:image\/(\w+);base64,(.+)$/);
   if (!matches) {
-    throw new Error('Invalid base64 image data');
+    console.error(
+      `${tag} ❌ Invalid base64 — first 60 chars:`,
+      base64Data?.slice(0, 60),
+    );
+    throw new Error("Invalid base64 image data");
   }
 
-  const base64Content = matches[2]; // pure base64 string
+  const mimeType = matches[1];
+  const base64Content = matches[2];
+  console.log(
+    `${tag} parsed OK — mime=${mimeType}, base64 length=${base64Content.length}`,
+  );
 
-  // Prepare FormData
+  // 2) Build FormData
   const formData = new FormData();
-  formData.append('image', base64Content);
+  formData.append("image", base64Content);
   if (expiration !== undefined && expiration !== null) {
-    formData.append('expiration', expiration.toString());
+    formData.append("expiration", expiration.toString());
   }
+  console.log(`${tag} FormData built — expiration=${expiration}`);
 
+  // 3) Call ImgBB
+  const url = `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`;
+  console.log(`${tag} POST ${url.replace(IMGBB_API_KEY, "***")}`);
+
+  const startedAt = Date.now();
   try {
-    const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
-      {
-        method: 'POST',
-        body: formData,
-      }
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
+    console.log(
+      `${tag} HTTP ${response.status} ${response.statusText} (${Date.now() - startedAt}ms)`,
     );
 
-    const result = await response.json();
-
-    console.log(result.data.image.url,"result from imgbb");
-
-    if (!result.success) {
-      throw new Error(`ImgBB upload failed: ${result.error?.message || 'Unknown error'}`);
+    // 4) Parse JSON — guard against non-JSON responses
+    let result;
+    const rawText = await response.text();
+    try {
+      result = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.error(`${tag} ❌ Non-JSON response body:`, rawText.slice(0, 500));
+      throw new Error(`ImgBB returned non-JSON (HTTP ${response.status})`);
     }
 
-    // Return the direct image URL (from the 'url' field in the response)
-    return result.data.image.url;
+    // 5) Check success BEFORE touching result.data
+    if (!result.success) {
+      console.error(`${tag} ❌ ImgBB error:`, JSON.stringify(result, null, 2));
+      throw new Error(
+        `ImgBB upload failed: ${result.error?.message || "Unknown error"}`,
+      );
+    }
+
+    // 6) Extract URL — guard against missing data shape
+    const imageUrl = result.data?.image?.url;
+    if (!imageUrl) {
+      console.error(
+        `${tag} ❌ Success=true but no data.image.url:`,
+        JSON.stringify(result, null, 2),
+      );
+      throw new Error("ImgBB response missing data.image.url");
+    }
+
+    console.log(`${tag} ✅ uploaded → ${imageUrl}`);
+    return imageUrl;
   } catch (error) {
-    console.error('ImgBB upload error:', error);
-    throw new Error('Failed to upload image to ImgBB: ' + error.message);
+    console.error(`${tag} ❌ upload failed (${Date.now() - startedAt}ms):`, {
+      name: error.name,
+      message: error.message,
+      cause: error.cause?.message,
+    });
+    throw new Error("Failed to upload image to ImgBB: " + error.message);
   }
 };
