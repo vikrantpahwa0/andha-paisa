@@ -20,6 +20,13 @@ export const successMessages = {
   PASSWORD_RESET_SUCCESSFUL: "Password reset successfully. Please login.",
   TRANSACTIONS_FETCHED: "Withdrawable transactions fetched successfully",
   STATUS_UPDATED: "Status Updated",
+  TEMPLATE_CREATED: "Template created successfully",
+  TEMPLATE_UPDATED: "Template updated successfully",
+  TEMPLATE_DELETED: "Template deleted successfully",
+  TEMPLATES_FETCHED: "Templates fetched successfully",
+  TEMPLATE_FETCHED: "Template fetched successfully",
+  APPLICATION_SENT: "Application sent successfully",
+  APPLICATIONS_FETCHED: "Applications fetched successfully",
 };
 
 export const failureMessages = {
@@ -59,6 +66,13 @@ export const failureMessages = {
   SPIN_LIMIT_REACHED:
     "You have reached the maximum number of spins allowed for today. Please try again tomorrow.",
   NO_ACTIVE_PRIZES: "No active prizes configured",
+  TEMPLATE_NOT_FOUND: "Template not found",
+  APPLICATION_NOT_FOUND: "Application not found",
+  NO_RECIPIENTS: "At least one recipient email is required",
+  SMTP_NOT_CONFIGURED: "SMTP credentials are not configured",
+  EMAIL_SENDING_FAILED: "Failed to send email",
+  RESUME_REQUIRED: "Resume file is required",
+  TEMPLATE_IN_USE: "Template has applications and cannot be deleted",
 };
 
 export const httpCodes = {
@@ -99,4 +113,7 @@ export const validationMessages = {
   CONFIG_MESSAGES: {
     CODES_ARRAY_REQUIRED: "Codes must be a non-empty array",
   },
+  REQUIRED_FIELDS: "Please fill all required fields",
+  INVALID_EMAIL: "Invalid email address",
+  INVALID_POSITION: "Invalid position",
 };

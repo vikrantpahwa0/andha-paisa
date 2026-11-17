@@ -20,6 +20,11 @@ import ProductsImage from "./models/products/products-image.js";
 import SpinPrizeModel from "./models/spin-the-wheel/spin-prize.js";
 import SpinTransactionModel from "./models/spin-the-wheel/spin-transaction.js";
 
+import { DataTypes } from "sequelize";
+import templatesModel from "./models/templates.js";
+import applicationsModel from "./models/applications.js";
+// REMOVED DUPLICATE IMPORT: import templates from "./models/templates.js";
+
 // Initialize all models
 const Survey = SurveyModel(sequelize);
 const SurveyQuestions = SurveysQuestions(sequelize);
@@ -42,6 +47,9 @@ const ProductImage = ProductsImage(sequelize);
 const SpinPrize = SpinPrizeModel(sequelize);
 const SpinTransaction = SpinTransactionModel(sequelize);
 
+const TEMPLATES = templatesModel(sequelize, DataTypes);
+const APPLICATIONS = applicationsModel(sequelize, DataTypes);
+
 // Create models object for associations
 const models = {
   Survey,
@@ -62,6 +70,8 @@ const models = {
   Category,
   Product,
   ProductImage,
+  TEMPLATES,
+  APPLICATIONS,
 };
 
 // Call associate functions
@@ -91,6 +101,8 @@ const db = {
   PRODUCTS: Product,
   PRODUCT_CATEGORY: Category,
   PRODUCT_IMAGE: ProductImage,
+  TEMPLATES,
+  APPLICATIONS,
 };
 
 export default db;
