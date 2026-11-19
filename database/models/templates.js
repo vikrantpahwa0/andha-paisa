@@ -26,6 +26,10 @@ export default function (sequelize, DataTypes) {
       resume_mime: { type: DataTypes.STRING(120), allowNull: true },
       resume_size: { type: DataTypes.INTEGER, allowNull: true },
       is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+      follow_up_1_subject: { type: DataTypes.TEXT, allowNull: true },
+      follow_up_1_body: { type: DataTypes.TEXT, allowNull: true },
+      follow_up_2_subject: { type: DataTypes.TEXT, allowNull: true },
+      follow_up_2_body: { type: DataTypes.TEXT, allowNull: true },
     },
     {
       tableName: "templates",

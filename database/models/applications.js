@@ -26,6 +26,13 @@ export default function (sequelize, DataTypes) {
       },
       error: { type: DataTypes.TEXT, allowNull: true },
       sent_at: { type: DataTypes.DATE, allowNull: true },
+      stop_follow_up: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      follow_up_1_sent_at: { type: DataTypes.DATE, allowNull: true },
+      follow_up_2_sent_at: { type: DataTypes.DATE, allowNull: true },
     },
     {
       tableName: "applications",

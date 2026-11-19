@@ -124,3 +124,18 @@ export const fetchApplicationById = async (id) => {
   if (!application) throw new Error(failureMessages.APPLICATION_NOT_FOUND);
   return application;
 };
+
+export const toggleFollowUp = async (id) => {
+  const application = await APPLICATIONS.findByPk(id);
+  if (!application) throw new Error(failureMessages.APPLICATION_NOT_FOUND);
+
+  await application.update({ stop_follow_up: !application.stop_follow_up });
+  return application;
+};
+
+// Optional helper the cron uses to fetch the template relationship
+export const getApplicationWithTemplate = async (id) => {
+  return APPLICATIONS.findByPk(id, {
+    include: [{ model: TEMPLATES, as: "template" }],
+  });
+};

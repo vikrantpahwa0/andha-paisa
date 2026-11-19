@@ -45,3 +45,12 @@ export const fetchApplicationById = async (req, res) => {
     return errorResponse(res, err.message, httpCodes.NOT_FOUND, err);
   }
 };
+
+export const toggleFollowUp = async (req, res) => {
+  try {
+    const application = await applicationService.toggleFollowUp(req.params.id);
+    return successResponse(res, application, "Follow-up toggled", 200);
+  } catch (err) {
+    return errorResponse(res, err.message, 400, err);
+  }
+};

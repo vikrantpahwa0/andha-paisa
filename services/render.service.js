@@ -24,13 +24,24 @@ export const renderTemplate = (text, variables = {}) => {
 };
 
 export const buildHtml = (body) => {
-  // Normalize line endings (Windows \r\n to standard \n) and convert to HTML breaks
-  const safeBody = String(body || "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\n/g, "<br/>");
+  if (!body) return "";
 
-  // Using a simple table layout ensures maximum compatibility across all email clients.
-  // Explicit text-align: left and standard fonts prevent it from looking like an automated system alert.
+  // 1. Normalize line endings and TRIM leading/trailing spaces
+  // This removes the accidental indentation on "Hi Nandini,"
+  const normalized = String(body).replace(/\r\n/g, "\n").trim();
+
+  // 2. Split by double newlines to create paragraphs
+  const formattedBody = normalized
+    .split(/\n{2,}/)
+    .map((paragraph) => {
+      // Convert single newlines within the paragraph to <br>
+      const withBreaks = paragraph.replace(/\n/g, "<br>");
+      // Return a <p> tag with explicit margin resets (fixes huge Gmail gaps)
+      return `<p style="margin: 0 0 16px 0; padding: 0;">${withBreaks}</p>`;
+    })
+    .join("");
+
+  // 3. Return the robust email wrapper
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -41,9 +52,8 @@ export const buildHtml = (body) => {
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff;">
       <tr>
         <td align="left" style="padding: 20px 0;">
-          <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.6; color: #222222; text-align: left; max-width: 600px; margin: 0 auto; padding: 0 20px; white-space: pre-wrap;">
-            ${safeBody}
-          </div>
+          <!-- Notice how ${formattedBody} is flush against the tags to prevent space rendering -->
+          <div style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.5; color: #222222; text-align: left; max-width: 600px; margin: 0 auto; padding: 0 20px;">${formattedBody}</div>
         </td>
       </tr>
     </table>
