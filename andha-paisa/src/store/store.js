@@ -10,8 +10,8 @@ import approvalsReducer from "./slices/approvals";
 import withdrawalReducer from "./slices/withdrawal-slice";
 import adminWithdrawals from "./slices/admin/withdrawals";
 import adminProducts from "./slices/admin/products";
-
-
+import templatesReducer from "./slices/templates-slice";
+import applicationsReducer from "./slices/applications-slice";
 
 export const store = configureStore({
   reducer: {
@@ -23,8 +23,10 @@ export const store = configureStore({
     spin: spinReducer,
     activity: activityReducer,
     approvals: approvalsReducer,
-    withdrawals : withdrawalReducer,
+    withdrawals: withdrawalReducer,
     adminWithdrawals,
-    adminProducts
+    adminProducts,
+    template: templatesReducer,
+    application: applicationsReducer,
   },
 });

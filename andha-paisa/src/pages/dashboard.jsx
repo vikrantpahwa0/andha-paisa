@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { FileText, Flame, Gamepad2 } from "lucide-react";
-import { getUserSurveys } from "../store/slices/user-survey-slice";
+import { FileText, Flame, Gamepad2, ExternalLink } from "lucide-react";
+import {
+  getUserSurveys,
+  getThirdPartyCampaigns,
+} from "../store/slices/user-survey-slice";
 import AppLayout from "../components/common/app-layout";
 import EarningsSidebar from "../components/dashboard/earnings-display";
 import GamesSection from "../components/games-section/games-section";
@@ -29,12 +32,15 @@ const offers = [
 export default function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { surveys, isLoading } = useSelector((state) => state.userSurvey);
+  const { surveys, allSurveys, isLoading } = useSelector(
+    (state) => state.userSurvey,
+  );
   const [activeTab, setActiveTab] = useState("surveys");
   const [triggerPopunder, setTriggerPopunder] = useState(false);
 
   useEffect(() => {
     dispatch(getUserSurveys());
+    dispatch(getThirdPartyCampaigns());
   }, [dispatch]);
 
   const handleStart = (item) => {
@@ -48,7 +54,7 @@ export default function Dashboard() {
   };
 
   const handleStartSurvey = (survey) => {
-    if (survey.status === "STR") {
+    if (!survey.is_third_party && survey.status === "STR") {
       setTriggerPopunder(true);
       setTimeout(() => {
         navigate(`/survey/${survey.id}`);
@@ -56,11 +62,18 @@ export default function Dashboard() {
     }
   };
 
+  const handleThirdPartyClick = (campaign) => {
+    const url = campaign.preview_url || campaign.tracking_url;
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const renderSurveyCards = () => {
     if (isLoading)
       return <p className="text-center py-8">Loading surveys...</p>;
 
-    if (surveys.length === 0) {
+    if (allSurveys.length === 0) {
       return (
         <p className="text-center py-8 text-slate-500">
           No surveys available at the moment.
@@ -70,53 +83,83 @@ export default function Dashboard() {
 
     return (
       <div className="grid gap-4">
-        {surveys.map((survey) => {
-          const isDisabled = survey.status !== "STR";
+        {allSurveys.map((survey) => {
+          const isThirdParty = survey.is_third_party;
+          const isDisabled = !isThirdParty && survey.status !== "STR";
+          const hasUrl =
+            isThirdParty && (survey.preview_url || survey.tracking_url);
 
           return (
             <div key={survey.id}>
-              {/* Survey Card */}
               <div
                 className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex justify-between items-center ${
-                  isDisabled
+                  isDisabled || (isThirdParty && !hasUrl)
                     ? "opacity-75"
                     : "hover:shadow-md hover:-translate-y-1 transition-all duration-200"
                 }`}
               >
-                <div>
-                  <h3 className="text-lg font-medium text-slate-800">
-                    {survey.name}
-                  </h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-medium text-slate-800">
+                      {survey.name}
+                    </h3>
+                    {isThirdParty && (
+                      <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <ExternalLink className="w-3 h-3" />
+                        Offer
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-emerald-600 font-semibold mt-1">
-                    +{survey.rewardPoints} Points
+                    {isThirdParty
+                      ? `+${survey.payout || "N/A"} ${survey.currency || "Points"}`
+                      : `+${survey.rewardPoints || "N/A"} Points`}
                   </p>
-                  {survey.status === "LCK" && (
+
+                  {isThirdParty && survey.short_description && (
+                    <p className="text-sm text-slate-600 mt-1 line-clamp-2">
+                      {survey.short_description.replace(/<[^>]*>/g, "")}
+                    </p>
+                  )}
+
+                  {!isThirdParty && survey.status === "LCK" && (
                     <p className="text-xs text-yellow-600 mt-1">
                       Locked - Complete previous survey first
                     </p>
                   )}
-                  {survey.status === "ALS" && (
+                  {!isThirdParty && survey.status === "ALS" && (
                     <p className="text-xs text-green-600 mt-1">Completed</p>
                   )}
-                  {survey.status === "STR" && (
+                  {!isThirdParty && survey.status === "STR" && (
                     <p className="text-xs text-blue-600 mt-1">Ready to start</p>
                   )}
                 </div>
 
                 <button
-                  onClick={() => handleStartSurvey(survey)}
-                  disabled={isDisabled}
+                  onClick={() => {
+                    if (isThirdParty) {
+                      handleThirdPartyClick(survey);
+                    } else {
+                      handleStartSurvey(survey);
+                    }
+                  }}
+                  disabled={isDisabled || (isThirdParty && !hasUrl)}
                   className={`px-5 py-2 rounded-xl font-semibold transition active:scale-95 shadow-sm ${
-                    isDisabled
+                    isDisabled || (isThirdParty && !hasUrl)
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
+                      : isThirdParty
+                        ? "bg-gradient-to-r from-purple-200 via-purple-300 to-purple-400 text-slate-900 hover:from-purple-300 hover:to-purple-500"
+                        : "bg-gradient-to-r from-green-200 via-green-300 to-green-400 text-slate-900 hover:from-green-300 hover:to-green-500"
                   }`}
                 >
-                  {survey.status === "ALS"
-                    ? "Completed"
-                    : survey.status === "LCK"
-                      ? "Locked"
-                      : "Start"}
+                  {isThirdParty
+                    ? "Start Offer"
+                    : survey.status === "ALS"
+                      ? "Completed"
+                      : survey.status === "LCK"
+                        ? "Locked"
+                        : "Start"}
                 </button>
               </div>
             </div>
@@ -156,12 +199,10 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      {/* Popunder Ad - Triggers when survey starts */}
       {triggerPopunder && (
         <SurveyPopunder onTriggered={() => setTriggerPopunder(false)} />
       )}
 
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-800">Earn Rewards</h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -169,7 +210,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-md p-2 flex w-fit gap-1 mb-6">
         <button
           onClick={() => setActiveTab("surveys")}
@@ -208,21 +248,16 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* RIGHT SECTION */}
         <div className="lg:col-span-4 order-1 lg:order-2">
           <EarningsSidebar />
         </div>
 
-        {/* MAIN CONTENT */}
         <div className="lg:col-span-8 order-2 lg:order-1">
-          {/* Tab Content */}
           {activeTab === "surveys" && renderSurveyCards()}
           {activeTab === "offers" && renderCards(offers)}
           {activeTab === "games" && <GamesSection />}
 
-          {/* Native Banner - EK BAAR LOAD, SAB TABS KE NEE CHE */}
           <div className="mt-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
               <NativeBanner />

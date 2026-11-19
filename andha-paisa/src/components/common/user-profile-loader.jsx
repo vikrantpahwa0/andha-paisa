@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { fetchUserProfile } from '../../store/slices/user-personal';
+import { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
+import { fetchUserProfile } from "../../store/slices/user-personal";
 
 export default function UserProfileLoader({ children }) {
   const dispatch = useDispatch();
@@ -31,10 +31,24 @@ export default function UserProfileLoader({ children }) {
 
   // Redirect to login only when no refresh token (truly logged out)
   useEffect(() => {
-    const publicPaths = ['/', '/register', '/verify','/login','/privacy-policy','/forgot-password','/reset-password','/terms-and-conditions','/about-us','/contact-us','/maximise-your-earnings'];
+    const publicPaths = [
+      "/",
+      "/register",
+      "/verify",
+      "/login",
+      "/privacy-policy",
+      "/forgot-password",
+      "/reset-password",
+      "/terms-and-conditions",
+      "/about-us",
+      "/contact-us",
+      "/maximise-your-earnings",
+      "/create-template",
+      "/apply-jobs",
+    ];
     const isPublicPage = publicPaths.includes(location.pathname);
     if (!isAuthenticated && !isPublicPage) {
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, location.pathname, navigate]);
 

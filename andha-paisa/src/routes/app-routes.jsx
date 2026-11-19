@@ -6,7 +6,7 @@ import Dashboard from "../pages/dashboard";
 import Offerwall from "../pages/offerwalls-and-surveys/offerwall";
 import AdminDashboard from "../pages/admin-dashboard";
 import Survey from "../pages/offerwalls-and-surveys/survey";
-import Profile from "../pages/user/profile"
+import Profile from "../pages/user/profile";
 import RegisterGuard from "../components/guards/RegistrationGuard";
 import Activity from "../pages/activity";
 import ForgotPassword from "../pages/auth/forgot-password";
@@ -21,17 +21,16 @@ import AdminApprovals from "../pages/admin/approvals";
 import WithdrawalsApprovals from "../pages/admin/withdrawal-approvals";
 import RedeemPoints from "../pages/user/redeem-points";
 import AdminProducts from "../pages/admin/products/products";
-
-
-
 import Withdrawlas from "../pages/user/withdrawals";
+import CreateTemplate from "../pages/CreateTemplate";
+import ApplyEmail from "../pages/ApplyEmail";
 
 export default function AppRoutes() {
   return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/verify" element={<Verification />} />
-        <Route
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/verify" element={<Verification />} />
+      <Route
         path="/register"
         element={
           <RegisterGuard>
@@ -39,25 +38,27 @@ export default function AppRoutes() {
           </RegisterGuard>
         }
       />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/offerwall" element={<Offerwall />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/approvals" element={<AdminApprovals />} />
-        <Route path="/admin/withdrawals" element={<WithdrawalsApprovals />} />
-        <Route path="/admin/products" element={<AdminProducts />} /> 
-        <Route path="/survey/:id" element={<Survey />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/activity" element={<Activity />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-and-conditions" element={<TermsConditions />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/contact-us" element={<ContactUs />} />  
-        <Route path="/maximise-your-earnings" element={<MaximiseEarnings />} />  
-        <Route path="/withdrawals" element={< Withdrawlas/>} /> 
-        <Route path="/use-points" element={<RedeemPoints />} />
-      </Routes>
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/offerwall" element={<Offerwall />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/approvals" element={<AdminApprovals />} />
+      <Route path="/admin/withdrawals" element={<WithdrawalsApprovals />} />
+      <Route path="/admin/products" element={<AdminProducts />} />
+      <Route path="/survey/:id" element={<Survey />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/activity" element={<Activity />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-and-conditions" element={<TermsConditions />} />
+      <Route path="/about-us" element={<AboutUs />} />
+      <Route path="/contact-us" element={<ContactUs />} />
+      <Route path="/maximise-your-earnings" element={<MaximiseEarnings />} />
+      <Route path="/withdrawals" element={<Withdrawlas />} />
+      <Route path="/use-points" element={<RedeemPoints />} />
+      <Route path="/create-template" element={<CreateTemplate />} />
+      <Route path="/apply-jobs" element={<ApplyEmail />} />
+    </Routes>
   );
 }
